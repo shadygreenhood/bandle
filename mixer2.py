@@ -10,15 +10,20 @@ from pathlib import Path
 
 
 # constants
-PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
-SCRIPT_DIR = "scripts"
+if "/" in str(Path(__file__)):
+    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
+elif "\\" in str(Path(__file__)):
+    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
+else:
+    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
+SCRIPT_DIR = "bandle"
 STEMS_FOLDER = PROJECT_DIR+"/separated/htdemucs_6s"
 JAPANESE_FONT_DIR = PROJECT_DIR+"/Noto_Sans_JP/static/NotoSansJP-Medium.ttf"
 PLAYLIST_CSV = PROJECT_DIR+"/"+SCRIPT_DIR+"/playlist_CSV.txt"
 DEBUG = False
 WIDTH = 500
 HEIGHT = 950
-SCALE = 0.5
+SCALE = 1
 CHEAT_MODE = False
 STEMS = ["drums", "bass", "guitar", "piano", "vocals", "other"]
 SANITIZED_EXEPTIONS = {

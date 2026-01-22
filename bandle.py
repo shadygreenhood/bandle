@@ -6,8 +6,13 @@ from pathlib import Path
  
 #IMPORTANT VARS
 
-PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
-SCRIPT_DIR = f"scripts"
+if "/" in str(Path(__file__)):
+    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
+elif "\\" in str(Path(__file__)):
+    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
+else:
+    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
+SCRIPT_DIR = "bandle"
 CSV_PATH = f"{PROJECT_DIR}\\CSV.txt"
 VENV_PATH = f"{PROJECT_DIR}\\.venv\\bin\\python"
 VERBOSE = False

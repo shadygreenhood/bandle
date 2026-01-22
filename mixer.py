@@ -21,8 +21,13 @@ from pathlib import Path
 
 import pygame
 
-PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
-SCRIPT_DIR = "scripts"
+if "/" in str(Path(__file__)):
+    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
+elif "\\" in str(Path(__file__)):
+    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
+else:
+    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
+SCRIPT_DIR = "bandle"
 STEMS_FOLDER = PROJECT_DIR+"/"+"/separated/htdemucs_6s"
 UPDATE_INTERVAL_MS = 100  # progress bar update interval
 PLAYLIST_CSV = PROJECT_DIR+"/"+SCRIPT_DIR+"/playlist_CSV.txt"
