@@ -3,7 +3,11 @@
 # Loops over all MP3 files in a folder
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FOLDER=$PROJECT_DIR  # Default to current directory if no folder provided
+FOLDER=$PROJECT_DIR"/mp3s"  # Default to current directory if no folder provided
+
+if [ -n "$1" ]; then
+    FOLDER="$1"
+fi
 
 for file in "$FOLDER"/*.mp3; do
     # Check if any mp3 files exist

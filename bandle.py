@@ -26,11 +26,11 @@ elif "\\" in str(Path(__file__)):
 else:
     raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
 SCRIPT_DIR = "bandle"
-CSV_PATH = f"{PROJECT_DIR}\\CSV.txt"
+CSV_PATH = f"{PROJECT_DIR}/{SCRIPT_DIR}/CSV.txt"
 INTERPRETER_PATH = sys.executable
 VERBOSE = False
 VERBOSE_FLAG = "--verbose" if VERBOSE else ""
-MP3_DATA_DIR = f"{PROJECT_DIR}\\mp3s"
+MP3_DATA_DIR = f"{PROJECT_DIR}/mp3s"
 SCALE = 0.5
 
 
@@ -74,7 +74,7 @@ def main():
         sleep(1)
         logging.info("Converting Spotify playlist to YouTube URLs in 1...")
         sleep(1)
-        cmd = f"{INTERPRETER_PATH} spotify_to_youtube.py --playlist \"{playlist_url}\" --playlist-name \"{input_name}\" --max-tracks 0  --out {CSV_PATH} {VERBOSE_FLAG}"
+        cmd = f"{INTERPRETER_PATH} {PROJECT_DIR}/{SCRIPT_DIR}/spotify_to_youtube.py --playlist \"{playlist_url}\" --playlist-name \"{input_name}\" --max-tracks 0  --out {CSV_PATH} {VERBOSE_FLAG}"
         subprocess.run(cmd, shell=True, env=required_env_vars)
 
     # Run download_from_csv.sh
@@ -85,7 +85,7 @@ def main():
     logging.info("Downloading MP3s from YouTube URLs in CSV in 1...")
     sleep(1)
     logging.info("Starting download...")
-    cmd = f"./download_from_csv.sh --csv {CSV_PATH} --outdir {MP3_DATA_DIR} --url-col \"youtube_url\""
+    cmd = f"{PROJECT_DIR}/{SCRIPT_DIR}/download_from_csv.sh --csv {CSV_PATH} --outdir {MP3_DATA_DIR} --url-col \"youtube_url\""
     subprocess.run(cmd, shell=True)
 
     logging.info("They are done downloading!")
@@ -97,7 +97,8 @@ def main():
     logging.info("Starting separation of MP3s in 1...")
     sleep(1)
     logging.info("Starting separation now...")
-    cmd = f"./final_split_tool.sh {MP3_DATA_DIR}"
+    print(MP3_DATA_DIR)
+    cmd = f"{PROJECT_DIR}/{SCRIPT_DIR}/final_split_tool.sh {MP3_DATA_DIR}"
     subprocess.run(cmd, shell=True)
 
     logging.info("All tasks completed successfully!")
