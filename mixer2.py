@@ -654,8 +654,8 @@ def bandle_setup():
     skip_button  = Button(WIDTH/2 + 100   , HEIGHT -100, 150 , 100 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
     guess_button = Button(WIDTH/2 - 250   , HEIGHT -100, 150 , 100 , (100, 100, 200), "Guess", radius=15, click_counter=20)
 
-    rewind =     Button(WIDTH/2 - 100 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 100 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
+    rewind =     Button(WIDTH/2 - 140 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
+    skip_ahead = Button(WIDTH/2 + 140 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
     
     skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
