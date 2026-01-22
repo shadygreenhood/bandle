@@ -3,9 +3,22 @@ import os
 import logging
 from time import sleep
 from pathlib import Path
+import sys
  
-#IMPORTANT VARS
+def help(error=""):
+    print(f"There was an error while parsing the config.")
+    print(str(error))
+    print("\n" \
+    "this script is the final wrapper for the shadygreenhood bandle project\n" \
+    "\n" \
+    "Usage: bandle.py\n" \
+    "\n" \
+    "\n" \
+    f"Config default location: {PROJECT_DIR}/config.txt\n" \
+    "\n")
+    raise Exception(str(error))
 
+#IMPORTANT VARS
 if "/" in str(Path(__file__)):
     PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
 elif "\\" in str(Path(__file__)):
@@ -14,10 +27,22 @@ else:
     raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
 SCRIPT_DIR = "bandle"
 CSV_PATH = f"{PROJECT_DIR}\\CSV.txt"
-VENV_PATH = f"{PROJECT_DIR}\\.venv\\bin\\python"
+INTERPRETER_PATH = sys.executable
 VERBOSE = False
 VERBOSE_FLAG = "--verbose" if VERBOSE else ""
 MP3_DATA_DIR = f"{PROJECT_DIR}\\mp3s"
+SCALE = 0.5
+
+
+with open(f"{PROJECT_DIR}/config.txt", "r") as f:
+    txt = f.read().splitlines()
+    for i in txt:
+        if "SCALE" in i:
+            if len(i.split("=")) > 0:
+                SCALE = i.split("=")[1]
+            else:
+                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+
 
 #TODO: add a flags such as --help, --verbose, etc.
 #TODO: add a progress bar for long operations.
@@ -49,7 +74,7 @@ def main():
         sleep(1)
         logging.info("Converting Spotify playlist to YouTube URLs in 1...")
         sleep(1)
-        cmd = f"{VENV_PATH} spotify_to_youtube.py --playlist \"{playlist_url}\" --playlist-name \"{input_name}\" --max-tracks 0  --out {CSV_PATH} {VERBOSE_FLAG}"
+        cmd = f"{INTERPRETER_PATH} spotify_to_youtube.py --playlist \"{playlist_url}\" --playlist-name \"{input_name}\" --max-tracks 0  --out {CSV_PATH} {VERBOSE_FLAG}"
         subprocess.run(cmd, shell=True, env=required_env_vars)
 
     # Run download_from_csv.sh
@@ -79,7 +104,7 @@ def main():
     sleep(3)
     logging.info("Opening bandle mixer...")
     sleep(1)
-    cmd = f"{VENV_PATH} mixer2.py"
+    cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/mixer2.py\" --scale={SCALE}"
     subprocess.run(cmd, shell=True)
 
 

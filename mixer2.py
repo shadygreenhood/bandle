@@ -2,11 +2,13 @@ import pygame
 import os
 import csv
 import ast
+import sys
 import vlc
 from time import sleep 
 import random
 import math
 from pathlib import Path
+
 
 
 # constants
@@ -32,6 +34,7 @@ SANITIZED_EXEPTIONS = {
 CHARS = "AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn ,?;.:/!1234567890éè_&"
 
 
+
 # vars
 playlist_to_names = {}
 name_to_playlists = {}
@@ -43,6 +46,32 @@ vlc_instance = vlc.Instance()
 players = []
 volume = 50
 
+
+# deal with flags
+def help(error=""):
+    print(f"There was an error while parsing the arguments: {sys.argv[1:]}:")
+    print(str(error))
+    print("\n" \
+    "this script is the GUI for the shadygreenhood bandle project\n" \
+    "\n" \
+    "Usage: mixer2.py [option]\n" \
+    "\n" \
+    "\n" \
+    "Options:\n" \
+    "--scale        final render scale of the window (0 to 1)\n" \
+    "\n" \
+    "\n")
+    raise Exception(str(error))
+args = sys.argv[1:]
+for i in args:
+    if i.startswith('--scale='):
+        if len(i.split("=", 1)) > 0:
+            SCALE = float(i.split("=", 1)[1])
+        else:
+            help("no scale provided")
+    else:
+        raise help("argument not recognized")
+    
 
 
 for i in range(len(STEMS)):
