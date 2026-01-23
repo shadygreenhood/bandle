@@ -25,14 +25,14 @@ PLAYLIST_CSV = PROJECT_DIR+"/"+SCRIPT_DIR+"/playlist_CSV.txt"
 DEBUG = False
 WIDTH = 500
 HEIGHT = 950
-SCALE = 1
+CF_SCALE = 1
 CHEAT_MODE = False
 STEMS = ["drums", "bass", "guitar", "piano", "vocals", "other"]
 SANITIZED_EXEPTIONS = {
     "Undertale_-_Spider_Dance_-_Shirobon_Remix": "Spider Dance",
 }
 CHARS = "AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn ,?;.:/!1234567890éè_&"
-
+CF_DEBUG_VLC = False
 
 
 # vars
@@ -52,7 +52,18 @@ with open(f"{PROJECT_DIR}/config.txt", "r") as f:
     for i in txt:
         if "SCALE" in i:
             if len(i.split("=")) > 0:
-                SCALE = float(i.split("=")[1])
+                try:
+                    CF_SCALE = float(i.split("=")[1])
+                except:
+                    help("failed to convert " + str(i.split("=")[1]) + "to a float" )
+            else:
+                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+        if "DEBUG_VLC" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    CF_DEBUG_VLC = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else CF_DEBUG_VLC
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
             else:
                 help(f"no scale provided in {PROJECT_DIR}/config.txt")
 
@@ -76,7 +87,7 @@ args = sys.argv[1:]
 for i in args:
     if i.startswith('--scale='):
         if len(i.split("=", 1)) > 0:
-            SCALE = float(i.split("=", 1)[1])
+            CF_SCALE = float(i.split("=", 1)[1])
         else:
             help("no scale provided")
     else:
@@ -88,13 +99,24 @@ for i in range(len(STEMS)):
     player = vlc_instance.media_player_new()
     players.append(player)
 
+def on_end(event):
+    global vlc_on_end_sig
+    print("Playback finished!")
+    vlc_on_end_sig = True
+    
+vlc_event_manager = players[0].event_manager()
+vlc_on_end_sig = False
+vlc_event_manager.event_attach(
+    vlc.EventType.MediaPlayerEndReached,
+    on_end
+)
+
 
 def load_song(stempath):
     for i in range(len(players)):
         players[i].stop()
         media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.wav")
         players[i].set_media(media)
-        set_position(0)
 
 def mute_all():
     for i in players:
@@ -105,7 +127,7 @@ def set_position(pos):
         players[i].set_position(pos)
 
 def debug_vlc():
-    # print("\n\n")
+    print("\n\n")
     for i in range(len(players)):
         
         info = [i]
@@ -122,8 +144,8 @@ def debug_vlc():
             info.append("idk")
         strr = ""
         for j in range(len(info)):
-            strr += f"|{str(info[j])[:10]} |"
-        # print(strr)
+            strr += ("|"+ str(info[j])[:10] + (10-len(str(info[j])[:10]))*" " +" |") if len(str(info[j])[:10])<10 else "|"+ str(info[j])[:10]+" |"
+        print(strr)
 
 
 
@@ -145,7 +167,15 @@ def pause():
 
 
 def offset_players(offset):
-    offset = players[1].get_time() + offset
+    offset = players[0].get_time() + offset
+
+
+    if offset >= players[0].get_length():
+        offset = players[0].get_length()
+    elif offset < 0:
+        offset = 0
+    
+
     for i in range(len(players)):
         players[i].set_time(offset)
 
@@ -244,7 +274,7 @@ pygame.init()
 pygame.font.init()
 
 
-window = pygame.display.set_mode((WIDTH*SCALE, HEIGHT*SCALE)) 
+window = pygame.display.set_mode((WIDTH*CF_SCALE, HEIGHT*CF_SCALE)) 
 screen = pygame.Surface((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 running = True
@@ -270,7 +300,7 @@ except:
 # ╰--------------------------------------------------------------------╯
 
 def scale_mouse_pos(pos):
-    return (pos[0]*(1/SCALE),pos[1]*(1/SCALE))
+    return (pos[0]*(1/CF_SCALE),pos[1]*(1/CF_SCALE))
 
 
 class Button:
@@ -660,12 +690,12 @@ def bandle_setup():
     go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
 
 
-    play_button  = Button(WIDTH/2 - 100   , HEIGHT -100, 200 , 100 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 100   , HEIGHT -100, 150 , 100 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
-    guess_button = Button(WIDTH/2 - 250   , HEIGHT -100, 150 , 100 , (100, 100, 200), "Guess", radius=15, click_counter=20)
+    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
+    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
+    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
 
-    rewind =     Button(WIDTH/2 - 140 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 140 -30  , HEIGHT -200, 60 , 60 , "pink", ""      , radius=30, click_counter=20)
+    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "red", ""      , radius=20, click_counter=20)
+    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "red", ""      , radius=20, click_counter=20)
     
     skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
@@ -697,6 +727,9 @@ def bandle_screen():
     global selected
     global skip_ahead_img
     global rewind_img
+    global vlc_on_end_sig
+    global mouse_x
+    global mouse_y
 
     global skip_button
     global go_back_button
@@ -707,8 +740,18 @@ def bandle_screen():
 
     global skip
 
+    #deal with players
+    if str(players[0].get_state()) in ["State.Playing", "State.Paused"]:
+        progression = players[0].get_time()/players[0].get_length() if players[0].get_length() != 0 else 1
+    else:
+        progression = 0
+    if vlc_on_end_sig:
+        vlc_on_end_sig = False
+        load_song(STEMS_FOLDER + "/" +  current_song)
+        play_step()
 
-    progression = players[0].get_time()/players[0].get_length() if players[0].get_length() != 0 else 1
+
+
     pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
 
     # title text
@@ -783,23 +826,21 @@ def bandle_screen():
         print("offset!!!!!!!")
         offset_players(5000)
 
-    screen.blit(skip_ahead_img, (WIDTH/2 + 140 -30  , HEIGHT -200))
+    screen.blit(skip_ahead_img, (WIDTH/2 + 90 -30  , HEIGHT -195))
 
     rewind.draw(screen)
     if rewind.is_clicked():
         print("offset!!!!!!!")
         offset_players(-5000)
 
-    screen.blit(rewind_img, (WIDTH/2 - 140 -30  , HEIGHT -200))
+    screen.blit(rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
 
     # progression bar
 
-    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-80, 780, 160, 10), border_radius=5)
-    print(progression)
+    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
+    pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-115 + 230*(progression), 895), 5)
 
-    pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-80 + 160*(progression), 785), 5)
-
-
+    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 850, 240, 110))
 
 
     # go back button
@@ -826,7 +867,11 @@ def bandle_screen():
     if play_button.is_clicked() == 1 and curr_screen != "bandle_guessing":
         
         if not players[0].is_playing():
-            play_step()
+            if players[0].get_time() >= players[0].get_length():
+                set_position(0)
+                play_step()
+            else:
+                play_step()
         else:
             pause()
             
@@ -980,6 +1025,7 @@ while running:
             running = False
         if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP):
             event.pos = scale_mouse_pos(event.pos)
+            mouse_x, mouse_y = event.pos[:]
 
 
 
@@ -1008,7 +1054,7 @@ while running:
     )
 
     window.blit(scaled, (0, 0))
-    if 1 == 1:
+    if CF_DEBUG_VLC:
         debug_vlc()
 
     pygame.display.flip()
