@@ -793,9 +793,9 @@ def bandle_screen():
 
     # draw stem rectangles
     for i in range(len(STEMS)):
-        pygame.draw.rect(screen, (200, 200, 200) if i < step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
+        pygame.draw.rect(screen, (200, 200, 200) if i < step else (150, 150, 150), pygame.Rect(50, 245 + i*75, WIDTH - 100, 60), border_radius=15)
         stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
-        screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
+        screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 249 + i*75))
 
 
     # guess button
@@ -840,7 +840,9 @@ def bandle_screen():
     pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
     pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-115 + 230*(progression), 895), 5)
 
-    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 850, 240, 110))
+    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2+120, 870, 100, 110))
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2-220, 870, 100, 110))
 
 
     # go back button
@@ -988,7 +990,7 @@ def bandle_screen():
         stems = []
         for i in range(len(STEMS)):
             
-            stems.append(Button(50, 250 + i*80, WIDTH - 100, 60, (200, 200, 200) if i < step else (150, 150, 150), f"{STEMS[i]}", 15))
+            stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, (200, 200, 200) if i < step else (150, 150, 150), f"{STEMS[i]}", 15))
             stems[i].draw(screen)
 
             if stems[i].is_clicked():
