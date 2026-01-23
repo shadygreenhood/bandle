@@ -46,6 +46,16 @@ vlc_instance = vlc.Instance()
 players = []
 volume = 50
 
+# read config
+with open(f"{PROJECT_DIR}/config.txt", "r") as f:
+    txt = f.read().splitlines()
+    for i in txt:
+        if "SCALE" in i:
+            if len(i.split("=")) > 0:
+                SCALE = float(i.split("=")[1])
+            else:
+                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+
 
 # deal with flags
 def help(error=""):
@@ -698,7 +708,7 @@ def bandle_screen():
     global skip
 
 
-
+    progression = players[0].get_time()/players[0].get_length() if players[0].get_length() != 0 else 1
     pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
 
     # title text
@@ -771,20 +781,23 @@ def bandle_screen():
     skip_ahead.draw(screen)
     if skip_ahead.is_clicked():
         print("offset!!!!!!!")
-        offset_players(1000)
+        offset_players(5000)
 
     screen.blit(skip_ahead_img, (WIDTH/2 + 140 -30  , HEIGHT -200))
 
     rewind.draw(screen)
     if rewind.is_clicked():
         print("offset!!!!!!!")
-        offset_players(-1000)
+        offset_players(-5000)
 
     screen.blit(rewind_img, (WIDTH/2 - 140 -30  , HEIGHT -200))
 
-    # barre de progression
+    # progression bar
 
     pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-80, 780, 160, 10), border_radius=5)
+    print(progression)
+
+    pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-80 + 160*(progression), 785), 5)
 
 
 
