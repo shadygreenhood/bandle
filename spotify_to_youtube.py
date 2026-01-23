@@ -35,6 +35,7 @@ import time
 import logging
 from typing import List
 import re
+from pathlib import Path
 
 try:
     import requests
@@ -53,7 +54,15 @@ except Exception:
     yt_dlp = None
 
 LOG = logging.getLogger('spotify_to_youtube')
-
+if "/" in str(Path(__file__)):
+    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
+elif "\\" in str(Path(__file__)):
+    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
+else:
+    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
+SCRIPT_DIR = "bandle"
+CSV_PATH = PROJECT_DIR + "/" + SCRIPT_DIR + "/CSV.txt"
+PLAYLIST_CSV_DIR = PROJECT_DIR + "/" + SCRIPT_DIR + "/playlist_CSV.txt"
 
 def get_spotify_client(scope='playlist-read-private'):
     if spotipy is None:
@@ -320,7 +329,7 @@ def spotify_playlist_to_csv(playlist_id: str, playlist_name:str, out_path: str, 
     track_titles = []
     for idx, track in enumerate(tracks, 1):
         IDs = []
-        with open('CSV.txt', newline='') as f:
+        with open(CSV_PATH, newline='') as f:
             reader = csv.reader(f)
             for row in reader:
                 IDs.append(row[0])
@@ -430,7 +439,7 @@ def main(argv=None):
     playlist_id = extract_playlist_id(args.playlist)
     if playlist_id != args.playlist:
         LOG.debug('Extracted playlist id: %s', playlist_id)
-    spotify_playlist_to_csv(playlist_id, playlist_name, args.out, 'playlist_CSV.txt', max_tracks=max_tracks, dry_run=args.dry_run)
+    spotify_playlist_to_csv(playlist_id, playlist_name, args.out, PLAYLIST_CSV_DIR, max_tracks=max_tracks, dry_run=args.dry_run)
 
 
 if __name__ == '__main__':

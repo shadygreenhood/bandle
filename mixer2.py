@@ -101,7 +101,6 @@ for i in range(len(STEMS)):
 
 def on_end(event):
     global vlc_on_end_sig
-    print("Playback finished!")
     vlc_on_end_sig = True
     
 vlc_event_manager = players[0].event_manager()
@@ -117,6 +116,13 @@ def load_song(stempath):
         players[i].stop()
         media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.wav")
         players[i].set_media(media)
+        players[i].play()
+        while str(players[i].get_state()) not in ["State.Paused", "State.Playing"]:
+            sleep(0.001)
+        players[i].pause()
+        set_position(0)
+        
+        
 
 def mute_all():
     for i in players:
@@ -641,6 +647,7 @@ def bandle_setup():
     global text
     global selected
     global offset
+    global scrolling
 
     global skip_button
     global go_back_button
@@ -684,6 +691,7 @@ def bandle_setup():
     text = ""
     selected = -1
     offset = 0
+    scrolling = False
 
     # setting buttons
     
@@ -730,6 +738,7 @@ def bandle_screen():
     global vlc_on_end_sig
     global mouse_x
     global mouse_y
+    global scrolling
 
     global skip_button
     global go_back_button
@@ -823,14 +832,12 @@ def bandle_screen():
     
     skip_ahead.draw(screen)
     if skip_ahead.is_clicked():
-        print("offset!!!!!!!")
         offset_players(5000)
 
     screen.blit(skip_ahead_img, (WIDTH/2 + 90 -30  , HEIGHT -195))
 
     rewind.draw(screen)
     if rewind.is_clicked():
-        print("offset!!!!!!!")
         offset_players(-5000)
 
     screen.blit(rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
@@ -840,10 +847,31 @@ def bandle_screen():
     pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
     pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-115 + 230*(progression), 895), 5)
 
-    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2+120, 870, 100, 110))
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2-220, 870, 100, 110))
+    # progress bar hitbox visualizer1
+    # pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
+    # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2+120, 870, 100, 110))
+    # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2-220, 870, 100, 110))
 
+
+    if pygame.mouse.get_pressed()[0]:
+        if mouse_y > 870 and mouse_y < 870+110 and mouse_x > WIDTH/2-220 and mouse_x < WIDTH/2+220:
+            if mouse_x > WIDTH/2-120:
+                if mouse_x > WIDTH/2+120:
+                    set_position(1)
+                    scrolling = True
+                else:
+                    set_position((mouse_x - (WIDTH/2-120))/240)
+                    scrolling = True
+            else:
+                set_position(0)
+                scrolling = True
+    else:
+        if scrolling:
+            scrolling = not scrolling
+    
+    if scrolling:
+        if players[0].is_playing():
+            pause()
 
     # go back button
     go_back_button.draw(screen)

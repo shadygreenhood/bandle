@@ -22,7 +22,7 @@ for file in "$FOLDER"/*.mp3; do
     else
         echo "Processing: $file"
         
-        "$PROJECT_DIR+/.venv/bin/python" -m demucs -n htdemucs_6s $file
+        "$PROJECT_DIR/.venv/bin/python" -m demucs -n htdemucs_6s $file
     fi
 done
 

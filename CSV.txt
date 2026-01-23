@@ -277,3 +277,9 @@ spotify_track_id,spotify_title,spotify_artists,spotify_duration_ms,youtube_video
 0QDjYBER1ZqISxA2Gc0cJe,春を告げる - From THE FIRST TAKE,yama,300800,q5e0C6xizVY,yama - 春を告げる  / THE FIRST TAKE,https://www.youtube.com/watch?v=q5e0C6xizVY
 09gBx310Z7KnMI5LdB3fDl,モンスター (feat. yama),"Genie High, yama",263421,3EeGcpNmUx8,ジェニーハイ-モンスター feat.yama,https://www.youtube.com/watch?v=3EeGcpNmUx8
 34ozZofkGQZi2zzdTTdvtO,Sugarveil,yama,175100,ULaokwULZoY,Sugarveil,https://www.youtube.com/watch?v=ULaokwULZoY
+60iYkEAcSpAFcsjRrgTlrc,明け星,LiSA,269000,yGcm81aaTHg,LiSA 『明け星』 -MUSiC CLiP-（テレビアニメ「鬼滅の刃」無限列車編 オープニングテーマ）,https://www.youtube.com/watch?v=yGcm81aaTHg
+7v8wKvNQQIxkugCFFjrkaO,残響散歌,Aimer,184898,tLQLa6lM3Us,Aimer「Zankyosanka」MUSIC VIDEO（Demon Slayer:Kimetsu no Yaiba Entertainment District Arc Theme Song）,https://www.youtube.com/watch?v=tLQLa6lM3Us
+2VBLFxCUyFp5BfmsZpxcis,絆ノ奇跡,"MAN WITH A MISSION, milet",223320,Jb6Zlg30rgk,MAN WITH A MISSION×milet「絆ノ奇跡」Music Video,https://www.youtube.com/watch?v=Jb6Zlg30rgk
+2otdcgLtoowuQzlU0Cx827,夢幻,"MY FIRST STORY, HYDE",241156,1a3b7ZpUcn4,MY FIRST STORY × HYDE – “MUGEN” (from Anime “Demon Slayer: Kimetsu no Yaiba”) Official Music Video,https://www.youtube.com/watch?v=1a3b7ZpUcn4
+0AtZkwQcZmhVzQCEJga3ni,太陽が昇らない世界 - A World Where the Sun Never Rises,Aimer,170315,DJOf0XtVpkI,Aimer「太陽が昇らない世界」Music Video（『劇場版「鬼滅の刃」無限城編 』第一章 猗窩座再来』 主題歌）,https://www.youtube.com/watch?v=DJOf0XtVpkI
+2OhStQJiQ1CFGvCZKMaItL,残酷な夜に輝け - Shine in the Cruel Night,LiSA,383361,ysdtX8kRTuQ,LiSA『残酷な夜に輝け』MUSiC CLiP,https://www.youtube.com/watch?v=ysdtX8kRTuQ
