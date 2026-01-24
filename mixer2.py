@@ -561,8 +561,81 @@ def debug():
 
 def setup():
     global curr_screen
-    users = []
-    curr_screen = "playlists_setup"
+    curr_screen = "main_menu_setup"
+
+def main_menu_setup():
+    global playlist_select_button
+    global manage_blacklist_button  
+    global curr_screen
+    playlist_select_button = Button(100, 100, 200, 80, (100, 100, 100), "play bandle from Playlist", radius=20)
+    manage_blacklist_button = Button(100, 200, 200, 80, (100, 100, 100), "manage blacklist", radius=20)
+    curr_screen = "main_menu"
+
+def main_menu():
+    global playlist_select_button
+    global curr_screen
+    global manage_blacklist_button
+
+    manage_blacklist_button.draw(screen)
+    playlist_select_button.draw(screen)
+    if playlist_select_button.is_clicked():
+        curr_screen = "playlists_setup"
+    if manage_blacklist_button.is_clicked():
+        curr_screen = "manage_blacklist_setup"
+
+def manage_blacklist_setup():
+    global go_back_button
+    global curr_screen
+    global close_button
+    global wiki
+    global wiki_bool
+
+    wiki_bool = True
+
+    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+    close_button = Button(WIDTH-40, 150-20, 40, 40, (250 ,250 ,250), "x", 20)
+    curr_screen = "manage_blacklist"
+
+    wiki = []
+    wiki.append("The selected blacklist will")
+    wiki.append("remember the songs you played")
+    wiki.append("played so you dont get them twice.")
+    wiki.append("")
+    wiki.append("Manage them as you wish!")
+    wiki.append("")
+    wiki.append("\"blacklist.txt\" for more detail.")
+
+def manage_blacklist():
+    global go_back_button
+    global curr_screen
+    global wiki
+    global wiki_bool
+    global close_button
+
+    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+    
+
+    if wiki_bool:
+        pygame.draw.rect(screen, (190, 180, 170), pygame.Rect(20, 130, WIDTH-40, 270), border_radius=20)
+        for i in range(len(wiki)):
+            screen.blit(small_font.render(wiki[i], True, (10, 10, 10)), (45, 130 + 20 + 30*i))
+
+        
+        close_button.draw(screen)
+
+        if close_button.is_clicked():
+            wiki_bool = False
+
+    offset = 10
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, (wiki_bool * 270) + 150 + offset, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
+    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, (wiki_bool * 270) + 150, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
+
+
+    go_back_button.draw(screen)
+    if go_back_button.is_clicked() == 1:
+        curr_screen = "main_menu"
+
+
 
 def playlist_select_setup():
     global selected
@@ -572,20 +645,23 @@ def playlist_select_setup():
     global start_button
     global CHEAT_MODE_toggle
     global CHEAT_MODE
+    global go_back_button
 
 
     selected = -1
     buttons = []
     selected_playlist = ""
     curr_screen = "playlists"
-    start_button = Button(WIDTH/2 - 100, HEIGHT - 200, 200, 80, (100, 200, 100), "Start", radius=20, click_counter=20)
+    start_button = Button(WIDTH/2 - 100, 780, 200, 80, (100, 200, 100), "Start", radius=20, click_counter=20)
 
-    CHEAT_MODE_toggle = Toggle(WIDTH/2 - 200, HEIGHT - 300, 400, 65, (100, 200, 100), (200, 100, 100), "CHEAT MODE: ON", "CHEAT MODE: OFF", radius=20)
+    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+
+    CHEAT_MODE_toggle = Toggle(WIDTH/2 - 200, 670, 400, 65, (100, 200, 100), (200, 100, 100), "CHEAT MODE: ON", "CHEAT MODE: OFF", radius=20)
     CHEAT_MODE = CHEAT_MODE_toggle.state
 
 
     for i in range(len(playlists)):
-        buttons.append(Button(71, 181 + i*60, WIDTH - 142, 48, (200, 200, 200), playlist_to_names[playlists[i]], radius=15))
+        buttons.append(Button(71, 250 + i*60, WIDTH - 142, 48, (200, 200, 200), playlist_to_names[playlists[i]], radius=15))
 
 def playlist_select():
     global curr_screen
@@ -595,20 +671,26 @@ def playlist_select():
     global selected
     global start_button
     global CHEAT_MODE_toggle
+    global go_back_button
     
     # draw cheat mode toggle
     CHEAT_MODE_toggle.draw(screen)
     CHEAT_MODE = CHEAT_MODE_toggle.state
 
+    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+
+    go_back_button.draw(screen)
+    if go_back_button.is_clicked() == 1:
+        curr_screen = "main_menu"
 
     # title text
     text_surface = title_font.render("Select playlist", True, (10, 10 ,10))
-    screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,50))
+    screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
     # background box
     offset = 10
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, 150 + offset, WIDTH - 100, HEIGHT - 500), border_radius=20)
-    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 150, WIDTH - 100, HEIGHT - 500), border_radius=20)
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, 230 + offset, WIDTH - 100, 400), border_radius=20)
+    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
     
 
     # check who is selected
@@ -1061,6 +1143,14 @@ while running:
 
     if DEBUG == True:
         debug()
+    elif curr_screen == "main_menu_setup":
+        main_menu_setup()
+    elif curr_screen == "main_menu":
+        main_menu()
+    elif curr_screen == "manage_blacklist_setup":
+        manage_blacklist_setup()
+    elif curr_screen == "manage_blacklist":
+        manage_blacklist()
     elif curr_screen == "playlists_setup":
         playlist_select_setup()
     elif curr_screen == "setup":
