@@ -45,6 +45,46 @@ all_songs = []
 vlc_instance = vlc.Instance()
 players = []
 volume = 50
+blacklists = "None"
+blacklist_names = []
+curr_blacklist = -1
+
+# help function for debugging
+def help(error=""):
+    print(f"There was an error while parsing the arguments: {sys.argv[1:]}:")
+    print(str(error))
+    print("\n" \
+    "this script is the GUI for the shadygreenhood bandle project\n" \
+    "\n" \
+    "Usage: mixer2.py [option]\n" \
+    "\n" \
+    "\n" \
+    "Options:\n" \
+    "--scale        final render scale of the window (0 to 1)\n" \
+    "\n" \
+    "\n")
+    raise Exception(str(error))
+
+# read Blacklists.txt
+with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r") as f:
+    txt = f.read().splitlines()
+    blacklists = []
+    for i in txt:
+        try:
+            blacklists.append([j for j in i.split("=")[1].split(" ")])
+            blacklist_names.append(i.split("=")[0])
+        except:
+            help(f"failed to extract contents of {i} in Blacklists.txt")
+        if blacklists[-1][-1] == "":
+            blacklists[-1].pop(-1)
+if blacklists == []:
+    print("no blacklists found in Blacklist.txt, creating a new one")
+    with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w") as f:
+        f.write("GENERATED_BLACKLIST=")
+    blacklists = [[""]]
+    blacklist_names = ["GENERATED_BLACKLIST"]
+
+
 
 # read config
 with open(f"{PROJECT_DIR}/config.txt", "r") as f:
@@ -66,23 +106,21 @@ with open(f"{PROJECT_DIR}/config.txt", "r") as f:
                     help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
             else:
                 help(f"no scale provided in {PROJECT_DIR}/config.txt")
+        if "DEFAULT_BLACKLIST" in i:
+            if len(i.split("=")) > 0:
+                curr_blacklist = str(i.split("=")[1])
+                if curr_blacklist in blacklist_names:
+                    curr_blacklist = blacklist_names.index(curr_blacklist)
+                else:
+                    help("default blacklist is set to an unknown value")
+            else:
+                help(f"no blacklist provided after DEFAULT_BLACKLIST= in {PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt")
 
+if curr_blacklist == -1:
+    print("no default blacklist found in config.txt defaulting to the first")
+    curr_blacklist = 0
 
 # deal with flags
-def help(error=""):
-    print(f"There was an error while parsing the arguments: {sys.argv[1:]}:")
-    print(str(error))
-    print("\n" \
-    "this script is the GUI for the shadygreenhood bandle project\n" \
-    "\n" \
-    "Usage: mixer2.py [option]\n" \
-    "\n" \
-    "\n" \
-    "Options:\n" \
-    "--scale        final render scale of the window (0 to 1)\n" \
-    "\n" \
-    "\n")
-    raise Exception(str(error))
 args = sys.argv[1:]
 for i in args:
     if i.startswith('--scale='):
@@ -94,6 +132,13 @@ for i in args:
         raise help("argument not recognized")
     
 
+# ╭----------------------------------------╮
+# |      ╭----╮  ╭    ╮ ╭--,  ╭---╮ ╭----╮ |
+# |      |    |  |    | |   \   |   |    | |
+# |      |----|  |    | |   |   |   |    | |
+# |      |    |  |    | |   /  _|_  |    | |
+# |      ╰    ╯  ╰----╯ ╰--'  ╰---╯ ╰----╯ |
+# ╰----------------------------------------╯
 
 for i in range(len(STEMS)):
     player = vlc_instance.media_player_new()
@@ -110,7 +155,6 @@ vlc_event_manager.event_attach(
     on_end
 )
 
-
 def load_song(stempath):
     for i in range(len(players)):
         players[i].stop()
@@ -120,9 +164,7 @@ def load_song(stempath):
         while str(players[i].get_state()) not in ["State.Paused", "State.Playing"]:
             sleep(0.001)
         players[i].pause()
-        set_position(0)
-        
-        
+        set_position(0) 
 
 def mute_all():
     for i in players:
@@ -153,9 +195,6 @@ def debug_vlc():
             strr += ("|"+ str(info[j])[:10] + (10-len(str(info[j])[:10]))*" " +" |") if len(str(info[j])[:10])<10 else "|"+ str(info[j])[:10]+" |"
         print(strr)
 
-
-
-
 def set_volume(step, volume=50):
     for i in range(len(players)):
         if i < step:
@@ -171,17 +210,14 @@ def pause():
     for i in range(len(players)):
         players[i].pause()
 
-
 def offset_players(offset):
     offset = players[0].get_time() + offset
-
 
     if offset >= players[0].get_length():
         offset = players[0].get_length()
     elif offset < 0:
         offset = 0
     
-
     for i in range(len(players)):
         players[i].set_time(offset)
 
@@ -545,6 +581,44 @@ if DEBUG:
 # |      ╰----╯  ╰    ╯ ╰    ╯ ╰----     ╰---╯ ╰----╯ ╰----╯ ╰          |
 # ╰---------------------------------------------------------------------╯
 
+def skip(silent=False, skip_song=False, simple_update=False):
+        global step
+        global song_counter
+        global queue
+        global current_song
+        global curr_screen
+        if not simple_update:
+            set_position(0)
+        step += 1
+        if step > len(STEMS) or skip_song:
+            step = 1
+
+            # update the correct blacklist
+            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r") as f:
+                txt = f.read()
+            txts=txt.splitlines()
+            buffer = ""
+            for i in range(len(txts)):
+                if i == curr_blacklist:
+                    buffer += txts[i] + current_song + " " + "\n"
+                else:
+                    buffer += txts[i] + "\n"
+            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w") as f:
+                f.write(buffer)
+            blacklists[curr_blacklist].append(current_song)
+                
+            song_counter += 1
+            if not silent:
+                warnings.append(Warning(f"song was {sanitize(current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
+
+            if song_counter >= len(queue):
+                warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
+                curr_screen = "playlist_select"
+            current_song = queue[song_counter - 1]
+            
+
+            load_song(STEMS_FOLDER + "/" +  current_song)
+
 
 def debug():
     # text test
@@ -561,6 +635,13 @@ def debug():
 
 def setup():
     global curr_screen
+    global shadow_offset
+    global blacklists
+    global curr_blacklist
+
+    if blacklists == "no_blacklist":
+        pass
+    shadow_offset = 10
     curr_screen = "main_menu_setup"
 
 def main_menu_setup():
@@ -572,6 +653,7 @@ def main_menu_setup():
     curr_screen = "main_menu"
 
 def main_menu():
+    global shadow_offset
     global playlist_select_button
     global curr_screen
     global manage_blacklist_button
@@ -589,28 +671,38 @@ def manage_blacklist_setup():
     global close_button
     global wiki
     global wiki_bool
+    global blacklist_buttons
 
     wiki_bool = True
 
     go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
     close_button = Button(WIDTH-40, 150-20, 40, 40, (250 ,250 ,250), "x", 20)
     curr_screen = "manage_blacklist"
+    blacklist_buttons = []
+
+
+    for i in range(len(blacklist_names)):
+        blacklist_buttons.append(Button(70, 170 + i*70, WIDTH-140, 60, (200, 200, 200), blacklist_names[i], 20))
+
 
     wiki = []
     wiki.append("The selected blacklist will")
     wiki.append("remember the songs you played")
-    wiki.append("played so you dont get them twice.")
+    wiki.append("so you dont get them twice.")
     wiki.append("")
     wiki.append("Manage them as you wish!")
-    wiki.append("")
-    wiki.append("\"blacklist.txt\" for more detail.")
+    wiki.append("you can also directly edit")
+    wiki.append("\"Blacklists.txt\" for more control")
 
 def manage_blacklist():
+    global shadow_offset
     global go_back_button
     global curr_screen
     global wiki
     global wiki_bool
     global close_button
+    global manage_blacklist_button
+    global curr_blacklist
 
     pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
     
@@ -630,15 +722,28 @@ def manage_blacklist():
     pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, (wiki_bool * 270) + 150 + offset, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
     pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, (wiki_bool * 270) + 150, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
 
+    for i in range(len(blacklist_buttons)):
+
+        blacklist_buttons[i].y = i*70 + 170 + (wiki_bool * 270)
+        if blacklist_buttons[i].is_clicked():
+            curr_blacklist = i
+        if curr_blacklist == i:
+            blacklist_buttons[i].color = (100, 200, 100)
+        else:
+            blacklist_buttons[i].color = (200, 200, 200)
+        blacklist_buttons[i].draw(screen)
+
 
     go_back_button.draw(screen)
     if go_back_button.is_clicked() == 1:
         curr_screen = "main_menu"
 
+    
+
 
 
 def playlist_select_setup():
-    global selected
+    global selected_p
     global buttons
     global selected_playlist
     global curr_screen
@@ -647,11 +752,11 @@ def playlist_select_setup():
     global CHEAT_MODE
     global go_back_button
 
-
-    selected = -1
+    
+    selected_p = -1
     buttons = []
     selected_playlist = ""
-    curr_screen = "playlists"
+    
     start_button = Button(WIDTH/2 - 100, 780, 200, 80, (100, 200, 100), "Start", radius=20, click_counter=20)
 
     go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
@@ -662,16 +767,19 @@ def playlist_select_setup():
 
     for i in range(len(playlists)):
         buttons.append(Button(71, 250 + i*60, WIDTH - 142, 48, (200, 200, 200), playlist_to_names[playlists[i]], radius=15))
+    curr_screen = "playlists"
 
 def playlist_select():
+    global shadow_offset
     global curr_screen
     global CHEAT_MODE
     global buttons
     global selected_playlist
-    global selected
+    global selected_p
     global start_button
     global CHEAT_MODE_toggle
     global go_back_button
+
     
     # draw cheat mode toggle
     CHEAT_MODE_toggle.draw(screen)
@@ -688,19 +796,18 @@ def playlist_select():
     screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
     # background box
-    offset = 10
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, 230 + offset, WIDTH - 100, 400), border_radius=20)
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + shadow_offset, 230 + shadow_offset, WIDTH - 100, 400), border_radius=20)
     pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
     
 
     # check who is selected
     for i in range(len(buttons)):
         if buttons[i].is_clicked():
-            selected = i
+            selected_p = i
             selected_playlist = name_to_playlists[buttons[i].text]
     # draw buttons
     for i in range(len(buttons)):
-        if i == selected:
+        if i == selected_p:
             buttons[i].color = (100, 200, 100)
         else:
             buttons[i].color = (200, 200, 200)
@@ -709,7 +816,7 @@ def playlist_select():
 
     
     
-    pygame.draw.rect(screen, (50, 100, 50), pygame.Rect(start_button.x + offset, start_button.y + offset, start_button.w, start_button.h), border_radius=20)
+    pygame.draw.rect(screen, (50, 100, 50), pygame.Rect(start_button.x + shadow_offset, start_button.y + shadow_offset, start_button.w, start_button.h), border_radius=20)
     start_button.draw(screen)
 
     if start_button.is_clicked() == 1:  
@@ -724,7 +831,6 @@ def bandle_setup():
     global queue
     global step
     global song_counter
-    global queue
     global bandle_guessing_counter
     global text
     global selected
@@ -743,25 +849,7 @@ def bandle_setup():
     
     global skip
     
-    def skip(silent=False, skip_song=False, simple_update=False):
-        global step
-        global song_counter
-        global queue
-        global current_song
-        if not simple_update:
-            set_position(0)
-        step += 1
-        if step > len(STEMS) or skip_song:
-            step = 1
-            song_counter += 1
-            if not silent:
-                warnings.append(Warning(f"song was {sanitize(current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
-            if song_counter > len(queue):
-                
-                song_counter = 1
-                random.shuffle(queue)
-            current_song = queue[song_counter - 1]
-            load_song(STEMS_FOLDER + "/" +  current_song)
+    
 
         
 
@@ -800,14 +888,33 @@ def bandle_setup():
 
     # preparing song queue
     queue = playlist_to_songs[selected_playlist]
-    random.shuffle(queue)
-    current_song = queue[song_counter - 1]
-    load_song(STEMS_FOLDER + "/" +  current_song)
+    print(queue)
+    bfr = []
+    for i in range(len(queue)):
+        print(queue[i])
+        print(blacklists[curr_blacklist])
+        print(queue[i] in blacklists[curr_blacklist])
+        if queue[i] in blacklists[curr_blacklist]:
+            bfr.append(i)
+    print(queue)
+    for i in range(len(bfr)):
+        queue.pop(bfr[i] - i)
+    print(blacklists[curr_blacklist])
+    print(bfr)
+    print(queue)
+
+    if queue == []:
+        curr_screen = "playlists"
+        warnings.append( Warning("already finished this playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
+    else:
+        random.shuffle(queue)
+        current_song = queue[0]
+        load_song(STEMS_FOLDER + "/" +  current_song)
+        curr_screen = "bandle"
     
-    
-    curr_screen = "bandle"
 
 def bandle_screen():
+    global shadow_offset
     global curr_screen
     global step
     global song_counter
