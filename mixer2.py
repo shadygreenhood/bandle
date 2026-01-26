@@ -610,14 +610,17 @@ def skip(silent=False, skip_song=False, simple_update=False):
             song_counter += 1
             if not silent:
                 warnings.append(Warning(f"song was {sanitize(current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
-
-            if song_counter >= len(queue):
+            print("song counter", song_counter, "queue: ", queue)
+            if song_counter > len(queue):
                 warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
-                curr_screen = "playlist_select"
-            current_song = queue[song_counter - 1]
+                curr_screen = "playlists"
+            else:
+                print("song counter", song_counter)
+                current_song = queue[song_counter - 1]
+                load_song(STEMS_FOLDER + "/" +  current_song)
+            print(curr_screen)
             
 
-            load_song(STEMS_FOLDER + "/" +  current_song)
 
 
 def debug():
@@ -1071,7 +1074,8 @@ def bandle_screen():
     skip_button.draw(screen)
     if skip_button.is_clicked() == 1 and curr_screen != "bandle_guessing":
         skip(True if curr_screen == "bandle_stare" else False, True if curr_screen == "bandle_stare" else False)
-        curr_screen = "bandle"
+        if curr_screen != "playlists":
+            curr_screen = "bandle"
         
 
     # play/pause button
