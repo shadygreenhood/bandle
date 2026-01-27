@@ -754,8 +754,10 @@ def playlist_select_setup():
     global CHEAT_MODE_toggle
     global CHEAT_MODE
     global go_back_button
+    global scrollpos
+    global scrollvel
 
-    
+    scrollpos, scrollvel = 0
     selected_p = -1
     buttons = []
     selected_playlist = ""
@@ -782,6 +784,8 @@ def playlist_select():
     global start_button
     global CHEAT_MODE_toggle
     global go_back_button
+    global scrollpos
+    global scrollvel
 
     
     # draw cheat mode toggle
@@ -814,6 +818,7 @@ def playlist_select():
             buttons[i].color = (100, 200, 100)
         else:
             buttons[i].color = (200, 200, 200)
+        buttons[i].x, buttons[i].y = (71, 250 + i*60)
         buttons[i].draw(screen)
 
 
@@ -1249,6 +1254,8 @@ while running:
         if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP):
             event.pos = scale_mouse_pos(event.pos)
             mouse_x, mouse_y = event.pos[:]
+        if event.type == pygame.MOUSEWHEEL:
+            mouse_scroll = event.y
 
 
 
