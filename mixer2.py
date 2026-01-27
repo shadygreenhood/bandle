@@ -48,6 +48,9 @@ volume = 50
 blacklists = "None"
 blacklist_names = []
 curr_blacklist = -1
+mouse_scroll, mouse_x, mouse_y = 0, 0, 0
+k_up, k_down = 0, 0
+
 
 # help function for debugging
 def help(error=""):
@@ -158,11 +161,16 @@ vlc_event_manager.event_attach(
 def load_song(stempath):
     for i in range(len(players)):
         players[i].stop()
-        media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.wav")
-        players[i].set_media(media)
-        players[i].play()
-        while str(players[i].get_state()) not in ["State.Paused", "State.Playing"]:
-            sleep(0.001)
+        if Path(stempath + f"/{STEMS[i]}.wav").is_file():
+            media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.wav")
+            players[i].set_media(media)
+            players[i].play()
+            while str(players[i].get_state()) not in ["State.Paused", "State.Playing"]:
+                sleep(0.001)
+        else:
+            print(f'could not find file: {stempath + f"/{STEMS[i]}.wav"}')
+            warnings.append( Warning("file not found, reset now", (40, HEIGHT-80, WIDTH-80), level="warning"))
+        
         players[i].pause()
         set_position(0) 
 
@@ -375,7 +383,7 @@ class Button:
     def is_clicked(self):
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.rect.collidepoint(event.pos):
+                if self.rect.collidepoint(event.pos) and event.button == 1:
                     self.click_counter += 1
                     return self.click_counter
                 self.click_counter = 0
@@ -757,7 +765,7 @@ def playlist_select_setup():
     global scrollpos
     global scrollvel
 
-    scrollpos, scrollvel = 0
+    scrollpos, scrollvel = 0, 0
     selected_p = -1
     buttons = []
     selected_playlist = ""
@@ -771,7 +779,7 @@ def playlist_select_setup():
 
 
     for i in range(len(playlists)):
-        buttons.append(Button(71, 250 + i*60, WIDTH - 142, 48, (200, 200, 200), playlist_to_names[playlists[i]], radius=15))
+        buttons.append(Button(77, 250 + i*60, WIDTH - 148, 48, (200, 200, 200), playlist_to_names[playlists[i]], radius=15))
     curr_screen = "playlists"
 
 def playlist_select():
@@ -787,7 +795,47 @@ def playlist_select():
     global scrollpos
     global scrollvel
 
+
     
+    if len(buttons) > 6:
+        scrollvel = (scrollvel + mouse_scroll*3)/2
+        scrollpos += scrollvel
+        if scrollpos > 0:
+            scrollpos = 0
+        elif scrollpos < -len(buttons)*6 + 37.5:
+            scrollpos = -len(buttons)*6 + 37.5
+        scrollvel=round(scrollvel*10)/10
+        scrollpos=round(scrollpos*100)/100
+    else:
+        scrollpos = 0
+    
+    # print(f"pos: {scrollpos},vel: {scrollvel} mouse_scroll; {mouse_scroll}, lnebuts: {len(buttons)*6}")
+
+    # background box
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + shadow_offset, 230 + shadow_offset, WIDTH - 100, 400), border_radius=20)
+    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
+
+    # check who is selected
+    for i in range(len(buttons)):
+        if mouse_y > 230 and mouse_y < 630:
+            if buttons[i].is_clicked():
+                selected_p = i
+                selected_playlist = name_to_playlists[buttons[i].text]
+    # draw buttons
+    for i in range(len(buttons)):
+        if i == selected_p:
+            buttons[i].color = (100, 200, 100)
+        else:
+            buttons[i].color = (200, 200, 200)
+        buttons[i].x, buttons[i].y = (77, 250 + i*60 + scrollpos*10)
+        buttons[i].draw(screen)
+
+    # hacky caches for the buttons
+    pygame.draw.rect(screen, "pink", pygame.Rect(0, 0, WIDTH, 230))
+    pygame.draw.rect(screen, "pink", pygame.Rect(0, 630 + shadow_offset, WIDTH, 400))
+    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(73, 630, 360, shadow_offset), border_radius=3)
+
+
     # draw cheat mode toggle
     CHEAT_MODE_toggle.draw(screen)
     CHEAT_MODE = CHEAT_MODE_toggle.state
@@ -802,24 +850,10 @@ def playlist_select():
     text_surface = title_font.render("Select playlist", True, (10, 10 ,10))
     screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
-    # background box
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + shadow_offset, 230 + shadow_offset, WIDTH - 100, 400), border_radius=20)
-    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
+
     
 
-    # check who is selected
-    for i in range(len(buttons)):
-        if buttons[i].is_clicked():
-            selected_p = i
-            selected_playlist = name_to_playlists[buttons[i].text]
-    # draw buttons
-    for i in range(len(buttons)):
-        if i == selected_p:
-            buttons[i].color = (100, 200, 100)
-        else:
-            buttons[i].color = (200, 200, 200)
-        buttons[i].x, buttons[i].y = (71, 250 + i*60)
-        buttons[i].draw(screen)
+    
 
 
     
@@ -880,8 +914,8 @@ def bandle_setup():
     skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
     guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
 
-    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "red", ""      , radius=20, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "red", ""      , radius=20, click_counter=20)
+    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
+    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     
     skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
@@ -896,20 +930,20 @@ def bandle_setup():
 
     # preparing song queue
     queue = playlist_to_songs[selected_playlist]
-    print(queue)
+    # print(queue)
     bfr = []
     for i in range(len(queue)):
-        print(queue[i])
-        print(blacklists[curr_blacklist])
-        print(queue[i] in blacklists[curr_blacklist])
+        # print(queue[i])
+        # print(blacklists[curr_blacklist])
+        # print(queue[i] in blacklists[curr_blacklist])
         if queue[i] in blacklists[curr_blacklist]:
             bfr.append(i)
-    print(queue)
+    # print(queue)
     for i in range(len(bfr)):
         queue.pop(bfr[i] - i)
-    print(blacklists[curr_blacklist])
-    print(bfr)
-    print(queue)
+    # print(blacklists[curr_blacklist])
+    # print(bfr)
+    # print(queue)
 
     if queue == []:
         curr_screen = "playlists"
@@ -1011,6 +1045,7 @@ def bandle_screen():
             if curr_screen != "bandle_guessing":
                 curr_screen = "bandle_guessing"
                 offset = 0
+                selected = -1
                 bandle_guessing_counter = 0
                 textinput.focused = True
         for event in events:
@@ -1107,7 +1142,7 @@ def bandle_screen():
 
     if curr_screen == "bandle_guessing":
             
-        # slight blur
+        # slight shade
         s = pygame.Surface((1000,1000))  
         s.set_alpha(bandle_guessing_counter * 128)             
         s.fill((100,100,100))           
@@ -1120,7 +1155,7 @@ def bandle_screen():
         textinput.draw()
         
 
-        limit = 5
+        limit = 10
         text = textinput.text
         suggestions = []
         actual_suggestions = []
@@ -1130,56 +1165,62 @@ def bandle_screen():
                     suggestions.append(all_songs_sanitized[i])
                     actual_suggestions.append(all_songs[i])
 
-        
-
+        go_down = True if (k_down-20 > 0 and counter%1 == 0) or k_down == 1 else False
+        go_up = True if (k_up-20 > 0 and counter%1 == 0) or k_up == 1 else False
+        enter = 0
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if textinput.focused:
-                    if event.key == pygame.K_RETURN or event.key == pygame.K_DOWN:
-                        textinput.focused = False
-                        selected = 0
-
-                else:
-                    if event.key == pygame.K_DOWN:
-                        selected += 1
-                    if event.key == pygame.K_UP:
-                        selected -= 1
-                    if event.key == pygame.K_RETURN:
-                        #guess
-                        guess = actual_suggestions[selected]
-                        # print(f"you guessed: {guess}, correct would be {current_song}")
-                        if guess == current_song:
-                            curr_screen = "bandle_win"
-                        else: 
-                            warnings.append(Warning("nope", (40, HEIGHT-80, WIDTH-80), "info"))
-                            skip()
-                            curr_screen = "bandle"
-                        
-
+                enter = True if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN else False
                 if event.key == pygame.K_ESCAPE:
                     curr_screen = "bandle"
+        
+
+        if textinput.focused:
+            if enter or go_down:
+                textinput.focused = False
+                selected = 0
+        else:
+            if go_down:
+                selected += 1
+            if go_up:
+                selected -= 1
+            if enter:
+                #guess
+                guess = actual_suggestions[selected]
+                # print(f"you guessed: {guess}, correct would be {current_song}")
+                if guess == current_song:
+                    curr_screen = "bandle_win"
+                else: 
+                    warnings.append(Warning("nope", (40, HEIGHT-80, WIDTH-80), "info"))
+                    skip()
+                    curr_screen = "bandle"
+
+        
+
+        
 
         if selected > len(suggestions) - 1:
-            selected = 0
+            selected = len(suggestions) - 1
         elif selected < 0:
             selected = -1
             textinput.focused = True
        
+
         if selected >  offset + limit - 2:
             offset += 1
-        elif selected < offset:
+        elif selected < offset+1:
             offset -= 1
         
         if offset < 0:
             offset = 0
-        elif offset > len(suggestions) - 1 - limit:
-            offset = (len(suggestions) - 1 - limit) if (len(suggestions) - 1 - limit) > 0 else 0
+        elif offset > len(suggestions)  - limit:
+            offset = (len(suggestions)  - limit) if (len(suggestions) - limit) > 0 else 0
             
         suggestions = suggestions[offset:offset + limit]
-
+        
 
         if selected != -1:
-            pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50, 600 + (selected-offset)*50, 100, 30), border_radius=20)
+            pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(10, 560 + (selected-offset)*40, WIDTH-20, 30), border_radius=5)
 
         for i in suggestions:
             suggestion_surf = basic_font.render(i, True, (10, 10 ,10))
@@ -1200,12 +1241,12 @@ def bandle_screen():
         win_text = title_font.render("YOU WON", True, (10, 10, 10))
         screen.blit(win_text, (WIDTH/2 - win_text.get_width()/2, HEIGHT/2 - 200))
 
-        butt = Button(WIDTH/2-100, HEIGHT/2-100, 200, 40, (155, 155, 155), "go back and admire", 20)
+        butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "go back and admire", 20)
         butt.draw(screen)
         if butt.is_clicked():
             curr_screen = "bandle_stare"
         
-        next = Button(WIDTH/2-100, HEIGHT/2-0, 200, 40, (155, 155, 155), "go next", 20)
+        next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, (155, 155, 155), "go next", 20)
         next.draw(screen)
 
         if next.is_clicked():
@@ -1241,13 +1282,17 @@ counter = 0
 curr_screen = "setup"
 warnings = []
 
+
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     screen.fill("pink")  # fill screen with pink
 
     events = pygame.event.get()
+    keys = pygame.key.get_pressed()
 
+    mouse_scroll = 0
+    key_scroll = 0
     for event in events:
         if event.type == pygame.QUIT:
             running = False
@@ -1257,6 +1302,15 @@ while running:
         if event.type == pygame.MOUSEWHEEL:
             mouse_scroll = event.y
 
+    
+    if keys[pygame.K_DOWN]:
+        k_down += 1
+    else:
+        k_down = 0
+    if keys[pygame.K_UP]:
+        k_up += 1
+    else:
+        k_up = 0
 
 
     if DEBUG == True:
