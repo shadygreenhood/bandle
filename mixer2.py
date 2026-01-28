@@ -615,20 +615,25 @@ def skip(silent=False, skip_song=False, simple_update=False):
                 f.write(buffer)
             blacklists[curr_blacklist].append(current_song)
                 
-            song_counter += 1
+            
             if not silent:
                 warnings.append(Warning(f"song was {sanitize(current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
-            print("song counter", song_counter, "queue: ", queue)
-            if song_counter > len(queue):
-                warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
-                curr_screen = "playlists"
-            else:
-                print("song counter", song_counter)
-                current_song = queue[song_counter - 1]
-                load_song(STEMS_FOLDER + "/" +  current_song)
-            print(curr_screen)
-            
-
+            a = True
+            while a:    
+                song_counter += 1
+                print("song counter", song_counter, "queue: ", queue)
+                if song_counter > len(queue):
+                    warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
+                    curr_screen = "playlists"
+                else:
+                    print("song counter", song_counter)
+                    current_song = queue[song_counter - 1]
+                    if Path(STEMS_FOLDER + "/" +  current_song).is_dir():
+                        load_song(STEMS_FOLDER + "/" +  current_song)
+                        a = False
+                    else:
+                        warnings.append(Warning(f"couldnt find song folder", (40, HEIGHT-80, WIDTH-80), "warning"))
+                        print(f'{STEMS_FOLDER + "/" +  current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
 
 
 def debug():
@@ -659,8 +664,8 @@ def main_menu_setup():
     global playlist_select_button
     global manage_blacklist_button  
     global curr_screen
-    playlist_select_button = Button(100, 100, 200, 80, (100, 100, 100), "play bandle from Playlist", radius=20)
-    manage_blacklist_button = Button(100, 200, 200, 80, (100, 100, 100), "manage blacklist", radius=20)
+    playlist_select_button = Button(WIDTH/2-200, 500 , 400, 120, (100, 100, 100), "play bandle from Playlist", radius=20)
+    manage_blacklist_button = Button(WIDTH/2-200, 700, 400, 120, (100, 100, 100), "manage blacklist", radius=20)
     curr_screen = "main_menu"
 
 def main_menu():
@@ -668,6 +673,10 @@ def main_menu():
     global playlist_select_button
     global curr_screen
     global manage_blacklist_button
+    
+    #Title text
+    text_surface = title_font.render("Bandle Clone!", True, (10, 10 ,10))
+    screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
     manage_blacklist_button.draw(screen)
     playlist_select_button.draw(screen)
@@ -1042,6 +1051,7 @@ def bandle_screen():
     if curr_screen != "bandle_stare":
         guess_button.draw(screen)
         if guess_button.is_clicked() == 1:
+            print("open guess menu")
             if curr_screen != "bandle_guessing":
                 curr_screen = "bandle_guessing"
                 offset = 0
@@ -1050,8 +1060,7 @@ def bandle_screen():
                 textinput.focused = True
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and curr_screen == "bandle_guessing":
-                my = pygame.mouse.get_pos()[1]
-                if my < HEIGHT - 500:
+                if mouse_y < HEIGHT - 500:
                     curr_screen = "bandle"
     else:
         guess_button.draw(screen, (150, 150, 150))
@@ -1139,7 +1148,6 @@ def bandle_screen():
             pause()
             
     set_volume(step)
-
     if curr_screen == "bandle_guessing":
             
         # slight shade
@@ -1165,8 +1173,8 @@ def bandle_screen():
                     suggestions.append(all_songs_sanitized[i])
                     actual_suggestions.append(all_songs[i])
 
-        go_down = True if (k_down-20 > 0 and counter%1 == 0) or k_down == 1 else False
-        go_up = True if (k_up-20 > 0 and counter%1 == 0) or k_up == 1 else False
+        go_down = True if (k_down-20 > 0 and counter%4 == 0) or k_down == 1 else False
+        go_up = True if (k_up-20 > 0 and counter%4 == 0) or k_up == 1 else False
         enter = 0
         for event in events:
             if event.type == pygame.KEYDOWN:
