@@ -12,7 +12,17 @@ Options:
     DEBUG_VLC               (bool) weather to print vlc debug info or not (takes up entire terminal)
     DEFAULT_BLACKLIST       (string) EXACT NAME of the default blacklist you want to set (has to appear in Blacklists.txt)
     CURR_OS                 (Windows / Linux) used to specify which version of the backend script to use (default uses platform.system())
-
+    TARGET_FPS              (float) defaults to 60, fps to which the program tries to run
 
 BLACKLSITS
+
+The selected blacklist will
+remember the songs you played
+so you dont get them twice.
+
+their details are stored in Blacklists.txt with:
+
+BLACKLIST_NAME=song1 song2 ...
+SECOND_BLACKLIST_NAME=song1 song2 ...
+...
 

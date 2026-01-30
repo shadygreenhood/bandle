@@ -180,7 +180,10 @@ def mute_all():
 
 def set_position(pos):
     for i in range(len(players)):
+        players[i].pause()
         players[i].set_position(pos)
+    for i in range(len(players)):
+        players[i].play()
 
 def debug_vlc():
     print("\n\n")
@@ -322,6 +325,7 @@ if DEBUG:
 # pygame setup
 pygame.init()
 pygame.font.init()
+pygame.key.start_text_input()
 
 
 window = pygame.display.set_mode((WIDTH*CF_SCALE, HEIGHT*CF_SCALE)) 
@@ -555,14 +559,14 @@ class Textinput:
             pygame.draw.rect(screen, (self.color[0] - 50 if (self.color[0] - 50) > 0 else 0, self.color[1] - 50 if (self.color[0] - 50) > 0 else 0, self.color[2] - 50 if (self.color[0] - 50) > 0 else 0), self.rect, border_radius=self.radius)
         
         for event in events:   
-            if self.focused:      
-                if event.type == pygame.KEYDOWN:
+            if self.focused: 
+                if event.type == pygame.TEXTINPUT:
+                    self.text += event.text     
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.text = self.text[:-1]
                     elif event.key == pygame.K_DELETE:
                         self.text = ""                        
-                    elif event.unicode in CHARS:
-                        self.text += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.rect.collidepoint(event.pos):
                     self.focused = True
