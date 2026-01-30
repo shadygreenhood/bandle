@@ -22,6 +22,7 @@ SCRIPT_DIR = "bandle"
 STEMS_FOLDER = PROJECT_DIR+"/separated/htdemucs_6s"
 JAPANESE_FONT_DIR = PROJECT_DIR+"/Noto_Sans_JP/static/NotoSansJP-Medium.ttf"
 PLAYLIST_CSV = PROJECT_DIR+"/"+SCRIPT_DIR+"/playlist_CSV.txt"
+CATEGORIES = ["japanese", "pop", "rock", "instrumental"]
 DEBUG = False
 WIDTH = 500
 HEIGHT = 950
@@ -70,7 +71,7 @@ def help(error=""):
     raise Exception(str(error))
 
 # read Blacklists.txt
-with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r") as f:
+with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r", encoding="utf-8") as f:
     txt = f.read().splitlines()
     blacklists = []
     for i in txt:
@@ -83,7 +84,7 @@ with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r") as f:
             blacklists[-1].pop(-1)
 if blacklists == []:
     print("no blacklists found in Blacklist.txt, creating a new one")
-    with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w") as f:
+    with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w", encoding="utf-8") as f:
         f.write("GENERATED_BLACKLIST=")
     blacklists = [[""]]
     blacklist_names = ["GENERATED_BLACKLIST"]
@@ -91,7 +92,7 @@ if blacklists == []:
 
 
 # read config
-with open(f"{PROJECT_DIR}/config.txt", "r") as f:
+with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
     txt = f.read().splitlines()
     for i in txt:
         if "SCALE" in i:
@@ -251,7 +252,7 @@ def set_time(timestamp):
 
 
 #fetch basic data from playlist csv
-with open(PLAYLIST_CSV, newline='', encoding='utf-8') as fh:
+with open(PLAYLIST_CSV, newline='', encoding="utf-8") as fh:
     # some header stuff i dont fully understand
     reader = reader(fh)
     headers = next(reader, [])
@@ -309,6 +310,7 @@ all_songs_sanitized = []
 for i in all_songs:
     sanitized = sanitize(i)
     all_songs_sanitized.append(sanitized)
+all_songs_sanitized.sort()
 
 if DEBUG:
     print ("playlist_to_names")
@@ -615,7 +617,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
             step = 1
 
             # update the correct blacklist
-            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r") as f:
+            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r", encoding="utf-8") as f:
                 txt = f.read()
             txts=txt.splitlines()
             buffer = ""
@@ -624,7 +626,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
                     buffer += txts[i] + current_song + " " + "\n"
                 else:
                     buffer += txts[i] + "\n"
-            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w") as f:
+            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w", encoding="utf-8") as f:
                 f.write(buffer)
             blacklists[curr_blacklist].append(current_song)
                 
@@ -702,7 +704,7 @@ def main_menu():
     if manage_blacklist_button.is_clicked():
         curr_screen = "manage_blacklist_setup"
     if test_song_button.is_clicked():
-        curr_screen = "test_song_setup"
+        curr_screen = "select_song_setup"
 
 def manage_blacklist_setup():
     global go_back_button
@@ -777,10 +779,151 @@ def manage_blacklist():
     if go_back_button.is_clicked() == 1:
         curr_screen = "main_menu"
 
+def select_song_setup():
+    global curr_screen
+    global library_button
+    global global_search_button
+    global categories
+    global scrollpos
+    global pixelpositions
+    global scrollvel
+    global selected
+    global go_back_button
+
+    selected = -1
+
+    scrollpos = 0
+    scrollvel = 0
+
+    library_button =            Button(0, HEIGHT-150, WIDTH/2, 150, (65, 65, 65), "")
+    global_search_button =      Button(WIDTH/2, HEIGHT-150, WIDTH/2, 150, (65, 65, 65), "")
+    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+
+
+    categories = []
+    for i in range(len(CATEGORIES)):
+        categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, (100, 100, 100), CATEGORIES[i], radius=20))
+
+    pixelpositions = [i.y for i in categories]
+
+    print(pixelpositions)
+
+    curr_screen = "select_song"
+
+
+def select_song():
+    global curr_screen
+    global library_button
+    global global_search_button
+    global categories
+    global scrollpos
+    global pixelpositions
+    global scrollvel
+    global selected
+    global go_back_button
+
+    scrollvel = (scrollvel + mouse_scroll*5)/2
+    scrollpos = scrollpos + scrollvel*10 if scrollpos + scrollvel*10 < 0 else 0
+
+    categories[0].y =        pixelpositions[0] + scrollpos
+    categories[1].y =        pixelpositions[1] + scrollpos
+    categories[2].y =        pixelpositions[2] + scrollpos
+    categories[3].y =        pixelpositions[3] + scrollpos
+
+    for i in categories:
+        i.draw(screen)
+    
+    text_surface = title_font.render("Categories", True, (10, 10 ,10))
+    screen.blit(text_surface, (60,220 + scrollpos))
+
+    text_surface = title_font.render("Songs", True, (10, 10 ,10))
+    screen.blit(text_surface, (60,520 + scrollpos))
+
+    if selected != -1:
+        pass
+
+    for i in range(len(all_songs_sanitized)):
+        if 600 + scrollpos + i*40 > 0 and 600 + scrollpos + i*40 < HEIGHT:
+            text_surface = small_font.render(all_songs_sanitized[i], True, (10, 10 ,10))
+            screen.blit(text_surface, (60,600 + scrollpos + i*40))
+
+    library_button.draw(screen)
+    global_search_button.draw(screen)
+
+    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 160 + scrollpos if scrollpos > -30 else 130, WIDTH - 100, 50), border_radius=5)
+    
+    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+
+    go_back_button.draw(screen)
+    if go_back_button.is_clicked() == 1:
+        curr_screen = "main_menu"
+
+    if 1 == 2:
+        curr_screen = "test_song_setup"
+
     
 def test_song_setup():
+    global curr_screen
+    global current_song
+    global queue
+    global step
+    global song_counter
+    global bandle_guessing_counter
+    global text
+    global selected
+    global offset
+    global scrolling
+
+    global skip_button
+    global go_back_button
+    global play_button
+    global guess_button
+    global skip_ahead
+    global skip_ahead_img
+    global rewind
+    global rewind_img
+    global textinput
+    
+    global skip
+    
+    
+
+        
+
+
+    # setting vars
+    step = 1
+    song_counter = 1
+    bandle_guessing_counter = 0
+    text = ""
+    selected = -1
+    offset = 0
+    scrolling = False
+
+    # setting buttons
+    
+    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+
+
+    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
+    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "End"      , radius=20, click_counter=20)
+    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
+
+    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
+    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
+    
+    skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
+    skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
+
+    rewind_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/rewind.png").convert_alpha()
+    rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
+
+    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, (200, 200, 200))
+
+    # preparing song queue
+    queue = [current_song]
+    load_song(STEMS_FOLDER + "/" +  current_song)
     curr_screen = "bandle"
-    pass
 
 def playlist_select_setup():
     global selected_p
@@ -1351,6 +1494,12 @@ while running:
         manage_blacklist_setup()
     elif curr_screen == "manage_blacklist":
         manage_blacklist()
+    elif curr_screen == "select_song_setup":
+        select_song_setup()
+    elif curr_screen == "select_song":
+        select_song()
+    elif curr_screen == "text_song_setup":
+        curr_screen = "test_song"
     elif curr_screen == "test_song_setup":
         test_song_setup()
     elif curr_screen == "playlists_setup":
