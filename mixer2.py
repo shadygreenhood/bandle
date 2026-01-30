@@ -1,12 +1,12 @@
 import pygame
-import os
-import csv
-import ast
-import sys
 import vlc
-from time import sleep 
-import random
 import math
+
+from csv import reader
+from random import shuffle
+from sys import argv
+from time import sleep, perf_counter
+from ast import literal_eval
 from pathlib import Path
 
 
@@ -33,6 +33,7 @@ SANITIZED_EXEPTIONS = {
 }
 CHARS = "AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn ,?;.:/!1234567890éè_&"
 CF_DEBUG_VLC = False
+TARGET_FPS = 60
 
 
 # vars
@@ -54,12 +55,12 @@ k_up, k_down = 0, 0
 
 # help function for debugging
 def help(error=""):
-    print(f"There was an error while parsing the arguments: {sys.argv[1:]}:")
+    print(f"There was an error while parsing the arguments: {argv[1:]}:")
     print(str(error))
     print("\n" \
     "this script is the GUI for the shadygreenhood bandle project\n" \
     "\n" \
-    "Usage: mixer2.py [option]\n" \
+    "Usage: mixer2.py [option]=[value] [option2]=[value2] ... \n" \
     "\n" \
     "\n" \
     "Options:\n" \
@@ -100,7 +101,7 @@ with open(f"{PROJECT_DIR}/config.txt", "r") as f:
                 except:
                     help("failed to convert " + str(i.split("=")[1]) + "to a float" )
             else:
-                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+                help(f"no scale provided in {PROJECT_DIR}/config.txt after SCALE=")
         if "DEBUG_VLC" in i:
             if len(i.split("=")) > 0:
                 try:
@@ -108,7 +109,15 @@ with open(f"{PROJECT_DIR}/config.txt", "r") as f:
                 except:
                     help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
             else:
-                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+                help(f"no scale provided in {PROJECT_DIR}/config.txt after DEBUG_VLC=")
+        if "TARGET_FPS" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    TARGET_FPS = float(i.split("=")[1]) if float(i.split("=")[1]) > 0 else TARGET_FPS
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a float")
+            else:
+                help(f"no target fps provided in {PROJECT_DIR}/config.txt after TARGET_FPS=")
         if "DEFAULT_BLACKLIST" in i:
             if len(i.split("=")) > 0:
                 curr_blacklist = str(i.split("=")[1])
@@ -124,7 +133,7 @@ if curr_blacklist == -1:
     curr_blacklist = 0
 
 # deal with flags
-args = sys.argv[1:]
+args = argv[1:]
 for i in args:
     if i.startswith('--scale='):
         if len(i.split("=", 1)) > 0:
@@ -244,7 +253,7 @@ def set_time(timestamp):
 #fetch basic data from playlist csv
 with open(PLAYLIST_CSV, newline='', encoding='utf-8') as fh:
     # some header stuff i dont fully understand
-    reader = csv.reader(fh)
+    reader = reader(fh)
     headers = next(reader, [])
     headers = [h.strip() for h in headers]
 
@@ -271,7 +280,7 @@ with open(PLAYLIST_CSV, newline='', encoding='utf-8') as fh:
                 if friendly_name not in name_to_playlists:
                     name_to_playlists[friendly_name] = playlist
 
-            playlist_songs = [s.replace(" ", "_") for s in ast.literal_eval(row[songs_idx].strip())]
+            playlist_songs = [s.replace(" ", "_") for s in literal_eval(row[songs_idx].strip())]
 
             for i in playlist_songs:
                 if i not in all_songs:
@@ -625,19 +634,19 @@ def skip(silent=False, skip_song=False, simple_update=False):
             a = True
             while a:    
                 song_counter += 1
-                print("song counter", song_counter, "queue: ", queue)
+                # print("song counter", song_counter, "queue: ", queue)
                 if song_counter > len(queue):
                     warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
                     curr_screen = "playlists"
                 else:
-                    print("song counter", song_counter)
+                    # print("song counter", song_counter)
                     current_song = queue[song_counter - 1]
                     if Path(STEMS_FOLDER + "/" +  current_song).is_dir():
                         load_song(STEMS_FOLDER + "/" +  current_song)
                         a = False
                     else:
                         warnings.append(Warning(f"couldnt find song folder", (40, HEIGHT-80, WIDTH-80), "warning"))
-                        print(f'{STEMS_FOLDER + "/" +  current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
+                        # print(f'{STEMS_FOLDER + "/" +  current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
 
 
 def debug():
@@ -668,8 +677,10 @@ def main_menu_setup():
     global playlist_select_button
     global manage_blacklist_button  
     global curr_screen
-    playlist_select_button = Button(WIDTH/2-200, 500 , 400, 120, (100, 100, 100), "play bandle from Playlist", radius=20)
-    manage_blacklist_button = Button(WIDTH/2-200, 700, 400, 120, (100, 100, 100), "manage blacklist", radius=20)
+    global test_song_button
+    playlist_select_button =     Button(WIDTH/2-200, 500 , 400, 120, (100, 100, 100), "play bandle from Playlist", radius=20)
+    manage_blacklist_button =    Button(WIDTH/2-200, 650, 400, 120, (100, 100, 100), "manage blacklist", radius=20)
+    test_song_button =           Button(WIDTH/2-200, 800, 400, 120, (100, 100, 100), "test specific song", radius=20)
     curr_screen = "main_menu"
 
 def main_menu():
@@ -677,17 +688,21 @@ def main_menu():
     global playlist_select_button
     global curr_screen
     global manage_blacklist_button
-    
+    global test_song_button
+
     #Title text
-    text_surface = title_font.render("Bandle Clone!", True, (10, 10 ,10))
+    text_surface = title_font.render("Bandle Clone", True, (10, 10 ,10))
     screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
+    test_song_button.draw(screen)
     manage_blacklist_button.draw(screen)
     playlist_select_button.draw(screen)
     if playlist_select_button.is_clicked():
         curr_screen = "playlists_setup"
     if manage_blacklist_button.is_clicked():
         curr_screen = "manage_blacklist_setup"
+    if test_song_button.is_clicked():
+        curr_screen = "test_song_setup"
 
 def manage_blacklist_setup():
     global go_back_button
@@ -763,7 +778,8 @@ def manage_blacklist():
         curr_screen = "main_menu"
 
     
-
+def test_song_setup():
+    
 
 
 def playlist_select_setup():
@@ -962,7 +978,7 @@ def bandle_setup():
         curr_screen = "playlists"
         warnings.append( Warning("already finished this playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
     else:
-        random.shuffle(queue)
+        shuffle(queue)
         current_song = queue[0]
         load_song(STEMS_FOLDER + "/" +  current_song)
         curr_screen = "bandle"
@@ -1055,7 +1071,7 @@ def bandle_screen():
     if curr_screen != "bandle_stare":
         guess_button.draw(screen)
         if guess_button.is_clicked() == 1:
-            print("open guess menu")
+            # print("open guess menu")
             if curr_screen != "bandle_guessing":
                 curr_screen = "bandle_guessing"
                 offset = 0
@@ -1335,6 +1351,8 @@ while running:
         manage_blacklist_setup()
     elif curr_screen == "manage_blacklist":
         manage_blacklist()
+    elif curr_screen == "test_song_setup":
+        test_song_setup()
     elif curr_screen == "playlists_setup":
         playlist_select_setup()
     elif curr_screen == "setup":
@@ -1360,11 +1378,14 @@ while running:
     window.blit(scaled, (0, 0))
     if CF_DEBUG_VLC:
         debug_vlc()
-
     pygame.display.flip()
     pygame.event.clear()  # clear event queuem
-    clock.tick(60)  # limits FPS to 60
     counter += 1
+
+    # managing fps
+    clock.tick(TARGET_FPS)
+    
+    
 
 pygame.quit()
 
