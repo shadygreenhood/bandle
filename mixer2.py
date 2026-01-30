@@ -779,8 +779,8 @@ def manage_blacklist():
 
     
 def test_song_setup():
-    
-
+    curr_screen = "bandle"
+    pass
 
 def playlist_select_setup():
     global selected_p
