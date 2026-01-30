@@ -89,8 +89,6 @@ if blacklists == []:
     blacklists = [[""]]
     blacklist_names = ["GENERATED_BLACKLIST"]
 
-
-
 # read config
 with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
     txt = f.read().splitlines()
@@ -310,7 +308,6 @@ all_songs_sanitized = []
 for i in all_songs:
     sanitized = sanitize(i)
     all_songs_sanitized.append(sanitized)
-all_songs_sanitized.sort()
 
 if DEBUG:
     print ("playlist_to_names")
@@ -582,8 +579,7 @@ class Textinput:
                 if self.rect.collidepoint(event.pos):
                     self.focused = True
                 else:
-                    #self.focused = False
-                    pass
+                    self.focused = False
 
         text_text = basic_font.render(self.text, True, (10, 10 ,10))
         screen.blit(text_text, (self.x + 5, self.y + 5))
@@ -746,7 +742,6 @@ def manage_blacklist():
     global curr_blacklist
 
     pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
-    
 
     if wiki_bool:
         pygame.draw.rect(screen, (190, 180, 170), pygame.Rect(20, 130, WIDTH-40, 270), border_radius=20)
@@ -789,6 +784,12 @@ def select_song_setup():
     global scrollvel
     global selected
     global go_back_button
+    global submenu
+    global select_song_button
+    global all_songs_sanitized_sorted
+    global textinput
+
+    submenu = "search"
 
     selected = -1
 
@@ -797,19 +798,23 @@ def select_song_setup():
 
     library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, (65, 65, 65), "")
     global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, (100, 65, 65), "")
-    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+    go_back_button =            Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
+    select_song_button =        Button(35,700, WIDTH-70, 35, (200, 100, 100), "                                                    ...", radius=15)
 
+    textinput = Textinput(50, 160, WIDTH - 100, 50, 5, (230, 230 ,230))
 
     categories = []
     for i in range(len(CATEGORIES)):
-        categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, (100, 100, 100), CATEGORIES[i], radius=20))
+        categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, (100, 100, 100), CATEGORIES[i], radius=15))
 
     pixelpositions = [i.y for i in categories]
 
     print(pixelpositions)
 
-    curr_screen = "select_song"
+    all_songs_sanitized_sorted = all_songs_sanitized[:]
+    all_songs_sanitized_sorted.sort()
 
+    curr_screen = "select_song"
 
 def select_song():
     global curr_screen
@@ -821,14 +826,46 @@ def select_song():
     global scrollvel
     global selected
     global go_back_button
+    global select_song_button
+    global current_song
+    global all_songs_sanitized_sorted
+    global textinput
+
+    # preparing listed song options
+    text = textinput.text
+    selection = []
+    for i in all_songs_sanitized_sorted:
+        if text.lower() in i.lower():
+            selection.append(i)
+    
+    # handling the 
+    if mouse_y > 700 + scrollpos and mouse_y < HEIGHT-100:
+        selected = math.floor((mouse_y-700-scrollpos)/40)
+        select_song_button.y = math.floor((mouse_y-700-scrollpos)/40) * 40 + 700 + scrollpos
+        if selected < len(selection):
+            select_song_button.draw(screen)
+            if select_song_button.is_clicked():
+                print(all_songs[all_songs_sanitized.index(selection[selected])])
+                current_song = all_songs[all_songs_sanitized.index(selection[selected])]
+                curr_screen = "test_song_setup"
+
+    for i in range(len(selection)):
+        if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
+            text_surface = small_font.render(selection[i], True, (10, 10 ,10))
+            screen.blit(text_surface, (60,700 + scrollpos + i*40))
 
     scrollvel = (scrollvel + mouse_scroll*5)/2
-    scrollpos = scrollpos + scrollvel*10 if scrollpos + scrollvel*10 < 0 else 0
+    scrollpos = scrollpos + scrollvel*10
+    if scrollpos < len(selection) * -40 + 145:
+        scrollpos = len(selection) * -40 + 145
+    if scrollpos > 0:
+        scrollpos = 0
 
     categories[0].y =        pixelpositions[0] + scrollpos
     categories[1].y =        pixelpositions[1] + scrollpos
     categories[2].y =        pixelpositions[2] + scrollpos
     categories[3].y =        pixelpositions[3] + scrollpos
+    textinput.y = 160 + scrollpos if scrollpos > -30 else 130
 
     for i in categories:
         i.draw(screen)
@@ -842,25 +879,22 @@ def select_song():
     if selected != -1:
         pass
 
-    for i in range(len(all_songs_sanitized)):
-        if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
-            text_surface = small_font.render(all_songs_sanitized[i], True, (10, 10 ,10))
-            screen.blit(text_surface, (60,700 + scrollpos + i*40))
+
 
     library_button.draw(screen)
     global_search_button.draw(screen)
 
-    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 160 + scrollpos if scrollpos > -30 else 130, WIDTH - 100, 50), border_radius=5)
     
     pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+
+    text_surface = small_font.render("Search" if submenu == "search" else "Your Library", True, (105, 105, 105))
+    screen.blit(text_surface, (WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
 
     go_back_button.draw(screen)
     if go_back_button.is_clicked() == 1:
         curr_screen = "main_menu"
 
-    if 1 == 2:
-        curr_screen = "test_song_setup"
-
+    textinput.draw()
     
 def test_song_setup():
     global curr_screen
@@ -883,14 +917,13 @@ def test_song_setup():
     global rewind
     global rewind_img
     global textinput
-    
+    global single_song_bool
+    global CHEAT_MODE
+
     global skip
-    
-    
-
-        
 
 
+    CHEAT_MODE = False
     # setting vars
     step = 1
     song_counter = 1
@@ -899,6 +932,7 @@ def test_song_setup():
     selected = -1
     offset = 0
     scrolling = False
+    single_song_bool = True
 
     # setting buttons
     
@@ -906,7 +940,7 @@ def test_song_setup():
 
 
     play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "End"      , radius=20, click_counter=20)
+    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
     guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
 
     rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
@@ -924,7 +958,7 @@ def test_song_setup():
     queue = [current_song]
     load_song(STEMS_FOLDER + "/" +  current_song)
     curr_screen = "bandle"
-
+    
 def playlist_select_setup():
     global selected_p
     global buttons
@@ -966,8 +1000,6 @@ def playlist_select():
     global go_back_button
     global scrollpos
     global scrollvel
-
-
     
     if len(buttons) > 6:
         scrollvel = (scrollvel + mouse_scroll*3)/2
@@ -1060,14 +1092,10 @@ def bandle_setup():
     global rewind
     global rewind_img
     global textinput
+    global single_song_bool
     
     global skip
     
-    
-
-        
-
-
     # setting vars
     step = 1
     song_counter = 1
@@ -1076,6 +1104,7 @@ def bandle_setup():
     selected = -1
     offset = 0
     scrolling = False
+    single_song_bool = False
 
     # setting buttons
     
@@ -1126,7 +1155,6 @@ def bandle_setup():
         load_song(STEMS_FOLDER + "/" +  current_song)
         curr_screen = "bandle"
     
-
 def bandle_screen():
     global shadow_offset
     global curr_screen
@@ -1173,7 +1201,10 @@ def bandle_screen():
     
     
     # selected playlist text (cool little script)
-    selected_playlist_text = f"Selected playlist: {playlist_to_names[selected_playlist]}"
+    if not single_song_bool:
+        selected_playlist_text = f"Selected playlist: {playlist_to_names[selected_playlist]}"
+    else:
+        selected_playlist_text = f"testing single song"
     words = selected_playlist_text.split(" ")
     wordlines = []
 
@@ -1280,12 +1311,19 @@ def bandle_screen():
     # go back button
     go_back_button.draw(screen)
     if go_back_button.is_clicked() == 1 and curr_screen != "bandle_guessing":
-        curr_screen = "playlists"
+        for i in players:
+            i.stop()
+        if not single_song_bool:
+            curr_screen = "playlists"
+        else:
+            curr_screen = "select_song_setup"
 
     # skip button
     skip_button.draw(screen)
     if skip_button.is_clicked() == 1 and curr_screen != "bandle_guessing":
         skip(True if curr_screen == "bandle_stare" else False, True if curr_screen == "bandle_stare" else False)
+        if step == len(STEMS):
+            skip_button.text = "End"
         if curr_screen != "playlists":
             curr_screen = "bandle"
         
@@ -1412,17 +1450,24 @@ def bandle_screen():
         win_text = title_font.render("YOU WON", True, (10, 10, 10))
         screen.blit(win_text, (WIDTH/2 - win_text.get_width()/2, HEIGHT/2 - 200))
 
-        butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "go back and admire", 20)
-        butt.draw(screen)
-        if butt.is_clicked():
-            curr_screen = "bandle_stare"
-        
-        next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, (155, 155, 155), "go next", 20)
-        next.draw(screen)
-
-        if next.is_clicked():
-            skip(True, True)
-            curr_screen = "bandle"
+        if not single_song_bool:
+            butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "go back and admire", 20)
+            butt.draw(screen)
+            if butt.is_clicked():
+                curr_screen = "bandle_stare"
+            
+            next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, (155, 155, 155), "go next", 20)
+            next.draw(screen)
+            if next.is_clicked():
+                skip(True, True)
+                curr_screen = "bandle"
+        else:
+            next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "Return to selection", 20)
+            next.draw(screen)
+            if next.is_clicked():
+                for i in players:
+                    i.stop()
+                curr_screen = "select_song_setup"
 
     if curr_screen == "bandle_stare":
         stems = []
@@ -1437,15 +1482,6 @@ def bandle_screen():
             # pygame.draw.rect(screen, (200, 200, 200) if i < step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
             # stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
             # screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1498,8 +1534,6 @@ while running:
         select_song_setup()
     elif curr_screen == "select_song":
         select_song()
-    elif curr_screen == "text_song_setup":
-        curr_screen = "test_song"
     elif curr_screen == "test_song_setup":
         test_song_setup()
     elif curr_screen == "playlists_setup":
