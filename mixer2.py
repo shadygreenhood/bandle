@@ -795,8 +795,8 @@ def select_song_setup():
     scrollpos = 0
     scrollvel = 0
 
-    library_button =            Button(0, HEIGHT-150, WIDTH/2, 150, (65, 65, 65), "")
-    global_search_button =      Button(WIDTH/2, HEIGHT-150, WIDTH/2, 150, (65, 65, 65), "")
+    library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, (65, 65, 65), "")
+    global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, (100, 65, 65), "")
     go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
 
 
@@ -837,15 +837,15 @@ def select_song():
     screen.blit(text_surface, (60,220 + scrollpos))
 
     text_surface = title_font.render("Songs", True, (10, 10 ,10))
-    screen.blit(text_surface, (60,520 + scrollpos))
+    screen.blit(text_surface, (60,570 + scrollpos))
 
     if selected != -1:
         pass
 
     for i in range(len(all_songs_sanitized)):
-        if 600 + scrollpos + i*40 > 0 and 600 + scrollpos + i*40 < HEIGHT:
+        if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
             text_surface = small_font.render(all_songs_sanitized[i], True, (10, 10 ,10))
-            screen.blit(text_surface, (60,600 + scrollpos + i*40))
+            screen.blit(text_surface, (60,700 + scrollpos + i*40))
 
     library_button.draw(screen)
     global_search_button.draw(screen)
@@ -1534,8 +1534,6 @@ while running:
     # managing fps
     clock.tick(TARGET_FPS)
     
-    
-
 pygame.quit()
 
 
