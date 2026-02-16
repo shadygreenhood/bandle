@@ -4,19 +4,48 @@ import sys
 import json
 import yt_dlp
 from time import sleep
+import platform
 
+# constants
 if "/" in str(Path(__file__)):
     PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
 elif "\\" in str(Path(__file__)):
     PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
 else:
     raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
+CURR_OS = platform.system()
+if CURR_OS == "Windows":
+    print("running windows script")
+else:
+    if CURR_OS == "Linux":
+        print("running linux script")
+    else:
+        print("os not recognised, defaulting to linux script")
+        CURR_OS = "Linux"
+SCALE = 0.5
 SCRIPT_DIR = "bandle"
 CSV_PATH = f"{PROJECT_DIR}/{SCRIPT_DIR}/CSV.txt"
 INTERPRETER_PATH = sys.executable
 MP3_DATA_DIR = f"{PROJECT_DIR}/mp3s"
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
 
+#overriding constants with config
+with open(f"{PROJECT_DIR}/config.txt", "r") as f:
+    txt = f.read().splitlines()
+    for i in txt:
+        if "SCALE" in i:
+            if len(i.split("=")) > 0:
+                SCALE = i.split("=")[1]
+            else:
+                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+        if "CURR_OS" in i:
+            if len(i.split("=")) > 0:
+                CURR_OS = i.split("=")[1]
+            else:
+                help(f"no OS provided in {PROJECT_DIR}/config.txt")
+
+
+# init vars
 out_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
 playlist = input("paste the spotify url you want to add (s for skip):  ")
 
@@ -134,7 +163,7 @@ for i in range(len(songs_to_download)):
         ydl_opts = {
         "format": "bestaudio/best",
             #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
-            "outtmpl": PROJECT_DIR + "/new_mp3s/"+title+".%(ext)s",
+            "outtmpl": MP3_DATA_DIR+"\\"+title+".%(ext)s",
             "quiet": True,           # reduces built-in noise
             "no_warnings": True,     # suppress warnings
             "logger": YTDLPLogger(), # your custom logger
@@ -155,4 +184,19 @@ for i in range(len(songs_to_download)):
             json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
 
 #splitting tracks
+if CURR_OS == "Windows":
+    print("splitter doesnt work on windows for now")
+# if CURR_OS == "Linux":
+#     cmd = [
+#         INTERPRETER_PATH,
+#         "-m",
+#         "demucs",
+#         "mp3",
+#         mp3,
+#         "-o",
+#         out
+#     ]
 
+
+cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/1mixer3.py\" --scale={SCALE}"
+subprocess.run(cmd, shell=True)
