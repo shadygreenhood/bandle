@@ -1,3 +1,11 @@
+#
+# ||| OUTDATED |||
+#
+
+
+
+
+
 import pygame
 import vlc
 import math

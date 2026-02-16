@@ -1,3 +1,8 @@
+#
+# ||| OUTDATED |||
+#
+
+
 """
 stem_mixer_sync.py — Updated with searchable combobox
 
