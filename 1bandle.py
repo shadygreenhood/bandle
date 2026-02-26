@@ -14,20 +14,14 @@ elif "\\" in str(Path(__file__)):
 else:
     raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
 CURR_OS = platform.system()
-if CURR_OS == "Windows":
-    print("running windows script")
-else:
-    if CURR_OS == "Linux":
-        print("running linux script")
-    else:
-        print("os not recognised, defaulting to linux script")
-        CURR_OS = "Linux"
 SCALE = 0.5
 SCRIPT_DIR = "bandle"
 CSV_PATH = f"{PROJECT_DIR}/{SCRIPT_DIR}/CSV.txt"
 INTERPRETER_PATH = sys.executable
-MP3_DATA_DIR = f"{PROJECT_DIR}/mp3s"
+RAW_TRACK_AUDIO_DIR = f"{PROJECT_DIR}/raw_track_audio"
+SEPERATED_DIR = f"{PROJECT_DIR}/split"
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
+WEAK_INTERNET = True
 
 #overriding constants with config
 with open(f"{PROJECT_DIR}/config.txt", "r") as f:
@@ -44,11 +38,19 @@ with open(f"{PROJECT_DIR}/config.txt", "r") as f:
             else:
                 help(f"no OS provided in {PROJECT_DIR}/config.txt")
 
+# filtering possible OSes
+if CURR_OS == "Windows":
+    print("running windows script")
+else:
+    if CURR_OS == "Linux":
+        print("running linux script")
+    else:
+        print("os not recognised, defaulting to linux script")
+        CURR_OS = "Linux"
 
 # init vars
 out_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
 playlist = input("paste the spotify url you want to add (s for skip):  ")
-
 buffer_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
 playlists_json_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlists.json"
 songs_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1songs.json"
@@ -142,61 +144,140 @@ with open(songs_dir, 'w', encoding="utf-8") as f:
 
 
 #dowloading missing songs
-class YTDLPLogger:
-    def debug(self, msg):
-        pass
+if not WEAK_INTERNET:
+    class YTDLPLogger:
+        def debug(self, msg):
+            pass
 
+        def warning(self, msg):
+            pass
+
+        def error(self, msg):
+            print(f"[ERROR] {msg}")
+
+    songs_to_download = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "new"]
+    for i in range(len(songs_to_download)):
+        
+        title = songs_to_download[i]
+        if songs_dir_contents[title]["status"] == "new":
+
+            artists = songs_dir_contents[songs_to_download[i]]["artists"]
+            query = f"{title} {' '.join(artists)} audio"
+            ydl_opts = {
+            "format": "bestaudio/best",
+                #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
+                "outtmpl": RAW_TRACK_AUDIO_DIR+"\\"+title+".%(ext)s",
+                "quiet": True,
+                "no_warnings": True, 
+                "logger": YTDLPLogger(), 
+                "match_filters": "duration<=600", # less than 10 minutes
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "wav",
+                }],
+            }
+            print(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"")
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([f"ytsearch1:{query}"])
+            sleep(3)
+            if Path(PROJECT_DIR + "/raw_tracks/"+title+".wav").exists():
+                songs_dir_contents[title]["status"] = "downloaded"
+            with open(songs_dir, "w", encoding="utf-8") as f:
+                json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+
+#splitting tracks
+class DemucsLogger:
     def warning(self, msg):
-        pass
+        print(f"[WARNING] {msg}")
 
     def error(self, msg):
         print(f"[ERROR] {msg}")
 
-songs_to_download = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] != "downloaded"]
-for i in range(len(songs_to_download)):
-    
-    title = songs_to_download[i]
-    if songs_dir_contents[title]["status"] == "new":
+    def progress(self, msg, txt=""):
+        if "%" in msg: 
+            try:
+                print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
+            except:
+                print(msg)
 
-        artists = songs_dir_contents[songs_to_download[i]]["artists"]
-        query = f"{title} {' '.join(artists)} audio"
-        ydl_opts = {
-        "format": "bestaudio/best",
-            #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
-            "outtmpl": MP3_DATA_DIR+"\\"+title+".%(ext)s",
-            "quiet": True,           # reduces built-in noise
-            "no_warnings": True,     # suppress warnings
-            "logger": YTDLPLogger(), # your custom logger
-            "match_filters": "duration<=600",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }],
-        }
-        print(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"")
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([f"ytsearch1:{query}"])
-        sleep(3)
-        if Path(PROJECT_DIR + "/new_mp3s/"+title+".mp3").exists():
-            songs_dir_contents[title]["status"] = "downloaded"
-        with open(songs_dir, "w", encoding="utf-8") as f:
-            json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+def run_demucs(cmd, logger, txt):
+    print(txt, end = "", flush=True)
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
 
-#splitting tracks
+    for line in process.stdout:
+        line = line.strip()
+
+        # Basic routing logic
+        if "error" in line.lower():
+            logger.error(line)
+        elif "warning" in line.lower():
+            logger.warning(line)
+        else:
+            logger.progress(line, txt)
+
+    process.wait()
+
+    if process.returncode != 0:
+        logger.error(f"Demucs exited with code {process.returncode}")
+        raise subprocess.CalledProcessError(process.returncode, cmd)
+
+
 if CURR_OS == "Windows":
-    print("splitter doesnt work on windows for now")
-# if CURR_OS == "Linux":
-#     cmd = [
-#         INTERPRETER_PATH,
-#         "-m",
-#         "demucs",
-#         "mp3",
-#         mp3,
-#         "-o",
-#         out
-#     ]
+    songs_to_split = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "downloaded"]
+    for i in range(len(songs_to_split)):
+        title = songs_to_split[i]
 
+        cmd = [
+            "demucs",
+            RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav",
+            "-o",
+            SEPERATED_DIR + "\\",
+            "-n",
+            "htdemucs_6s",
+            "--mp3"
+        ]
+        try:
+            run_demucs(cmd, DemucsLogger(), "seperating track: " + title + f"  [{i+1}/{len(songs_to_split)}]")
+        except subprocess.CalledProcessError as e:
+            print("RIP, there was an error")
+            print("Exit code:", e.returncode)
+        if Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).exists():
+            print()
+            print(f"successfully split the track: {title}, [{i+1}/{len(songs_to_split)}]")
+            songs_dir_contents[title]["status"] = "split"
+            print("converting back to wavs for easier processing")
+
+            # converting to wavs
+            failure = False
+            for mp3_file in Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).rglob("*.mp3"):
+                wav_file = mp3_file.with_suffix(".wav")
+                result = subprocess.run(
+                    ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
+                )
+                if result.returncode == 0:
+                    mp3_file.unlink()  # delete original
+                else:
+                    failure = True
+            
+            if not failure: # check for faliure converting to wavs very unlikely
+                print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav")
+                Path(RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav").unlink()
+                # recording that
+                with open(songs_dir, "w", encoding="utf-8") as f:
+                    json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+            else:
+                print("something went wrong")
+        else:
+            print("did not split")
+
+
+if CURR_OS == "Linux":
+    print("need to write a linux splitter sry")
 
 cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/1mixer3.py\" --scale={SCALE}"
 subprocess.run(cmd, shell=True)

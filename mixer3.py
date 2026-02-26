@@ -20,7 +20,7 @@ elif "\\" in str(Path(__file__)):
 else:
     raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
 SCRIPT_DIR = "bandle"
-STEMS_FOLDER = PROJECT_DIR+"/separated/htdemucs_6s"
+STEMS_FOLDER = PROJECT_DIR+"/split/htdemucs_6s"
 JAPANESE_FONT_DIR = PROJECT_DIR+"/Noto_Sans_JP/static/NotoSansJP-Medium.ttf"
 
 PLAYLIST_JSON_DIR = PROJECT_DIR+"/"+SCRIPT_DIR+"/1playlists.json"
@@ -32,7 +32,7 @@ WIDTH = 500
 HEIGHT = 950
 CF_SCALE = 1
 CHEAT_MODE = False
-STEMS = ["drums", "bass", "guitar", "piano", "vocals", "other"]
+STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
 SANITIZED_EXEPTIONS = {
     "Undertale_-_Spider_Dance_-_Shirobon_Remix": "Spider Dance",
 }
@@ -173,14 +173,14 @@ vlc_event_manager.event_attach(
 def load_song(stempath):
     for i in range(len(players)):
         players[i].stop()
-        if Path(stempath + f"/{STEMS[i]}.wav").is_file():
-            media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.wav")
+        if Path(stempath + f"/{STEMS[i]}.mp3").is_file():
+            media = vlc_instance.media_new(stempath + f"/{STEMS[i]}.mp3")
             players[i].set_media(media)
             players[i].play()
             while str(players[i].get_state()) not in ["State.Paused", "State.Playing"]:
                 sleep(0.001)
         else:
-            print(f'could not find file: {stempath + f"/{STEMS[i]}.wav"}')
+            print(f'could not find file: {stempath + f"/{STEMS[i]}.mp3"}')
             warnings.append( Warning("file not found, reset now", (40, HEIGHT-80, WIDTH-80), level="warning"))
         
         players[i].pause()
