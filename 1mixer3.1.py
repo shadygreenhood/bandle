@@ -224,8 +224,7 @@ except:
 # |      ╰    ╯  ╰----╯ ╰--'  ╰---╯ ╰----╯ |
 # ╰----------------------------------------╯
 
-
-
+player = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=70)
 
 # ╭--------------------------------------------------------------------╮
 # |      ╭----   ╭----╮ ╭-╮╭-╮ ╭----     ╭---╮  ╭╮   ╮ ╭---╮ ╭---╮     |
@@ -481,9 +480,15 @@ def skip(silent=False, skip_song=False, simple_update=False):
         global queue
         global current_song
         global curr_screen
-        if not simple_update:
-            print("set_position(0)")
+        global player
         step += 1
+        if not step > len(STEMS) and not skip_song:
+            if simple_update:
+                player.update_to_play(step)
+            else:
+
+                player.play(step)
+            
         if step > len(STEMS) or skip_song:
             step = 1
 
@@ -516,7 +521,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
                     # print("song counter", song_counter)
                     current_song = queue[song_counter - 1]
                     if Path(STEMS_FOLDER + "/" +  current_song).is_dir():
-                        print('load_song(STEMS_FOLDER + "/" +  current_song)')
+                        player.load(current_song)
                         a = False
                     else:
                         warnings.append(Warning(f"couldnt find song folder", (40, HEIGHT-80, WIDTH-80), "warning"))
@@ -664,6 +669,7 @@ def select_song_setup():
     global submenu
     global select_song_button
     global all_songs_sanitized_sorted
+    global all_songs_sanitized_sorted_availability
     global textinput
 
     submenu = "search"
@@ -686,9 +692,7 @@ def select_song_setup():
 
     pixelpositions = [i.y for i in categories]
 
-    all_songs_sanitized_sorted = all_songs_sanitized[:]
-    all_songs_sanitized_sorted.sort()
-
+    
     curr_screen = "select_song"
 
 def select_song():
@@ -704,6 +708,7 @@ def select_song():
     global select_song_button
     global current_song
     global all_songs_sanitized_sorted
+    global all_songs_sanitized_sorted_availability
     global textinput
 
     # preparing listed song options
@@ -711,6 +716,8 @@ def select_song():
     selection = []
     for i in all_songs_sanitized_sorted:
         if text.lower() in i.lower():
+            selection.append(i)
+        elif text.lower() in songs_json_dir_contents[i]["baked_artists"]:
             selection.append(i)
     
     # handling the 
@@ -720,14 +727,20 @@ def select_song():
         if selected < len(selection):
             select_song_button.draw(screen)
             if select_song_button.is_clicked():
-                print(all_songs[all_songs_sanitized.index(selection[selected])])
-                current_song = all_songs[all_songs_sanitized.index(selection[selected])]
-                curr_screen = "test_song_setup"
+                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[selected])] == False:
+                    warnings.append( Warning("this song isnt available", (40, HEIGHT-80, WIDTH-80), level="warning"))
+                else:
+                    print(all_songs[all_songs_sanitized.index(selection[selected])])
+                    current_song = all_songs[all_songs_sanitized.index(selection[selected])]
+                    curr_screen = "test_song_setup"
 
     for i in range(len(selection)):
         if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
             text_surface = small_font.render(selection[i], True, (10, 10 ,10))
+            if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
+                text_surface = small_font.render(selection[i], True, (255, 100 ,100))
             screen.blit(text_surface, (60,700 + scrollpos + i*40))
+            
 
     scrollvel = (scrollvel + mouse_scroll*5)/2
     scrollpos = scrollpos + scrollvel*10
@@ -794,6 +807,7 @@ def test_song_setup():
     global textinput
     global single_song_bool
     global CHEAT_MODE
+    global player
 
     global skip
 
@@ -831,7 +845,7 @@ def test_song_setup():
 
     # preparing song queue
     queue = [current_song]
-    print('load_song(STEMS_FOLDER + "/" +  current_song)')
+    player.load(current_song)
     curr_screen = "bandle"
     
 def playlist_select_setup():
@@ -845,6 +859,8 @@ def playlist_select_setup():
     global go_back_button
     global scrollpos
     global scrollvel
+    global all_songs_sanitized_sorted
+    global all_songs_sanitized_sorted_availability
 
     scrollpos, scrollvel = 0, 0
     selected_p = -1
@@ -862,6 +878,20 @@ def playlist_select_setup():
     for i in range(len(list(playlists_json_dir_contents.keys()))):
         buttons.append(Button(77, 250 + i*60, WIDTH - 148, 48, (200, 200, 200), playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
     curr_screen = "playlists"
+
+
+    all_songs_sanitized_sorted = all_songs_sanitized[:]
+    all_songs_sanitized_sorted.sort()
+
+    all_songs_sanitized_sorted_availability = []
+    
+    # all_songs_sanitized_sorted_availability and all_songs_sanitized_sorted are aligned
+    for i in range(len(all_songs_sanitized_sorted)):
+        if songs_json_dir_contents[all_songs_sanitized_sorted[i]]["status"] in ["split", "analysed"]:
+            all_songs_sanitized_sorted_availability.append(True)
+        else:
+            all_songs_sanitized_sorted_availability.append(False)
+
 
 def playlist_select():
     global shadow_offset
@@ -968,6 +998,8 @@ def bandle_setup():
     global rewind_img
     global textinput
     global single_song_bool
+    global all_songs_sanitized_sorted_availability
+    global player
     
     global skip
     
@@ -1005,7 +1037,18 @@ def bandle_setup():
         
 
     # preparing song queue
+    # all songs in a playlist
     queue = [playlists_json_dir_contents[selected_playlist]["data"][i]["name"] for i in range(len(playlists_json_dir_contents[selected_playlist]["data"]))]
+    
+    # removing ones that havent been fully processed yet
+    bfr = []
+    for i in range(len(queue)):
+        if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(queue[i])] == False:
+            bfr.append(i)
+    for i in range(len(bfr)):
+        queue.pop(bfr[i] - i)
+    
+    # removing ones encountered ni active blacklist
     bfr = []
     for i in range(len(queue)):
         if queue[i] in blacklists[curr_blacklist]:
@@ -1013,14 +1056,14 @@ def bandle_setup():
     for i in range(len(bfr)):
         queue.pop(bfr[i] - i)
 
-
     if queue == []:
         curr_screen = "playlists"
         warnings.append( Warning("already finished this playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
     else:
         shuffle(queue)
         current_song = queue[0]
-        print('load_song(STEMS_FOLDER + "/" +  current_song)')
+        player.load(current_song)
+        print(player.status)
         curr_screen = "bandle"
     
 def bandle_screen():
@@ -1044,6 +1087,7 @@ def bandle_screen():
     global skip_ahead
     global rewind
     global textinput
+    global player
 
     global skip
 
@@ -1071,7 +1115,8 @@ def bandle_screen():
 
     #deal with players
     #MUTED OUTPUT  print("progression would be updated here")
-    progression = 0
+    player.update_pointer()
+    progression = player.pointer * 1000 / player.audio_len
 
 # ╭----------------------------------------╮
 # |      ╭  ╮ ╭=-  ╭==╮ ╭-.  ╭=- ╭==╮      |
@@ -1166,13 +1211,13 @@ def bandle_screen():
     # naviagtion
     skip_ahead.draw(screen)
     if skip_ahead.is_clicked():
-        print("offset_players(5000)")
+        player.offset_player(5000)
 
     screen.blit(skip_ahead_img, (WIDTH/2 + 90 -30  , HEIGHT -195))
 
     rewind.draw(screen)
     if rewind.is_clicked():
-        print("offset_players(-5000)")
+        player.offset_player(-5000)
 
     screen.blit(rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
 
@@ -1189,20 +1234,21 @@ def bandle_screen():
         if mouse_y > 870 and mouse_y < 870+110 and mouse_x > WIDTH/2-220 and mouse_x < WIDTH/2+220:
             if mouse_x > WIDTH/2-120:
                 if mouse_x > WIDTH/2+120:
-                    print("set_position(1)")
+                    player.seek(player.audio_len)
                     seeking = True
                 else:
-                    print("set_position((mouse_x - (WIDTH/2-120))/240)")
+                    player.seek((mouse_x - (WIDTH/2-120))/240 * player.audio_len)
                     seeking = True
             else:
-                print("set_position(0)")
+                player.seek(0)
                 seeking = True
     else:
         if seeking:
             seeking = not seeking
     
     if seeking:
-        print("if playing, would pause")
+        if player.status == "Playing":
+            player.toggle()
         # if players[0].is_playing():
         #     print("pause()")
 
@@ -1216,7 +1262,7 @@ def bandle_screen():
     go_back_button.draw(screen)
     if  curr_screen != "bandle_guessing":
         if go_back_button.is_clicked() == 1:
-            print("stop every player")
+            player.stop_all()
             if not single_song_bool:
                 curr_screen = "playlists"
             else:
@@ -1251,15 +1297,16 @@ def bandle_screen():
     # play/pause button
     # make the button change depending on state
     #MUTED OUTPUT  print("check if playing to change play button appearance")
-    # if  not players[0].is_playing():
-    #     play_button.text = "Play"
-    # else:
-    #     play_button.text = "Pause"
+    if  player.status != "Playing":
+        play_button.text = "Play"
+    else:
+        play_button.text = "Pause"
     play_button.draw(screen)
 
     if curr_screen != "bandle_guessing":
         if play_button.is_clicked() == 1:
-            print("play/pause (play from the start if end is reached)")
+            player.curr_step = step    
+            player.toggle()
             # if not players[0].is_playing():
             #     if players[0].get_time() >= players[0].get_length():
             #         print("set_position(0)")
@@ -1298,6 +1345,10 @@ def bandle_screen():
         actual_suggestions = []
         for i in range(len(all_songs_sanitized)):
             if text.lower() in all_songs_sanitized[i].lower():
+                if all_songs_sanitized[i] not in suggestions:
+                    suggestions.append(all_songs_sanitized[i])
+                    actual_suggestions.append(all_songs[i])
+            elif text.lower() in songs_json_dir_contents[all_songs_sanitized[i]]["baked_artists"]:
                 if all_songs_sanitized[i] not in suggestions:
                     suggestions.append(all_songs_sanitized[i])
                     actual_suggestions.append(all_songs[i])
@@ -1396,7 +1447,7 @@ def bandle_screen():
             next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "Return to selection", 20)
             next.draw(screen)
             if next.is_clicked():
-                print("stop all players")
+                player.stop_all()
                 curr_screen = "select_song_setup"
 
     if curr_screen == "bandle_stare":

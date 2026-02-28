@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":    
     #constants
     STEMS = ["drums", "bass", "guitar", "piano", "other", "vocals"]
-    SEPERATED_DIR = r"c:\Users\REMOVED_USERNAME\Documents\github projects\split"
+    SEPERATED_DIR = r"c:\Users\REMOVED_USERNAME\Documents\github projects\split\htdemucs_6s"
 
 # ╭----------------------------------------╮
 # |      ╭----╮  ╭    ╮ ╭--.  ╭---╮ ╭----╮ |
@@ -50,7 +50,10 @@ if __name__ == "__main__":
 #
 
 class Player_obj:
-    def __init__(self, volume=100):
+    def __init__(self, STEMS, SEPERATED_DIR, volume=100):
+
+        self.STEMS = STEMS
+        self.SEPERATED_DIR = SEPERATED_DIR
         
         # low level simpleaudio stuff
         self._temp_curr_audio   = None
@@ -70,24 +73,33 @@ class Player_obj:
 
     # small helper for load() (_raw_stems has to be defined)
     def overlay_step(self, step):
-        _temp_step_track = self._raw_stems[STEMS[0]]
+        _temp_step_track = self._raw_stems[self.STEMS[0]]
         for i in range(step-1):
-            _temp_step_track = AudioSegment.overlay(_temp_step_track, self._raw_stems[STEMS[i+1]])
+            _temp_step_track = AudioSegment.overlay(_temp_step_track, self._raw_stems[self.STEMS[i+1]])
         return _temp_step_track
 
 
+
+# ╭------------------------------------------------------------------------------------------------------╮
+# |      ╭==╮   ╭  ╮   ╭-.    .   ╭==╮         ╭==╮   ╭     ╭==╮   ╮ ╭   ╭=-.   ╭==╮   ╭=-╮   ╭  ╭       |
+# |      ╞--╡   |  |   |  |   |   |  |         ╞==╯   |     ╞--╡   ╰╮╯   ╞-:╯   ╞--╡   |      ╞=:        |
+# |      ╰  ╯   ╰==╯   ╰='    ╯   ╰==╯         ╰      ╰-╯   ╰  ╯    ╯    ╰=-╯   ╰  ╯   ╰=-╯   ╰  ╰       |
+# ╰------------------------------------------------------------------------------------------------------╯
+
     def load(self, track):
         self.track = track
-        if Path(SEPERATED_DIR + "\\htdemucs_6s\\" + track).exists:
+        if Path(self.SEPERATED_DIR + "\\" + track).exists:
 
             try:   
                 # defining _raw_stems
-                self._raw_stems = { STEMS[i]: (AudioSegment.from_wav(SEPERATED_DIR + "\\htdemucs_6s\\" + track + "\\" + STEMS[i] + ".wav")) for i in range(len(STEMS))}
+                self._raw_stems = { self.STEMS[i]: (AudioSegment.from_wav(self.SEPERATED_DIR + "\\" + track + "\\" + self.STEMS[i] + ".wav")) for i in range(len(self.STEMS))}
                 
                 # defining _baked_step_audios
-                self._baked_step_audios = [self.overlay_step(i) for i in range(1, len(STEMS)+1)]
+                self._baked_step_audios = [self.overlay_step(i) for i in range(1, len(self.STEMS)+1)]
 
                 self.audio_len = len(self._baked_step_audios[0])
+                if self.audio_len == 0:
+                    print("something went wrong...")
 
                 self.status = "Stopped"
 
@@ -99,92 +111,53 @@ class Player_obj:
             print("couldnt find specified song's folder")
 
 
-    def analyse_audio(self, curious_audio=""):
-        if self.track != "" and self.status != "Undefined":
-            print(self.track)
-
-            silent_stems = []
-            for i in range(len(STEMS)):
-                if self._raw_stems[STEMS[i]].dBFS < -30:
-                    silent_stems.append(STEMS[i])
-            print(silent_stems)
-
-            first_lack_of_silence = []
-            precision = 1000 * self._raw_stems[STEMS[0]].channels   # needs to be doubled if audio is stereo
-            for j in range(len(STEMS)):
-                
-                for i in range(math.floor(self.audio_len/precision) - 1):
-                    silence_value = self._raw_stems[STEMS[j]][i*precision:(i+1)*precision].dBFS
-                    if silence_value > -30:
-                        first_lack_of_silence.append(i*precision/self._raw_stems[STEMS[0]].channels)
-                        break
-                if len(first_lack_of_silence) < j+1:
-                    first_lack_of_silence.append("never")
-            print(first_lack_of_silence)
-
-            for i in range(len(STEMS)):
-                if STEMS[i] in silent_stems:
-                    first_lack_of_silence[i] = "muted" if first_lack_of_silence[i] != "never" else "never"
-            print(first_lack_of_silence)
+    def seek(self, pos):
+        if self.status == "Playing":
+            self.toggle()
+        elif self.status == "Stopped":
+            pass
+        if self.status == "Paused":
+            self.previous_pointer = pos / 1000
 
 
-            if curious_audio != "" and curious_audio in STEMS: # for debug purposes
-                curious_stem = curious_audio
+    def offset_player(self, offset):
+        if self.status == "Playing":
+            self.start_pointer -= offset/1000
+            self.update_pointer()
+            dB = 20 * math.log10(self.volume/100)
+            if self.pointer*1000 < 0 or self.pointer*1000 > self.audio_len:
+                self._temp_curr_audio = self._baked_step_audios[self.curr_step-1] + dB
+                self.start_pointer = perf_counter()
+                self.previous_pointer = 0
+            else:
+                self._temp_curr_audio = self._baked_step_audios[self.curr_step-1][self.pointer*1000:] + dB
 
-                print(f"dBFS value: {self._raw_stems[curious_stem].dBFS}")
-                
-                simplified_chart = []
-                for i in range(math.floor(self.audio_len/precision) - 1):
-                    silence_value = self._raw_stems[curious_stem][i*precision:(i+1)*precision].dBFS
-                    simplified_chart.append(silence_value)
-                
-                fig, ax = plt.subplots()
-                ax.plot(simplified_chart)
-                playhead = ax.axvline(0, linestyle="--")
-                plt.ion()
-                plt.show()
+            
+            self.play_obj.stop()
+            self.play_obj = sa.play_buffer(
+                self._temp_curr_audio.raw_data,
+                num_channels=self._temp_curr_audio.channels,
+                bytes_per_sample=self._temp_curr_audio.sample_width,
+                sample_rate=self._temp_curr_audio.frame_rate
+            )
+        elif self.status == "Stopped":
+            pass
+        elif self.status == "Paused":
+            self.pointer += offset
 
-                duration_sec = self.audio_len / 1000
-                start_time = perf_counter()
-                self.stop_all
-                self.play(STEMS.index(curious_stem) + 1)
-                while True:
-                    current_time = perf_counter() - start_time
-                    if current_time > duration_sec:
-                        break
-
-                    playhead.set_xdata([current_time*2])
-                    fig.canvas.draw()
-                    fig.canvas.flush_events()
-
-                    action = input("[c]ancel, [u]pdate_to_play, [t]oggle, update_[v]olume, st[a]tus, [p]lay")
-                    if action == "c":
-                        break
-                    elif action == "u":
-                        player.update_to_play(int(input("step:")))
-                    elif action == "t":
-                        player.toggle()
-                    elif action == "v":
-                        player.update_volume(int(input("volume")))
-                    elif action == "a":
-                        print(player.is_playing_var)
-                    elif action == "p":
-                        player.play(int(input("step?")))
-                    player.frame()
-
-
-
-
-
-    
-    def play(self, step):
+    def play(self, step, offset=0):
         if self.status != "Undefined":
             self.curr_step = step
             self.previous_pointer = 0
             self.start_pointer = perf_counter()
             dB = 20 * math.log10(self.volume/100)
-            self._temp_curr_audio = self._baked_step_audios[step-1] + dB
 
+            if offset < self.audio_len:
+                self._temp_curr_audio = self._baked_step_audios[self.curr_step-1][offset:] + dB
+            else:
+                self._temp_curr_audio = self._baked_step_audios[self.curr_step-1] + dB
+            if self.status == "Playing":
+                self.play_obj.stop()
             self.play_obj = sa.play_buffer(
                 self._temp_curr_audio.raw_data,
                 num_channels=self._temp_curr_audio.channels,
@@ -292,7 +265,7 @@ class Player_obj:
     
     def update_pointer(self):
         if self.status == "Paused":
-            pass
+            self.pointer = self.previous_pointer
         elif self.status == "Playing":
             self.pointer = perf_counter() - self.start_pointer + self.previous_pointer
         elif self.status == "Stopped":
@@ -300,12 +273,265 @@ class Player_obj:
 
 
 
+# ╭---------------------------------------------------------------------------------------------------╮
+# |      ╭==╮   ╭  ╮   ╭-.    .   ╭==╮         ╭==╮   ╭╮ ╮   ╭==╮   ╭     ╮ ╭   ╭==╮   .   ╭==╮       |
+# |      ╞--╡   |  |   |  |   |   |  |         ╞--╡   |╰╮|   ╞--╡   |     ╰╮╯   ╰--╮   |   ╰--╮       |
+# |      ╰  ╯   ╰==╯   ╰='    ╯   ╰==╯         ╰  ╯   ╰ ╰╯   ╰  ╯   ╰-╯    ╯    ╰==╯   ╯   ╰==╯       |
+# ╰---------------------------------------------------------------------------------------------------╯
+
+    def analyse_audio(self, simple_testing=False):
+        if self.track != "" and self.status != "Undefined":
+            
+
+            # calculate a simplified version of the waveform to determine when a stem is present
+            precision = 1000  # sample noise averaged over a second
+
+            simplified_charts = { x: [] for x in self.STEMS }
+            for x in self.STEMS:
+                for i in range(math.floor(self.audio_len/precision) - 1):
+                    silence_value = self._raw_stems[x][i*precision:(i+1)*precision].dBFS
+                    simplified_charts[x].append(silence_value)
+            
+            if simple_testing == False:
+                diagnosis = self.diagnose_audio(simplified_charts, False)
+                
+                compressed_diagnosis = { x : [] for x in self.STEMS }
+                for x in self.STEMS:
+                    previous = False
+                    for i in range(len(diagnosis[x])):
+                        if previous != diagnosis[x][i]:
+                            compressed_diagnosis[x].append(i)
+                        previous = diagnosis[x][i]
+                
+                btr_compression =  { x : [] for x in self.STEMS }
+                for x in self.STEMS:
+                    for i in range(len(compressed_diagnosis[x])):
+                        if i % 2 == 0:
+                            start = compressed_diagnosis[x][i]
+                            btr_compression[x].append(start)
+                        else:
+                            duration = compressed_diagnosis[x][i]-start
+                            btr_compression[x].append(duration)
+                            if duration < 6: # if segment is too short, its probaly not worth saving
+                                btr_compression[x].pop()
+                                btr_compression[x].pop()
+
+                
+
+                # btr_compression returns a dict, with stems as indices, that associates info on stem presence:
+                # every pair index is the start of a stem beeing audible
+                # every odd index indicates the length of the previously started segment
+                for x in self.STEMS:
+                    if len(btr_compression[x]) % 2 == 1:
+                        btr_compression[x].append(len(diagnosis[x]) - btr_compression[x][-1])
+
+                return btr_compression
+
+
+            else:
+                print(self.track)
+                diagnosis = self.diagnose_audio(simplified_charts, True)
+                fig, ax = plt.subplots()
+                while True:
+                    focused_stem = self.STEMS[int(input("step?"))-1]
+
+                    # plotting intermediate steps
+                    ax.clear()
+                    for i in range(len(diagnosis)):
+                        ax.plot(diagnosis[i][focused_stem])
+                    playhead = ax.axvline(0, linestyle="--")
+                    plt.ion()
+                    plt.show()
+
+                    duration_sec = self.audio_len / 1000
+                    start_time = perf_counter()
+                    self.stop_all
+                    self.play(self.STEMS.index(focused_stem) + 1)
+                    
+                    while True:
+                        current_time = perf_counter() - start_time
+                        if current_time > duration_sec:
+                            break
+
+                        playhead.set_xdata([current_time])
+                        fig.canvas.draw()
+                        fig.canvas.flush_events()
+
+                        action = input("[c]ancel, [u]pdate_to_play, [t]oggle, update_[v]olume, st[a]tus, [p]lay")
+                        if action == "c":
+                            break
+                        elif action == "u":
+                            player.update_to_play(int(input("step:")))
+                        elif action == "t":
+                            player.toggle()
+                        elif action == "v":
+                            player.update_volume(int(input("volume")))
+                        elif action == "a":
+                            print(player.is_playing_var)
+                        elif action == "p":
+                            player.play(int(input("step?")))
+                        player.frame()
+                    action = input("do you want to study another stem? [y/n]")
+                    if action != "y":
+                        plt.close()
+                        break
+
+
+    def diagnose_audio(self, charts_dict, return_intermediate_steps=False):
+
+        # removing invalid input
+        cleaned_charts = { x: [] for x in self.STEMS }
+        for  x in self.STEMS:    
+            for i in range(len(charts_dict[x])):
+                try:
+                    if charts_dict[x][i] < 100 and charts_dict[x][i] > -100:
+                        cleaned_charts[x].append(charts_dict[x][i])
+                    else:
+                        cleaned_charts[x].append(None)
+                except:
+                    if len(charts_dict[x]) < i + 1:
+                        cleaned_charts[x].append(None)
+        
+
+
+        # removing outliers
+        denoised_charts = { x: [] for x in self.STEMS }
+        
+        for x in self.STEMS:
+            previous = None
+            for i in range(len(cleaned_charts[x])):
+
+                if previous != None:
+                    if cleaned_charts[x][i] != None:
+                        previous = cleaned_charts[x][i]
+                        if abs(cleaned_charts[x][i] - previous) > 10:
+                            denoised_charts[x].append(None)
+                            # dont add this value
+                        else:  
+                            denoised_charts[x].append(cleaned_charts[x][i])
+                            # add this value
+                    else:
+                        denoised_charts[x].append(None)
+
+                else:
+                    if cleaned_charts[x][i] != None:
+                        previous = cleaned_charts[x][i]
+                    # never add first value
+                    denoised_charts[x].append(None)
+
+
+
+
+        # averaging out leftover values
+        averaged_charts = { x: [] for x in self.STEMS }
+        for x in self.STEMS:
+            for i in range(1, len(denoised_charts[x])):
+                if denoised_charts[x][i] != None and denoised_charts[x][i - 1] != None:
+                    averaged_charts[x].append((denoised_charts[x][i] + denoised_charts[x][i - 1])/2)
+                else:
+                    if denoised_charts[x][i] != None:
+                        averaged_charts[x].append(denoised_charts[x][i])
+                    else:    
+                        averaged_charts[x].append(None)
+
+        # cutting off values that are too silent
+        cut_charts = { x: [] for x in self.STEMS }
+        for x in self.STEMS:
+            for i in range(len(averaged_charts[x])):
+                
+                if averaged_charts[x][i] != None:
+                    if averaged_charts[x][i] > -50:
+                        cut_charts[x].append(averaged_charts[x][i])
+                    else:
+                        cut_charts[x].append(None)
+                else:
+                    cut_charts[x].append(None)
+
+        # synthetising a diagnosis
+        diagnosis = { x: [] for x in self.STEMS }
+        for x in self.STEMS:
+            ctr = 0
+            for i in range(len(cut_charts[x])):
+                
+                if cut_charts[x][i] == None:
+                    ctr += 1
+                else:
+                    ctr = 0
+
+                if ctr == 0:
+                    diagnosis[x].append(True) 
+                elif ctr <= 7:
+                    diagnosis[x].append(True)
+                elif ctr > 7:
+                    diagnosis[x].append(False)
+                    diagnosis[x][-8:] = [False] * 8 
+
+        if return_intermediate_steps == False:
+            return diagnosis
+        else:
+            return [charts_dict, cleaned_charts, denoised_charts, averaged_charts, cut_charts, diagnosis]
+
+
+    def determine_best_start(self, compd_diagnosis):
+        priority = ["vocals", "drums", "guitar", "piano", "bass", "other"]
+
+        # sort by audible length and filter short samples
+        smiple_format = { x: [ ] for x in self.STEMS}
+        for x in self.STEMS:
+            for i in range(0, len(compd_diagnosis[x]), 2):
+                smiple_format[x].append([compd_diagnosis[x][i], compd_diagnosis[x][i+1]])
+        print(smiple_format)
+
+        # if there are options, loop over them
+
+        # else, loop over 
+
+
+
+
+            
+
+
 
 
 
 if __name__ == "__main__":
-    player = Player_obj()
+    player = Player_obj(STEMS, SEPERATED_DIR)
     #vars
+
+    player.determine_best_start({
+            "drums": [
+                10,
+                246
+            ],
+            "bass": [
+                24,
+                232
+            ],
+            "guitar": [
+                0,
+                16,
+                24,
+                232
+            ],
+            "piano": [],
+            "other": [
+                0,
+                14,
+                40,
+                8,
+                58,
+                84,
+                175,
+                70
+            ],
+            "vocals": [
+                38,
+                126,
+                197,59]})
+
+    sleep(100)
+
     curr_song = "The Sound of Silence"
 
     while True:
@@ -330,5 +556,5 @@ if __name__ == "__main__":
         elif action == "p":
             player.play(int(input("step?")))
         elif action == "n":
-            player.analyse_audio(input("curious audio?"))
+            player.analyse_audio(True)
         player.frame()

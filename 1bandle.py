@@ -5,6 +5,7 @@ import json
 import yt_dlp
 from time import sleep
 import platform
+import _audio_helper
 
 # constants
 if "/" in str(Path(__file__)):
@@ -21,7 +22,9 @@ INTERPRETER_PATH = sys.executable
 RAW_TRACK_AUDIO_DIR = f"{PROJECT_DIR}/raw_track_audio"
 SEPERATED_DIR = f"{PROJECT_DIR}/split"
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
-WEAK_INTERNET = True
+STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
+WEAK_INTERNET = False
+SKIP_SPLIT = True
 
 #overriding constants with config
 with open(f"{PROJECT_DIR}/config.txt", "r") as f:
@@ -49,8 +52,7 @@ else:
         CURR_OS = "Linux"
 
 # init vars
-out_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
-playlist = input("paste the spotify url you want to add (s for skip):  ")
+playlist_url = input("paste the spotify url you want to add (s for skip):  ")
 buffer_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
 playlists_json_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlists.json"
 songs_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1songs.json"
@@ -67,21 +69,24 @@ def santize_string(str):
     return new_str
     
 # adding playlist to playlists.json
-if playlist != "s" and playlist != "":
+
+if playlist_url != "s" and playlist_url != "":
+    album =  True if "album" in playlist_url else False
     cmd = [
         INTERPRETER_PATH,
         "-m",
         "spotify_scraper",
-        "playlist",
-        playlist,
+        "playlist" if not album else "album",
+        playlist_url,
         "--output",
-        out_dir
+        buffer_dir
     ]
 
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         print("Spotify scraper failed, likely non fatal though, continuing...")
+        print("Error: ", e)
         print("Exit code:", e.returncode)
 
     with open(buffer_dir, "r", encoding="utf-8") as f:
@@ -94,7 +99,11 @@ if playlist != "s" and playlist != "":
     data = []
     for track in tracks:
 
-        artists = track["artists"]
+        if not album:
+            artists = track["artists"]
+        else:
+            artists = buffer_dir_contents["artists"]
+
         split = [artists[0]["name"]]
         if len(artists) == 1:
             if "," in artists[0]["name"]:
@@ -139,8 +148,13 @@ for i in playlists_json_dir_contents:
                 if not k["name"] in songs_dir_contents:
                     songs_dir_contents[k["name"]] = {"status": "new", "artists": k["artists"]}
 
+# baking names of artists into a better format for data parsing
+for i in songs_dir_contents.keys():
+    songs_dir_contents[i]["baked_artists"] = " ".join([x.lower() for x in songs_dir_contents[i]["artists"]])
+
 with open(songs_dir, 'w', encoding="utf-8") as f:
     json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+
 
 
 #dowloading missing songs
@@ -156,6 +170,10 @@ if not WEAK_INTERNET:
             print(f"[ERROR] {msg}")
 
     songs_to_download = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "new"]
+    if songs_to_download != []:
+        print(f"downloading {len(songs_to_download)} missing songs")
+    else:
+        print("lucky you: there's nothing to download!")
     for i in range(len(songs_to_download)):
         
         title = songs_to_download[i]
@@ -180,104 +198,137 @@ if not WEAK_INTERNET:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
             sleep(3)
-            if Path(PROJECT_DIR + "/raw_tracks/"+title+".wav").exists():
+            if Path(PROJECT_DIR + "/raw_track_audio/"+title+".wav").exists():
                 songs_dir_contents[title]["status"] = "downloaded"
             with open(songs_dir, "w", encoding="utf-8") as f:
                 json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+else:
+    print("you have enabled the WEAK INTERNET the config, therefore the program wont download anything more.")
 
 #splitting tracks
-class DemucsLogger:
-    def warning(self, msg):
-        print(f"[WARNING] {msg}")
+if not SKIP_SPLIT:
+    class DemucsLogger:
+        def warning(self, msg):
+            print(f"[WARNING] {msg}")
 
-    def error(self, msg):
-        print(f"[ERROR] {msg}")
+        def error(self, msg):
+            print(f"[ERROR] {msg}")
 
-    def progress(self, msg, txt=""):
-        if "%" in msg: 
-            try:
-                print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
-            except:
-                print(msg)
+        def progress(self, msg, txt=""):
+            if "%" in msg: 
+                try:
+                    print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
+                except:
+                    print(msg)
 
-def run_demucs(cmd, logger, txt):
-    print(txt, end = "", flush=True)
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
+    def run_demucs(cmd, logger, txt):
+        print(txt, end = "", flush=True)
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
 
-    for line in process.stdout:
-        line = line.strip()
+        for line in process.stdout:
+            line = line.strip()
 
-        # Basic routing logic
-        if "error" in line.lower():
-            logger.error(line)
-        elif "warning" in line.lower():
-            logger.warning(line)
-        else:
-            logger.progress(line, txt)
-
-    process.wait()
-
-    if process.returncode != 0:
-        logger.error(f"Demucs exited with code {process.returncode}")
-        raise subprocess.CalledProcessError(process.returncode, cmd)
-
-
-if CURR_OS == "Windows":
-    songs_to_split = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "downloaded"]
-    for i in range(len(songs_to_split)):
-        title = songs_to_split[i]
-
-        cmd = [
-            "demucs",
-            RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav",
-            "-o",
-            SEPERATED_DIR + "\\",
-            "-n",
-            "htdemucs_6s",
-            "--mp3"
-        ]
-        try:
-            run_demucs(cmd, DemucsLogger(), "seperating track: " + title + f"  [{i+1}/{len(songs_to_split)}]")
-        except subprocess.CalledProcessError as e:
-            print("RIP, there was an error")
-            print("Exit code:", e.returncode)
-        if Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).exists():
-            print()
-            print(f"successfully split the track: {title}, [{i+1}/{len(songs_to_split)}]")
-            songs_dir_contents[title]["status"] = "split"
-            print("converting back to wavs for easier processing")
-
-            # converting to wavs
-            failure = False
-            for mp3_file in Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).rglob("*.mp3"):
-                wav_file = mp3_file.with_suffix(".wav")
-                result = subprocess.run(
-                    ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
-                )
-                if result.returncode == 0:
-                    mp3_file.unlink()  # delete original
-                else:
-                    failure = True
-            
-            if not failure: # check for faliure converting to wavs very unlikely
-                print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav")
-                Path(RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav").unlink()
-                # recording that
-                with open(songs_dir, "w", encoding="utf-8") as f:
-                    json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+            # Basic routing logic
+            if "error" in line.lower():
+                logger.error(line)
+            elif "warning" in line.lower():
+                logger.warning(line)
             else:
-                print("something went wrong")
-        else:
-            print("did not split")
+                logger.progress(line, txt)
 
+        process.wait()
+
+        if process.returncode != 0:
+            logger.error(f"Demucs exited with code {process.returncode}")
+            raise subprocess.CalledProcessError(process.returncode, cmd)
+
+
+    if CURR_OS == "Windows":
+        songs_to_split = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "downloaded"]
+        if len(songs_to_split) == 0:
+            print("lucky you: there's no audio to split!")
+        else:
+            print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
+        for i in range(len(songs_to_split)):
+            title = songs_to_split[i]
+
+            cmd = [
+                "demucs",
+                RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav",
+                "-o",
+                SEPERATED_DIR + "\\",
+                "-n",
+                "htdemucs_6s",
+                "--mp3"
+            ]
+            try:
+                run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
+            except subprocess.CalledProcessError as e:
+                print("RIP, there was an error")
+                print("Exit code:", e.returncode)
+            if Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).exists():
+                print()
+                print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
+                songs_dir_contents[title]["status"] = "split"
+                print("converting back to wavs for easier processing")
+
+                # converting to wavs
+                failure = False
+                for mp3_file in Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).rglob("*.mp3"):
+                    wav_file = mp3_file.with_suffix(".wav")
+                    result = subprocess.run(
+                        ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
+                    )
+                    if result.returncode == 0:
+                        mp3_file.unlink()  # delete original
+                    else:
+                        failure = True
+                
+                if not failure: # check for faliure converting to wavs very unlikely
+                    print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav")
+                    Path(RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav").unlink()
+                    # recording that
+                    with open(songs_dir, "w", encoding="utf-8") as f:
+                        json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+                else:
+                    print("something went wrong")
+            else:
+                print("did not split")
 
 if CURR_OS == "Linux":
     print("need to write a linux splitter sry")
 
-cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/1mixer3.py\" --scale={SCALE}"
+
+
+
+
+
+# analysing audio to detect stem presence
+songs_to_analyse = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] in ["split", "analysed"]]
+
+if len(songs_to_analyse) == 0:
+    print("lucky you: there are no songs to analyse!")
+else:
+    print(f"analysing {len(songs_to_analyse)} songs...")
+
+    analyser = _audio_helper.Player_obj(STEMS, SEPERATED_DIR + "/htdemucs_6s", volume=70)
+
+    for i in songs_to_analyse:
+        analyser.load(i)
+        compressed_diag = analyser.analyse_audio(False)
+        songs_dir_contents[i]["baked_diagnosis"] = compressed_diag
+        songs_dir_contents[i]["status"] = "analysed"
+        print(f"[{songs_to_analyse.index(i)}/{len(songs_to_analyse)}] analysed {i}")
+        with open(songs_dir, "w", encoding="utf-8") as f:
+            json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+
+
+
+print("done with preparations: opening GUI...")
+cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/1mixer3.1.py\" --scale={SCALE}"
 subprocess.run(cmd, shell=True)

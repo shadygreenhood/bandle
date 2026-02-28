@@ -1,613 +1,4570 @@
 {
     "Wake Me Up": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Avicii"
-        ]
+        ],
+        "baked_artists": "avicii",
+        "baked_diagnosis": {
+            "drums": [
+                38,
+                83,
+                132,
+                50,
+                190,
+                59
+            ],
+            "bass": [
+                39,
+                75,
+                148,
+                32,
+                209,
+                32
+            ],
+            "guitar": [
+                0,
+                241
+            ],
+            "piano": [
+                58,
+                11,
+                123,
+                25,
+                164,
+                42,
+                218,
+                9,
+                237,
+                12
+            ],
+            "other": [
+                55,
+                63,
+                175,
+                74
+            ],
+            "vocals": [
+                8,
+                62,
+                94,
+                12,
+                114,
+                115
+            ]
+        }
     },
     "Big Time Rush": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Big Time Rush"
-        ]
+        ],
+        "baked_artists": "big time rush",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                164,
+                178,
+                17
+            ],
+            "bass": [
+                0,
+                163,
+                179,
+                16
+            ],
+            "guitar": [
+                0,
+                195
+            ],
+            "piano": [],
+            "other": [
+                27,
+                15,
+                60,
+                7,
+                83,
+                62,
+                153,
+                14,
+                180,
+                7
+            ],
+            "vocals": [
+                0,
+                195
+            ]
+        }
     },
     "The Nights": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Avicii"
-        ]
+        ],
+        "baked_artists": "avicii",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                34,
+                45,
+                67,
+                121,
+                52
+            ],
+            "bass": [
+                17,
+                27,
+                62,
+                19,
+                94,
+                20,
+                151,
+                22
+            ],
+            "guitar": [
+                0,
+                43,
+                64,
+                44,
+                152,
+                9
+            ],
+            "piano": [
+                18,
+                29,
+                61,
+                26,
+                99,
+                25,
+                139,
+                34
+            ],
+            "other": [
+                30,
+                143
+            ],
+            "vocals": [
+                0,
+                173
+            ]
+        }
     },
     "Hey Brother": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Avicii"
-        ]
+        ],
+        "baked_artists": "avicii",
+        "baked_diagnosis": {
+            "drums": [
+                35,
+                221
+            ],
+            "bass": [
+                34,
+                56,
+                107,
+                99,
+                215,
+                31
+            ],
+            "guitar": [
+                0,
+                107,
+                134,
+                83,
+                240,
+                16
+            ],
+            "piano": [
+                65,
+                18,
+                93,
+                44
+            ],
+            "other": [
+                41,
+                206
+            ],
+            "vocals": [
+                0,
+                91,
+                140,
+                60,
+                245,
+                11
+            ]
+        }
     },
     "Dont Stop Believin": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Journey"
-        ]
+        ],
+        "baked_artists": "journey",
+        "baked_diagnosis": {
+            "drums": [
+                79,
+                169
+            ],
+            "bass": [
+                12,
+                6,
+                47,
+                24,
+                81,
+                158
+            ],
+            "guitar": [
+                0,
+                24,
+                53,
+                195
+            ],
+            "piano": [
+                0,
+                83
+            ],
+            "other": [
+                78,
+                98,
+                195,
+                7
+            ],
+            "vocals": [
+                17,
+                32,
+                66,
+                121,
+                201,
+                47
+            ]
+        }
     },
     "Happy  From Despicable Me 2": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Pharrell Williams"
-        ]
+        ],
+        "baked_artists": "pharrell williams",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                238
+            ],
+            "bass": [
+                0,
+                119,
+                127,
+                111
+            ],
+            "guitar": [
+                0,
+                16,
+                57,
+                20
+            ],
+            "piano": [
+                23,
+                7,
+                64,
+                13
+            ],
+            "other": [
+                0,
+                67,
+                76,
+                36,
+                127,
+                48,
+                187,
+                51
+            ],
+            "vocals": [
+                0,
+                238
+            ]
+        }
     },
     "Get Lucky feat Pharrell Williams and Nile Rodgers": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Daft Punk",
             "Pharrell Williams",
             "Nile Rodgers"
-        ]
+        ],
+        "baked_artists": "daft punk pharrell williams nile rodgers",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                246
+            ],
+            "bass": [
+                0,
+                124,
+                139,
+                107
+            ],
+            "guitar": [
+                0,
+                142,
+                152,
+                94
+            ],
+            "piano": [
+                0,
+                234
+            ],
+            "other": [
+                0,
+                17,
+                30,
+                11,
+                59,
+                30,
+                101,
+                8,
+                117,
+                83,
+                223,
+                23
+            ],
+            "vocals": [
+                14,
+                127,
+                158,
+                65
+            ]
+        }
     },
     "Beat It": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Michael Jackson"
-        ]
+        ],
+        "baked_artists": "michael jackson",
+        "baked_diagnosis": {
+            "drums": [
+                10,
+                246
+            ],
+            "bass": [
+                24,
+                232
+            ],
+            "guitar": [
+                0,
+                16,
+                24,
+                232
+            ],
+            "piano": [],
+            "other": [
+                0,
+                14,
+                40,
+                8,
+                58,
+                84,
+                175,
+                70
+            ],
+            "vocals": [
+                38,
+                126,
+                197,
+                59
+            ]
+        }
     },
     "Take on Me": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "aha"
-        ]
+        ],
+        "baked_artists": "aha",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                226
+            ],
+            "bass": [
+                11,
+                141,
+                169,
+                57
+            ],
+            "guitar": [
+                18,
+                23,
+                137,
+                76
+            ],
+            "piano": [
+                160,
+                7
+            ],
+            "other": [
+                0,
+                226
+            ],
+            "vocals": [
+                34,
+                97,
+                149,
+                77
+            ]
+        }
     },
     "All Star": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Smash Mouth"
-        ]
+        ],
+        "baked_artists": "smash mouth",
+        "baked_diagnosis": {
+            "drums": [
+                9,
+                189
+            ],
+            "bass": [
+                0,
+                198
+            ],
+            "guitar": [
+                0,
+                198
+            ],
+            "piano": [],
+            "other": [
+                93,
+                30
+            ],
+            "vocals": [
+                0,
+                198
+            ]
+        }
     },
     "Good Vibrations": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The Beach Boys"
-        ]
+        ],
+        "baked_artists": "the beach boys",
+        "baked_diagnosis": {
+            "drums": [
+                12,
+                38,
+                63,
+                190
+            ],
+            "bass": [
+                0,
+                51,
+                63,
+                190
+            ],
+            "guitar": [
+                0,
+                207,
+                221,
+                32
+            ],
+            "piano": [
+                0,
+                21,
+                56,
+                17,
+                161,
+                9
+            ],
+            "other": [
+                12,
+                37,
+                64,
+                35,
+                117,
+                28,
+                154,
+                33,
+                200,
+                53
+            ],
+            "vocals": [
+                0,
+                160,
+                169,
+                76
+            ]
+        }
     },
     "Whats Up": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "4 Non Blondes"
-        ]
+        ],
+        "baked_artists": "4 non blondes",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                229
+            ],
+            "bass": [
+                0,
+                252
+            ],
+            "guitar": [
+                0,
+                252
+            ],
+            "piano": [],
+            "other": [
+                106,
+                18
+            ],
+            "vocals": [
+                19,
+                233
+            ]
+        }
     },
     "You Shook Me All Night Long": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "ACDC"
-        ]
+        ],
+        "baked_artists": "acdc",
+        "baked_diagnosis": {
+            "drums": [
+                15,
+                194
+            ],
+            "bass": [
+                57,
+                152
+            ],
+            "guitar": [
+                0,
+                209
+            ],
+            "piano": [],
+            "other": [],
+            "vocals": [
+                30,
+                110,
+                163,
+                46
+            ]
+        }
     },
     "Alors on danse  Radio Edit": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Stromae"
-        ]
+        ],
+        "baked_artists": "stromae",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                205
+            ],
+            "bass": [
+                31,
+                7,
+                49,
+                69,
+                135,
+                31,
+                185,
+                20
+            ],
+            "guitar": [
+                0,
+                42,
+                87,
+                13,
+                186,
+                19
+            ],
+            "piano": [],
+            "other": [
+                0,
+                80,
+                88,
+                117
+            ],
+            "vocals": [
+                0,
+                205
+            ]
+        }
     },
     "Cette annel": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Claude Franois"
-        ]
+        ],
+        "baked_artists": "claude franois",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                192
+            ],
+            "bass": [
+                16,
+                176
+            ],
+            "guitar": [
+                35,
+                9,
+                93,
+                53,
+                163,
+                19
+            ],
+            "piano": [
+                0,
+                24,
+                40,
+                6,
+                58,
+                6
+            ],
+            "other": [
+                18,
+                174
+            ],
+            "vocals": [
+                8,
+                184
+            ]
+        }
     },
     "Billie Jean": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Michael Jackson"
-        ]
+        ],
+        "baked_artists": "michael jackson",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                292
+            ],
+            "bass": [
+                0,
+                292
+            ],
+            "guitar": [
+                20,
+                272
+            ],
+            "piano": [],
+            "other": [
+                94,
+                22,
+                136,
+                95,
+                244,
+                36
+            ],
+            "vocals": [
+                28,
+                184,
+                222,
+                70
+            ]
+        }
     },
     "Dont Stop Me Now  Remastered 2011": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Queen"
-        ]
+        ],
+        "baked_artists": "queen",
+        "baked_diagnosis": {
+            "drums": [
+                32,
+                159
+            ],
+            "bass": [
+                13,
+                107,
+                135,
+                56
+            ],
+            "guitar": [
+                13,
+                202
+            ],
+            "piano": [
+                0,
+                119,
+                134,
+                81
+            ],
+            "other": [
+                199,
+                6
+            ],
+            "vocals": [
+                0,
+                142,
+                150,
+                65
+            ]
+        }
     },
     "Wake Me Up Before You GoGo": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Wham"
-        ]
+        ],
+        "baked_artists": "wham",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                228
+            ],
+            "bass": [
+                0,
+                228
+            ],
+            "guitar": [
+                0,
+                228
+            ],
+            "piano": [
+                0,
+                17,
+                41,
+                41,
+                97,
+                56,
+                195,
+                22
+            ],
+            "other": [
+                8,
+                7,
+                29,
+                6,
+                118,
+                110
+            ],
+            "vocals": [
+                0,
+                220
+            ]
+        }
     },
     "Im Still Standing": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Elton John"
-        ]
+        ],
+        "baked_artists": "elton john",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                182
+            ],
+            "bass": [
+                0,
+                182
+            ],
+            "guitar": [
+                0,
+                182
+            ],
+            "piano": [],
+            "other": [
+                40,
+                18,
+                84,
+                19,
+                135,
+                14
+            ],
+            "vocals": [
+                10,
+                172
+            ]
+        }
     },
     "Uptown Funk feat Bruno Mars": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Mark Ronson",
             "Bruno Mars"
-        ]
+        ],
+        "baked_artists": "mark ronson bruno mars",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                269
+            ],
+            "bass": [
+                32,
+                61,
+                107,
+                19,
+                134,
+                135
+            ],
+            "guitar": [
+                8,
+                9,
+                34,
+                13,
+                66,
+                17,
+                109,
+                13,
+                141,
+                23,
+                192,
+                77
+            ],
+            "piano": [],
+            "other": [
+                8,
+                9,
+                38,
+                55,
+                110,
+                56,
+                203,
+                66
+            ],
+            "vocals": [
+                0,
+                269
+            ]
+        }
     },
     "High Hopes": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Panic At The Disco"
-        ]
+        ],
+        "baked_artists": "panic at the disco",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                118,
+                127,
+                14,
+                149,
+                40
+            ],
+            "bass": [
+                27,
+                113,
+                162,
+                27
+            ],
+            "guitar": [
+                23,
+                7,
+                56,
+                84,
+                152,
+                37
+            ],
+            "piano": [],
+            "other": [
+                0,
+                140,
+                154,
+                35
+            ],
+            "vocals": [
+                8,
+                181
+            ]
+        }
     },
     "Levels  Radio Edit": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Avicii"
-        ]
+        ],
+        "baked_artists": "avicii",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                81,
+                99,
+                33,
+                141,
+                56
+            ],
+            "bass": [
+                22,
+                17,
+                52,
+                18,
+                84,
+                22,
+                114,
+                15,
+                159,
+                29
+            ],
+            "guitar": [
+                0,
+                7,
+                115,
+                17,
+                161,
+                17,
+                187,
+                10
+            ],
+            "piano": [
+                0,
+                66,
+                99,
+                28,
+                144,
+                39
+            ],
+            "other": [
+                0,
+                197
+            ],
+            "vocals": [
+                19,
+                99,
+                129,
+                7
+            ]
+        }
     },
     "Bambolo": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Gipsy Kings"
-        ]
+        ],
+        "baked_artists": "gipsy kings",
+        "baked_diagnosis": {
+            "drums": [
+                8,
+                194
+            ],
+            "bass": [
+                51,
+                151
+            ],
+            "guitar": [
+                0,
+                202
+            ],
+            "piano": [],
+            "other": [
+                13,
+                37,
+                58,
+                49,
+                117,
+                18,
+                146,
+                7
+            ],
+            "vocals": [
+                15,
+                108,
+                140,
+                62
+            ]
+        }
     },
     "Rasputin": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Boney M"
-        ]
+        ],
+        "baked_artists": "boney m",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                265
+            ],
+            "bass": [
+                12,
+                16,
+                40,
+                136,
+                192,
+                73
+            ],
+            "guitar": [
+                0,
+                265
+            ],
+            "piano": [],
+            "other": [
+                41,
+                19,
+                72,
+                40,
+                120,
+                145
+            ],
+            "vocals": [
+                32,
+                65,
+                113,
+                152
+            ]
+        }
     },
     "Cotton Eye Joe": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Rednex"
-        ]
+        ],
+        "baked_artists": "rednex",
+        "baked_diagnosis": {
+            "drums": [
+                8,
+                183
+            ],
+            "bass": [
+                0,
+                138,
+                146,
+                45
+            ],
+            "guitar": [],
+            "piano": [
+                100,
+                6
+            ],
+            "other": [
+                13,
+                169
+            ],
+            "vocals": [
+                0,
+                86,
+                94,
+                97
+            ]
+        }
     },
     "Scatman skibabopbadopbop": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Scatman John"
-        ]
+        ],
+        "baked_artists": "scatman john",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                208
+            ],
+            "bass": [
+                0,
+                208
+            ],
+            "guitar": [],
+            "piano": [],
+            "other": [
+                0,
+                208
+            ],
+            "vocals": [
+                0,
+                208
+            ]
+        }
     },
     "Stayin Alive": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Bee Gees"
-        ]
+        ],
+        "baked_artists": "bee gees",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                240
+            ],
+            "bass": [
+                0,
+                240
+            ],
+            "guitar": [
+                0,
+                240
+            ],
+            "piano": [
+                0,
+                24,
+                35,
+                13,
+                58,
+                11,
+                104,
+                8,
+                121,
+                25,
+                176,
+                31,
+                215,
+                25
+            ],
+            "other": [
+                0,
+                30,
+                53,
+                30,
+                100,
+                54,
+                176,
+                64
+            ],
+            "vocals": [
+                13,
+                227
+            ]
+        }
     },
     "Eye of the Tiger": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Survivor"
-        ]
+        ],
+        "baked_artists": "survivor",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                224
+            ],
+            "bass": [
+                8,
+                216
+            ],
+            "guitar": [
+                0,
+                150,
+                159,
+                65
+            ],
+            "piano": [
+                0,
+                9,
+                39,
+                57,
+                105,
+                81
+            ],
+            "other": [
+                106,
+                18,
+                194,
+                30
+            ],
+            "vocals": [
+                48,
+                142,
+                199,
+                25
+            ]
+        }
     },
     "Ghostbusters": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "WALK THE MOON"
-        ]
+        ],
+        "baked_artists": "walk the moon",
+        "baked_diagnosis": {
+            "drums": [
+                16,
+                208
+            ],
+            "bass": [
+                0,
+                224
+            ],
+            "guitar": [
+                0,
+                155,
+                187,
+                37
+            ],
+            "piano": [
+                0,
+                7
+            ],
+            "other": [
+                0,
+                157,
+                173,
+                51
+            ],
+            "vocals": [
+                30,
+                194
+            ]
+        }
     },
     "Lenfer": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Stromae"
-        ]
+        ],
+        "baked_artists": "stromae",
+        "baked_diagnosis": {
+            "drums": [
+                44,
+                33,
+                98,
+                44,
+                152,
+                35
+            ],
+            "bass": [
+                66,
+                12,
+                98,
+                89
+            ],
+            "guitar": [
+                60,
+                8,
+                125,
+                62
+            ],
+            "piano": [
+                12,
+                112,
+                140,
+                47
+            ],
+            "other": [
+                35,
+                42,
+                97,
+                90
+            ],
+            "vocals": [
+                0,
+                12,
+                23,
+                164
+            ]
+        }
     },
     "Tous les mmes": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Stromae"
-        ]
+        ],
+        "baked_artists": "stromae",
+        "baked_diagnosis": {
+            "drums": [
+                9,
+                52,
+                69,
+                45,
+                122,
+                87
+            ],
+            "bass": [
+                205,
+                4
+            ],
+            "guitar": [
+                0,
+                124,
+                134,
+                75
+            ],
+            "piano": [
+                101,
+                9
+            ],
+            "other": [
+                22,
+                170
+            ],
+            "vocals": [
+                0,
+                157,
+                175,
+                26
+            ]
+        }
     },
     "Sant": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Stromae"
-        ]
+        ],
+        "baked_artists": "stromae",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                194
+            ],
+            "bass": [
+                11,
+                183
+            ],
+            "guitar": [
+                29,
+                18,
+                76,
+                22,
+                139,
+                8,
+                169,
+                13
+            ],
+            "piano": [
+                21,
+                10,
+                117,
+                7
+            ],
+            "other": [
+                0,
+                194
+            ],
+            "vocals": [
+                0,
+                43,
+                52,
+                32,
+                105,
+                73,
+                186,
+                8
+            ]
+        }
     },
     "Hotel California  2013 Remaster": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Eagles"
-        ]
+        ],
+        "baked_artists": "eagles",
+        "baked_diagnosis": {
+            "drums": [
+                48,
+                341
+            ],
+            "bass": [
+                0,
+                389
+            ],
+            "guitar": [
+                0,
+                389
+            ],
+            "piano": [],
+            "other": [
+                92,
+                43,
+                146,
+                9,
+                194,
+                9,
+                240,
+                11,
+                264,
+                23,
+                298,
+                24,
+                345,
+                12
+            ],
+            "vocals": [
+                51,
+                209
+            ]
+        }
     },
     "Enemy with JID  from the series Arcane League of Legends": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Imagine Dragons",
             "JID",
             "Arcane",
             "League of Legends"
-        ]
+        ],
+        "baked_artists": "imagine dragons jid arcane league of legends",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                211
+            ],
+            "bass": [
+                31,
+                168
+            ],
+            "guitar": [
+                47,
+                6,
+                61,
+                6,
+                76,
+                11,
+                114,
+                17,
+                139,
+                24,
+                189,
+                8
+            ],
+            "piano": [],
+            "other": [
+                31,
+                168
+            ],
+            "vocals": [
+                0,
+                201
+            ]
+        }
     },
     "Believer": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Imagine Dragons"
-        ]
+        ],
+        "baked_artists": "imagine dragons",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                146,
+                160,
+                40
+            ],
+            "bass": [
+                14,
+                132,
+                160,
+                40
+            ],
+            "guitar": [
+                0,
+                200
+            ],
+            "piano": [
+                158,
+                11
+            ],
+            "other": [
+                60,
+                11,
+                169,
+                14,
+                193,
+                7
+            ],
+            "vocals": [
+                0,
+                200
+            ]
+        }
     },
     "Bones": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Imagine Dragons"
-        ]
+        ],
+        "baked_artists": "imagine dragons",
+        "baked_diagnosis": {
+            "drums": [
+                20,
+                77,
+                111,
+                52
+            ],
+            "bass": [
+                21,
+                76,
+                113,
+                50
+            ],
+            "guitar": [
+                60,
+                11,
+                101,
+                12,
+                124,
+                23
+            ],
+            "piano": [],
+            "other": [
+                0,
+                114,
+                122,
+                41
+            ],
+            "vocals": [
+                0,
+                163
+            ]
+        }
     },
     "Radioactive": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Imagine Dragons"
-        ]
+        ],
+        "baked_artists": "imagine dragons",
+        "baked_diagnosis": {
+            "drums": [
+                27,
+                115,
+                153,
+                31
+            ],
+            "bass": [
+                13,
+                125,
+                154,
+                30
+            ],
+            "guitar": [
+                0,
+                28,
+                42,
+                142
+            ],
+            "piano": [
+                58,
+                12,
+                116,
+                8,
+                157,
+                8
+            ],
+            "other": [
+                13,
+                16,
+                54,
+                31,
+                99,
+                85
+            ],
+            "vocals": [
+                0,
+                184
+            ]
+        }
     },
     "Basket Case": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Green Day"
-        ]
+        ],
+        "baked_artists": "green day",
+        "baked_diagnosis": {
+            "drums": [
+                21,
+                150
+            ],
+            "bass": [
+                36,
+                143
+            ],
+            "guitar": [
+                0,
+                179
+            ],
+            "piano": [],
+            "other": [],
+            "vocals": [
+                0,
+                107,
+                127,
+                22
+            ]
+        }
     },
     "Numb": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Linkin Park"
-        ]
+        ],
+        "baked_artists": "linkin park",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                185
+            ],
+            "bass": [
+                12,
+                164
+            ],
+            "guitar": [
+                0,
+                185
+            ],
+            "piano": [
+                11,
+                106,
+                143,
+                16
+            ],
+            "other": [
+                0,
+                177
+            ],
+            "vocals": [
+                0,
+                12,
+                20,
+                156
+            ]
+        }
     },
     "In the End": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Linkin Park"
-        ]
+        ],
+        "baked_artists": "linkin park",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                8,
+                19,
+                168
+            ],
+            "bass": [
+                19,
+                195
+            ],
+            "guitar": [
+                22,
+                9,
+                54,
+                39,
+                101,
+                30,
+                141,
+                73
+            ],
+            "piano": [
+                0,
+                19,
+                29,
+                29,
+                83,
+                29,
+                128,
+                23,
+                182,
+                32
+            ],
+            "other": [
+                0,
+                130,
+                152,
+                30
+            ],
+            "vocals": [
+                0,
+                187
+            ]
+        }
     },
     "Dirty Water": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Foo Fighters"
-        ]
+        ],
+        "baked_artists": "foo fighters",
+        "baked_diagnosis": {
+            "drums": [
+                12,
+                306
+            ],
+            "bass": [
+                12,
+                306
+            ],
+            "guitar": [
+                0,
+                318
+            ],
+            "piano": [],
+            "other": [
+                70,
+                24,
+                123,
+                7,
+                142,
+                11,
+                177,
+                23,
+                211,
+                95
+            ],
+            "vocals": [
+                13,
+                150,
+                196,
+                122
+            ]
+        }
     },
     "Last Resort": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Papa Roach"
-        ]
+        ],
+        "baked_artists": "papa roach",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                198
+            ],
+            "bass": [
+                0,
+                196
+            ],
+            "guitar": [
+                0,
+                197
+            ],
+            "piano": [],
+            "other": [],
+            "vocals": [
+                0,
+                197
+            ]
+        }
     },
     "Viva La Vida": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Coldplay"
-        ]
+        ],
+        "baked_artists": "coldplay",
+        "baked_diagnosis": {
+            "drums": [
+                13,
+                154,
+                181,
+                35
+            ],
+            "bass": [
+                69,
+                28,
+                127,
+                40,
+                181,
+                35
+            ],
+            "guitar": [
+                16,
+                206
+            ],
+            "piano": [
+                0,
+                12,
+                125,
+                11
+            ],
+            "other": [
+                0,
+                239
+            ],
+            "vocals": [
+                13,
+                154,
+                179,
+                60
+            ]
+        }
     },
     "Something Just Like This": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The Chainsmokers",
             "Coldplay"
-        ]
+        ],
+        "baked_artists": "the chainsmokers coldplay",
+        "baked_diagnosis": {
+            "drums": [
+                19,
+                10,
+                55,
+                87,
+                157,
+                76
+            ],
+            "bass": [
+                27,
+                116,
+                158,
+                75,
+                241,
+                4
+            ],
+            "guitar": [
+                0,
+                16,
+                64,
+                20,
+                111,
+                29,
+                191,
+                43
+            ],
+            "piano": [
+                0,
+                65,
+                81,
+                41,
+                140,
+                56
+            ],
+            "other": [
+                0,
+                12,
+                29,
+                216
+            ],
+            "vocals": [
+                0,
+                236
+            ]
+        }
     },
     "Seven Nation Army": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The White Stripes"
-        ]
+        ],
+        "baked_artists": "the white stripes",
+        "baked_diagnosis": {
+            "drums": [
+                8,
+                221
+            ],
+            "bass": [
+                0,
+                229
+            ],
+            "guitar": [
+                47,
+                26,
+                82,
+                7,
+                103,
+                65,
+                204,
+                25
+            ],
+            "piano": [],
+            "other": [
+                158,
+                7
+            ],
+            "vocals": [
+                16,
+                36,
+                86,
+                38,
+                173,
+                36
+            ]
+        }
     },
     "The Final Countdown": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Europe"
-        ]
+        ],
+        "baked_artists": "europe",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                23,
+                50,
+                257
+            ],
+            "bass": [
+                0,
+                307
+            ],
+            "guitar": [
+                0,
+                307
+            ],
+            "piano": [],
+            "other": [
+                12,
+                100,
+                122,
+                177
+            ],
+            "vocals": [
+                43,
+                12,
+                81,
+                113,
+                240,
+                67
+            ]
+        }
     },
     "Human": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "RagnBone Man"
-        ]
+        ],
+        "baked_artists": "ragnbone man",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                182
+            ],
+            "bass": [
+                0,
+                174
+            ],
+            "guitar": [
+                0,
+                12,
+                26,
+                62,
+                103,
+                63,
+                175,
+                7
+            ],
+            "piano": [
+                82,
+                6,
+                170,
+                28
+            ],
+            "other": [
+                0,
+                13,
+                26,
+                36,
+                76,
+                12,
+                102,
+                64,
+                175,
+                7
+            ],
+            "vocals": [
+                0,
+                198
+            ]
+        }
     },
     "Sweet Home Alabama": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Lynyrd Skynyrd"
-        ]
+        ],
+        "baked_artists": "lynyrd skynyrd",
+        "baked_diagnosis": {
+            "drums": [
+                8,
+                274
+            ],
+            "bass": [
+                12,
+                270
+            ],
+            "guitar": [
+                0,
+                282
+            ],
+            "piano": [
+                18,
+                58,
+                99,
+                19,
+                187,
+                20,
+                245,
+                37
+            ],
+            "other": [],
+            "vocals": [
+                0,
+                7,
+                23,
+                19,
+                52,
+                38,
+                101,
+                40,
+                160,
+                20,
+                189,
+                64
+            ]
+        }
     },
     "Every Breath You Take": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The Police"
-        ]
+        ],
+        "baked_artists": "the police",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                250
+            ],
+            "bass": [
+                0,
+                250
+            ],
+            "guitar": [
+                0,
+                241
+            ],
+            "piano": [
+                130,
+                8
+            ],
+            "other": [
+                18,
+                23,
+                52,
+                180
+            ],
+            "vocals": [
+                15,
+                95,
+                120,
+                119
+            ]
+        }
     },
     "Pumped Up Kicks": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Foster The People"
-        ]
+        ],
+        "baked_artists": "foster the people",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                229
+            ],
+            "bass": [
+                0,
+                184,
+                199,
+                30
+            ],
+            "guitar": [
+                0,
+                35,
+                64,
+                29,
+                109,
+                129
+            ],
+            "piano": [],
+            "other": [
+                0,
+                9,
+                18,
+                19,
+                64,
+                34,
+                124,
+                32,
+                167,
+                71
+            ],
+            "vocals": [
+                0,
+                169,
+                182,
+                47
+            ]
+        }
     },
     "Happy Together": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The Turtles"
-        ]
+        ],
+        "baked_artists": "the turtles",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                41,
+                52,
+                118
+            ],
+            "bass": [
+                0,
+                35,
+                123,
+                10,
+                163,
+                7
+            ],
+            "guitar": [
+                0,
+                170
+            ],
+            "piano": [],
+            "other": [
+                38,
+                18,
+                65,
+                64,
+                152,
+                18
+            ],
+            "vocals": [
+                0,
+                170
+            ]
+        }
     },
     "We Built This City": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Starship"
-        ]
+        ],
+        "baked_artists": "starship",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                275
+            ],
+            "bass": [
+                0,
+                275
+            ],
+            "guitar": [
+                0,
+                275
+            ],
+            "piano": [],
+            "other": [
+                42,
+                71,
+                134,
+                11,
+                153,
+                6,
+                171,
+                35,
+                215,
+                32,
+                257,
+                18
+            ],
+            "vocals": [
+                13,
+                262
+            ]
+        }
     },
     "Wild World": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Yusuf  Cat Stevens"
-        ]
+        ],
+        "baked_artists": "yusuf  cat stevens",
+        "baked_diagnosis": {
+            "drums": [
+                40,
+                27,
+                89,
+                43,
+                141,
+                57
+            ],
+            "bass": [
+                0,
+                198
+            ],
+            "guitar": [
+                0,
+                198
+            ],
+            "piano": [
+                38,
+                150
+            ],
+            "other": [
+                0,
+                36,
+                71,
+                6
+            ],
+            "vocals": [
+                0,
+                198
+            ]
+        }
     },
     "Imagine  Remastered 2010": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "John Lennon"
-        ]
+        ],
+        "baked_artists": "john lennon",
+        "baked_diagnosis": {
+            "drums": [
+                37,
+                139
+            ],
+            "bass": [
+                38,
+                85,
+                133,
+                46
+            ],
+            "guitar": [
+                0,
+                13,
+                91,
+                7,
+                121,
+                38
+            ],
+            "piano": [
+                0,
+                180
+            ],
+            "other": [
+                50,
+                129
+            ],
+            "vocals": [
+                14,
+                163
+            ]
+        }
     },
     "How You Remind Me": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Nickelback"
-        ]
+        ],
+        "baked_artists": "nickelback",
+        "baked_diagnosis": {
+            "drums": [
+                15,
+                115,
+                154,
+                57
+            ],
+            "bass": [
+                17,
+                123,
+                155,
+                67
+            ],
+            "guitar": [
+                0,
+                222
+            ],
+            "piano": [
+                216,
+                6
+            ],
+            "other": [
+                207,
+                15
+            ],
+            "vocals": [
+                0,
+                129,
+                139,
+                83
+            ]
+        }
     },
     "Boulevard of Broken Dreams": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Green Day"
-        ]
+        ],
+        "baked_artists": "green day",
+        "baked_diagnosis": {
+            "drums": [
+                16,
+                170,
+                197,
+                61
+            ],
+            "bass": [
+                16,
+                170,
+                196,
+                62
+            ],
+            "guitar": [
+                0,
+                258
+            ],
+            "piano": [
+                0,
+                9,
+                17,
+                31,
+                74,
+                49
+            ],
+            "other": [
+                0,
+                9
+            ],
+            "vocals": [
+                10,
+                151,
+                186,
+                39,
+                234,
+                24
+            ]
+        }
     },
     "The Sound of Silence": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Simon  Garfunkel"
-        ]
+        ],
+        "baked_artists": "simon  garfunkel",
+        "baked_diagnosis": {
+            "drums": [],
+            "bass": [
+                40,
+                48,
+                180,
+                5
+            ],
+            "guitar": [
+                0,
+                185
+            ],
+            "piano": [],
+            "other": [],
+            "vocals": [
+                0,
+                185
+            ]
+        }
     },
     "Bohemian Rhapsody  Remastered 2011": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Queen"
-        ]
+        ],
+        "baked_artists": "queen",
+        "baked_diagnosis": {
+            "drums": [
+                78,
+                24,
+                115,
+                68,
+                205,
+                113,
+                347,
+                5
+            ],
+            "bass": [
+                48,
+                135,
+                205,
+                80,
+                294,
+                26
+            ],
+            "guitar": [
+                138,
+                84,
+                234,
+                80,
+                332,
+                8
+            ],
+            "piano": [
+                13,
+                169,
+                193,
+                36,
+                287,
+                65
+            ],
+            "other": [
+                172,
+                10,
+                194,
+                6,
+                240,
+                7,
+                284,
+                25
+            ],
+            "vocals": [
+                0,
+                104,
+                113,
+                49,
+                185,
+                99,
+                295,
+                35,
+                342,
+                10
+            ]
+        }
     },
     "Somebody That I Used To Know": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Gotye",
             "Kimbra"
-        ]
+        ],
+        "baked_artists": "gotye kimbra",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                138,
+                152,
+                91
+            ],
+            "bass": [
+                0,
+                243
+            ],
+            "guitar": [
+                0,
+                118,
+                134,
+                47,
+                199,
+                13,
+                224,
+                19
+            ],
+            "piano": [],
+            "other": [
+                47,
+                13,
+                93,
+                59,
+                182,
+                61
+            ],
+            "vocals": [
+                19,
+                28,
+                63,
+                75,
+                152,
+                91
+            ]
+        }
     },
     "See You Again feat Charlie Puth": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Wiz Khalifa",
             "Charlie Puth"
-        ]
+        ],
+        "baked_artists": "wiz khalifa charlie puth",
+        "baked_diagnosis": {
+            "drums": [
+                38,
+                37,
+                101,
+                73,
+                197,
+                30
+            ],
+            "bass": [
+                38,
+                36,
+                102,
+                71,
+                200,
+                27
+            ],
+            "guitar": [
+                40,
+                34,
+                128,
+                19,
+                204,
+                7
+            ],
+            "piano": [
+                0,
+                42,
+                70,
+                56,
+                151,
+                67
+            ],
+            "other": [
+                46,
+                24,
+                88,
+                65,
+                163,
+                6,
+                201,
+                26
+            ],
+            "vocals": [
+                10,
+                217
+            ]
+        }
     },
     "We Are The Champions": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Queen"
-        ]
+        ],
+        "baked_artists": "queen",
+        "baked_diagnosis": {
+            "drums": [
+                23,
+                45,
+                92,
+                86
+            ],
+            "bass": [
+                0,
+                178
+            ],
+            "guitar": [
+                16,
+                56,
+                88,
+                90
+            ],
+            "piano": [
+                0,
+                128,
+                140,
+                38
+            ],
+            "other": [],
+            "vocals": [
+                0,
+                178
+            ]
+        }
     },
     "Message In A Bottle": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "The Police"
-        ]
+        ],
+        "baked_artists": "the police",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                287
+            ],
+            "bass": [
+                0,
+                196,
+                208,
+                70
+            ],
+            "guitar": [
+                0,
+                287
+            ],
+            "piano": [],
+            "other": [
+                35,
+                11,
+                86,
+                14,
+                158,
+                13
+            ],
+            "vocals": [
+                0,
+                194,
+                208,
+                79
+            ]
+        }
     },
     "Livin On A Prayer": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Bon Jovi"
-        ]
+        ],
+        "baked_artists": "bon jovi",
+        "baked_diagnosis": {
+            "drums": [
+                13,
+                234
+            ],
+            "bass": [
+                11,
+                236
+            ],
+            "guitar": [
+                24,
+                223
+            ],
+            "piano": [
+                129,
+                6
+            ],
+            "other": [
+                0,
+                247
+            ],
+            "vocals": [
+                21,
+                226
+            ]
+        }
     },
     "Holding Out for a Hero  From Footloose Soundtrack": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Bonnie Tyler"
-        ]
+        ],
+        "baked_artists": "bonnie tyler",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                346
+            ],
+            "bass": [
+                0,
+                322
+            ],
+            "guitar": [
+                9,
+                23,
+                82,
+                68,
+                162,
+                60,
+                250,
+                30
+            ],
+            "piano": [
+                0,
+                118,
+                146,
+                100
+            ],
+            "other": [
+                0,
+                18,
+                44,
+                14,
+                108,
+                44,
+                169,
+                108
+            ],
+            "vocals": [
+                19,
+                137,
+                181,
+                145
+            ]
+        }
     },
     "Another One Bites The Dust  Remastered 2011": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Queen"
-        ]
+        ],
+        "baked_artists": "queen",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                212
+            ],
+            "bass": [
+                0,
+                101,
+                148,
+                64
+            ],
+            "guitar": [
+                9,
+                27,
+                56,
+                27,
+                95,
+                6,
+                122,
+                6,
+                151,
+                24,
+                187,
+                15
+            ],
+            "piano": [
+                16,
+                6,
+                126,
+                7,
+                199,
+                13
+            ],
+            "other": [
+                119,
+                14,
+                167,
+                8,
+                200,
+                12
+            ],
+            "vocals": [
+                19,
+                38,
+                65,
+                35,
+                113,
+                14,
+                135,
+                67
+            ]
+        }
     },
     "Sweet Dreams Are Made of This  2005 Remaster": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Eurythmics",
             "Annie Lennox",
             "Dave Stewart"
-        ]
+        ],
+        "baked_artists": "eurythmics annie lennox dave stewart",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                214
+            ],
+            "bass": [
+                77,
+                19,
+                133,
+                14,
+                168,
+                17
+            ],
+            "guitar": [
+                0,
+                7,
+                24,
+                127,
+                164,
+                50
+            ],
+            "piano": [
+                76,
+                15
+            ],
+            "other": [
+                0,
+                38,
+                47,
+                103,
+                163,
+                51
+            ],
+            "vocals": [
+                8,
+                84,
+                107,
+                107
+            ]
+        }
     },
     "Free Bird": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Lynyrd Skynyrd"
-        ]
+        ],
+        "baked_artists": "lynyrd skynyrd",
+        "baked_diagnosis": {
+            "drums": [
+                17,
+                531
+            ],
+            "bass": [
+                26,
+                522
+            ],
+            "guitar": [
+                0,
+                548
+            ],
+            "piano": [
+                0,
+                14
+            ],
+            "other": [
+                229,
+                20,
+                307,
+                7,
+                333,
+                7,
+                361,
+                8,
+                392,
+                42,
+                444,
+                24,
+                482,
+                10,
+                503,
+                29
+            ],
+            "vocals": [
+                69,
+                87,
+                187,
+                114,
+                409,
+                9,
+                462,
+                6,
+                478,
+                13
+            ]
+        }
     },
     "Kung Fu Fighting": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Carl Douglas"
-        ]
+        ],
+        "baked_artists": "carl douglas",
+        "baked_diagnosis": {
+            "drums": [
+                27,
+                168
+            ],
+            "bass": [
+                26,
+                169
+            ],
+            "guitar": [
+                0,
+                195
+            ],
+            "piano": [
+                0,
+                17,
+                52,
+                6,
+                78,
+                32,
+                129,
+                10,
+                167,
+                12
+            ],
+            "other": [
+                0,
+                25,
+                46,
+                140
+            ],
+            "vocals": [
+                0,
+                195
+            ]
+        }
     },
     "Rocket Man I Think Its Going To Be A Long Long Time": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Elton John"
-        ]
+        ],
+        "baked_artists": "elton john",
+        "baked_diagnosis": {
+            "drums": [
+                40,
+                74,
+                134,
+                146
+            ],
+            "bass": [
+                26,
+                254
+            ],
+            "guitar": [
+                54,
+                60,
+                156,
+                124
+            ],
+            "piano": [
+                0,
+                89,
+                99,
+                173
+            ],
+            "other": [
+                88,
+                22,
+                134,
+                36,
+                234,
+                46
+            ],
+            "vocals": [
+                0,
+                47,
+                55,
+                225
+            ]
+        }
     },
     "Smells Like Teen Spirit": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Nirvana"
-        ]
+        ],
+        "baked_artists": "nirvana",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                289
+            ],
+            "bass": [
+                9,
+                290
+            ],
+            "guitar": [
+                0,
+                299
+            ],
+            "piano": [],
+            "other": [
+                198,
+                19,
+                226,
+                6,
+                286,
+                13
+            ],
+            "vocals": [
+                34,
+                64,
+                108,
+                98,
+                214,
+                77
+            ]
+        }
     },
     "I Need A Dollar": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Aloe Blacc"
-        ]
+        ],
+        "baked_artists": "aloe blacc",
+        "baked_diagnosis": {
+            "drums": [
+                9,
+                233
+            ],
+            "bass": [
+                0,
+                242
+            ],
+            "guitar": [
+                64,
+                10,
+                119,
+                30
+            ],
+            "piano": [
+                0,
+                147,
+                155,
+                87
+            ],
+            "other": [
+                60,
+                86,
+                156,
+                86
+            ],
+            "vocals": [
+                9,
+                220
+            ]
+        }
     },
     "Everybody Wants To Rule The World": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Tears For Fears"
-        ]
+        ],
+        "baked_artists": "tears for fears",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                248
+            ],
+            "bass": [
+                9,
+                239
+            ],
+            "guitar": [
+                0,
+                29,
+                40,
+                208
+            ],
+            "piano": [
+                23,
+                19,
+                64,
+                13
+            ],
+            "other": [
+                0,
+                29,
+                41,
+                54,
+                134,
+                81
+            ],
+            "vocals": [
+                0,
+                10,
+                28,
+                30,
+                67,
+                85,
+                168,
+                49,
+                239,
+                9
+            ]
+        }
     },
     "Pompeii": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Bastille"
-        ]
+        ],
+        "baked_artists": "bastille",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                135,
+                149,
+                48
+            ],
+            "bass": [
+                0,
+                134,
+                157,
+                39
+            ],
+            "guitar": [
+                63,
+                9,
+                103,
+                109
+            ],
+            "piano": [
+                17,
+                13,
+                71,
+                11,
+                126,
+                23,
+                169,
+                7,
+                198,
+                14
+            ],
+            "other": [
+                0,
+                69,
+                79,
+                16,
+                105,
+                7,
+                122,
+                8,
+                174,
+                7
+            ],
+            "vocals": [
+                0,
+                212
+            ]
+        }
     },
     "Riptide": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Vance Joy"
-        ]
+        ],
+        "baked_artists": "vance joy",
+        "baked_diagnosis": {
+            "drums": [
+                10,
+                192
+            ],
+            "bass": [
+                20,
+                117,
+                155,
+                47
+            ],
+            "guitar": [
+                94,
+                15,
+                162,
+                9
+            ],
+            "piano": [
+                88,
+                7,
+                111,
+                25,
+                163,
+                25,
+                196,
+                6
+            ],
+            "other": [
+                0,
+                126,
+                135,
+                67
+            ],
+            "vocals": [
+                9,
+                193
+            ]
+        }
     },
     "Counting Stars": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                22,
+                234
+            ],
+            "bass": [
+                29,
+                9,
+                54,
+                126,
+                205,
+                51
+            ],
+            "guitar": [
+                0,
+                179,
+                192,
+                8,
+                215,
+                41
+            ],
+            "piano": [
+                23,
+                29,
+                196,
+                10,
+                246,
+                10
+            ],
+            "other": [
+                9,
+                45,
+                64,
+                117,
+                205,
+                51
+            ],
+            "vocals": [
+                0,
+                23,
+                37,
+                219
+            ]
+        }
     },
     "If I Lose Myself": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                14,
+                43,
+                67,
+                76,
+                151,
+                73
+            ],
+            "bass": [
+                41,
+                182
+            ],
+            "guitar": [
+                0,
+                17,
+                35,
+                59,
+                105,
+                62,
+                180,
+                43
+            ],
+            "piano": [
+                222,
+                17
+            ],
+            "other": [
+                0,
+                223
+            ],
+            "vocals": [
+                14,
+                225
+            ]
+        }
     },
     "Feel Again  With Heartbeats": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                9,
+                148
+            ],
+            "bass": [
+                35,
+                140
+            ],
+            "guitar": [
+                49,
+                46,
+                105,
+                6,
+                119,
+                38,
+                169,
+                6
+            ],
+            "piano": [],
+            "other": [
+                0,
+                175
+            ],
+            "vocals": [
+                8,
+                167
+            ]
+        }
     },
     "What You Wanted": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                88
+            ],
+            "bass": [
+                0,
+                88
+            ],
+            "guitar": [
+                0,
+                7,
+                23,
+                65
+            ],
+            "piano": [
+                0,
+                13,
+                30,
+                8,
+                70,
+                6
+            ],
+            "other": [
+                0,
+                88
+            ],
+            "vocals": [
+                23,
+                65
+            ]
+        }
     },
     "I Lived": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                12,
+                220
+            ],
+            "bass": [
+                37,
+                58,
+                105,
+                116
+            ],
+            "guitar": [
+                0,
+                232
+            ],
+            "piano": [
+                63,
+                8,
+                112,
+                18,
+                175,
+                7,
+                222,
+                10
+            ],
+            "other": [
+                36,
+                6,
+                52,
+                48,
+                129,
+                103
+            ],
+            "vocals": [
+                8,
+                224
+            ]
+        }
     },
     "Light It Up": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                88
+            ],
+            "bass": [
+                11,
+                28,
+                62,
+                26
+            ],
+            "guitar": [
+                0,
+                88
+            ],
+            "piano": [],
+            "other": [
+                0,
+                88
+            ],
+            "vocals": [
+                0,
+                7,
+                20,
+                68
+            ]
+        }
     },
     "Cant Stop": {
-        "status": "new",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                96,
+                105,
+                142
+            ],
+            "bass": [
+                0,
+                97,
+                106,
+                141
+            ],
+            "guitar": [
+                11,
+                42,
+                94,
+                30,
+                169,
+                18,
+                240,
+                7
+            ],
+            "piano": [
+                0,
+                95,
+                106,
+                129
+            ],
+            "other": [
+                54,
+                46,
+                117,
+                130
+            ],
+            "vocals": [
+                10,
+                237
+            ]
+        }
     },
     "Au Revoir": {
-        "status": "new",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [],
+            "bass": [],
+            "guitar": [],
+            "piano": [
+                0,
+                88
+            ],
+            "other": [
+                0,
+                88
+            ],
+            "vocals": [
+                17,
+                20,
+                50,
+                38
+            ]
+        }
     },
     "Burning Bridges": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                10,
+                78
+            ],
+            "bass": [
+                10,
+                78
+            ],
+            "guitar": [
+                23,
+                6,
+                64,
+                24
+            ],
+            "piano": [
+                52,
+                13
+            ],
+            "other": [
+                0,
+                88
+            ],
+            "vocals": [
+                10,
+                78
+            ]
+        }
     },
     "Something I Need": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                22,
+                66
+            ],
+            "bass": [
+                29,
+                59
+            ],
+            "guitar": [
+                0,
+                48,
+                64,
+                24
+            ],
+            "piano": [
+                22,
+                66
+            ],
+            "other": [
+                81,
+                7
+            ],
+            "vocals": [
+                0,
+                88
+            ]
+        }
     },
     "Preacher": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [
+                13,
+                75
+            ],
+            "bass": [
+                13,
+                75
+            ],
+            "guitar": [
+                0,
+                27,
+                69,
+                19
+            ],
+            "piano": [
+                0,
+                35,
+                58,
+                14
+            ],
+            "other": [
+                0,
+                88
+            ],
+            "vocals": [
+                28,
+                60
+            ]
+        }
     },
     "Dont Look Down": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "OneRepublic"
-        ]
+        ],
+        "baked_artists": "onerepublic",
+        "baked_diagnosis": {
+            "drums": [],
+            "bass": [
+                0,
+                97
+            ],
+            "guitar": [
+                0,
+                97
+            ],
+            "piano": [],
+            "other": [
+                0,
+                97
+            ],
+            "vocals": [
+                15,
+                62
+            ]
+        }
     },
     "Skyfall": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Adele"
-        ]
+        ],
+        "baked_artists": "adele",
+        "baked_diagnosis": {
+            "drums": [
+                82,
+                195
+            ],
+            "bass": [
+                0,
+                9,
+                59,
+                228
+            ],
+            "guitar": [
+                0,
+                9,
+                59,
+                160,
+                227,
+                60
+            ],
+            "piano": [
+                0,
+                84
+            ],
+            "other": [
+                0,
+                7,
+                53,
+                234
+            ],
+            "vocals": [
+                33,
+                254
+            ]
+        }
     },
     "Ta reine": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Angle"
-        ]
+        ],
+        "baked_artists": "angle",
+        "baked_diagnosis": {
+            "drums": [
+                32,
+                105,
+                169,
+                42
+            ],
+            "bass": [
+                46,
+                17,
+                73,
+                62,
+                168,
+                43
+            ],
+            "guitar": [
+                39,
+                6,
+                64,
+                16,
+                187,
+                24
+            ],
+            "piano": [
+                81,
+                15,
+                203,
+                8
+            ],
+            "other": [
+                0,
+                211
+            ],
+            "vocals": [
+                8,
+                203
+            ]
+        }
     },
     "Balance ton quoi": {
-        "status": "split",
+        "status": "analysed",
         "artists": [
             "Angle"
-        ]
+        ],
+        "baked_artists": "angle",
+        "baked_diagnosis": {
+            "drums": [
+                19,
+                88,
+                188,
+                75
+            ],
+            "bass": [
+                30,
+                74,
+                113,
+                7,
+                211,
+                52
+            ],
+            "guitar": [
+                79,
+                10,
+                248,
+                15
+            ],
+            "piano": [
+                17,
+                8,
+                111,
+                7
+            ],
+            "other": [
+                0,
+                120,
+                193,
+                70
+            ],
+            "vocals": [
+                0,
+                263
+            ]
+        }
     },
     "Tout oublier": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Angle",
             "Romo Elvis"
-        ]
+        ],
+        "baked_artists": "angle romo elvis",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                214
+            ],
+            "bass": [
+                34,
+                18,
+                70,
+                129
+            ],
+            "guitar": [
+                205,
+                9
+            ],
+            "piano": [
+                0,
+                31,
+                146,
+                7
+            ],
+            "other": [
+                0,
+                205
+            ],
+            "vocals": [
+                0,
+                199,
+                209,
+                5
+            ]
+        }
     },
     "Jalousie": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Angle"
-        ]
+        ],
+        "baked_artists": "angle",
+        "baked_diagnosis": {
+            "drums": [
+                21,
+                127,
+                158,
+                54
+            ],
+            "bass": [
+                16,
+                23,
+                47,
+                100,
+                158,
+                33
+            ],
+            "guitar": [
+                52,
+                7,
+                70,
+                13,
+                99,
+                7,
+                158,
+                7,
+                186,
+                26
+            ],
+            "piano": [
+                0,
+                16,
+                27,
+                17,
+                65,
+                14,
+                164,
+                6
+            ],
+            "other": [
+                0,
+                227
+            ],
+            "vocals": [
+                0,
+                36,
+                48,
+                179
+            ]
+        }
     },
     "Le coach feat Vincenzo": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Soprano",
             "Vincenzo"
-        ]
+        ],
+        "baked_artists": "soprano vincenzo",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                198
+            ],
+            "bass": [
+                30,
+                30,
+                90,
+                29,
+                150,
+                30
+            ],
+            "guitar": [
+                91,
+                8,
+                123,
+                16,
+                193,
+                5
+            ],
+            "piano": [],
+            "other": [
+                0,
+                198
+            ],
+            "vocals": [
+                0,
+                198
+            ]
+        }
     },
     "A Sky Full of Stars": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Coldplay"
-        ]
+        ],
+        "baked_artists": "coldplay",
+        "baked_diagnosis": {
+            "drums": [
+                31,
+                216
+            ],
+            "bass": [
+                75,
+                25,
+                115,
+                38,
+                169,
+                92
+            ],
+            "guitar": [
+                43,
+                221
+            ],
+            "piano": [
+                0,
+                77,
+                93,
+                78
+            ],
+            "other": [
+                0,
+                104,
+                117,
+                147
+            ],
+            "vocals": [
+                17,
+                67,
+                101,
+                68,
+                187,
+                12,
+                215,
+                25,
+                252,
+                9
+            ]
+        }
     },
     "Stressed Out": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Twenty One Pilots"
-        ]
+        ],
+        "baked_artists": "twenty one pilots",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                155,
+                164,
+                36
+            ],
+            "bass": [
+                0,
+                188,
+                197,
+                3
+            ],
+            "guitar": [
+                0,
+                12,
+                39,
+                8,
+                60,
+                11,
+                109,
+                6,
+                133,
+                8,
+                171,
+                14
+            ],
+            "piano": [
+                0,
+                11,
+                23,
+                107,
+                144,
+                9,
+                165,
+                21
+            ],
+            "other": [
+                28,
+                47,
+                97,
+                37,
+                143,
+                57
+            ],
+            "vocals": [
+                11,
+                189
+            ]
+        }
     },
     "Cant Hold Us feat Ray Dalton": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Macklemore",
             "Ryan Lewis",
             "Macklemore  Ryan Lewis",
             "Ray Dalton"
-        ]
+        ],
+        "baked_artists": "macklemore ryan lewis macklemore  ryan lewis ray dalton",
+        "baked_diagnosis": {
+            "drums": [
+                33,
+                217,
+                267,
+                29,
+                309,
+                27
+            ],
+            "bass": [
+                46,
+                24,
+                98,
+                15,
+                124,
+                28,
+                165,
+                77,
+                250,
+                18,
+                282,
+                12,
+                308,
+                29
+            ],
+            "guitar": [
+                11,
+                7,
+                27,
+                10,
+                193,
+                17,
+                276,
+                17
+            ],
+            "piano": [
+                73,
+                28,
+                110,
+                18,
+                140,
+                30,
+                218,
+                17
+            ],
+            "other": [
+                0,
+                47,
+                58,
+                16,
+                99,
+                13,
+                122,
+                19,
+                163,
+                15,
+                191,
+                79,
+                296,
+                64
+            ],
+            "vocals": [
+                40,
+                213,
+                261,
+                98
+            ]
+        }
     },
     "Under Pressure  Remastered 2011": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Queen",
             "David Bowie"
-        ]
+        ],
+        "baked_artists": "queen david bowie",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                236
+            ],
+            "bass": [
+                0,
+                224
+            ],
+            "guitar": [
+                12,
+                209
+            ],
+            "piano": [
+                0,
+                13,
+                47,
+                11,
+                91,
+                43,
+                217,
+                13
+            ],
+            "other": [
+                39,
+                25,
+                105,
+                11,
+                140,
+                18,
+                185,
+                34
+            ],
+            "vocals": [
+                22,
+                201
+            ]
+        }
     },
     "I Gotta Feeling": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Black Eyed Peas"
-        ]
+        ],
+        "baked_artists": "black eyed peas",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                41,
+                49,
+                238
+            ],
+            "bass": [
+                0,
+                30,
+                60,
+                227
+            ],
+            "guitar": [
+                0,
+                287
+            ],
+            "piano": [],
+            "other": [
+                0,
+                30,
+                140,
+                13,
+                164,
+                123
+            ],
+            "vocals": [
+                29,
+                258
+            ]
+        }
     },
     "Smooth Criminal  2012 Remaster": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "Michael Jackson"
-        ]
+        ],
+        "baked_artists": "michael jackson",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                255
+            ],
+            "bass": [
+                14,
+                241
+            ],
+            "guitar": [
+                0,
+                14,
+                35,
+                13,
+                61,
+                11,
+                105,
+                7,
+                128,
+                13,
+                153,
+                35,
+                199,
+                56
+            ],
+            "piano": [
+                46,
+                28,
+                111,
+                19,
+                187,
+                13
+            ],
+            "other": [
+                0,
+                24,
+                53,
+                6,
+                67,
+                22,
+                140,
+                28,
+                200,
+                34
+            ],
+            "vocals": [
+                25,
+                195,
+                229,
+                26
+            ]
+        }
     },
     "Thunderstruck": {
-        "status": "downloaded",
+        "status": "analysed",
         "artists": [
             "ACDC"
-        ]
+        ],
+        "baked_artists": "acdc",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                291
+            ],
+            "bass": [
+                36,
+                255
+            ],
+            "guitar": [
+                0,
+                291
+            ],
+            "piano": [],
+            "other": [
+                29,
+                6,
+                112,
+                46,
+                204,
+                8
+            ],
+            "vocals": [
+                0,
+                193,
+                205,
+                78
+            ]
+        }
+    },
+    "Finder": {
+        "status": "analysed",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                71,
+                91,
+                78
+            ],
+            "bass": [
+                34,
+                40,
+                95,
+                71
+            ],
+            "guitar": [
+                0,
+                18,
+                26,
+                9,
+                72,
+                55,
+                136,
+                31
+            ],
+            "piano": [
+                0,
+                185
+            ],
+            "other": [
+                0,
+                99,
+                117,
+                68
+            ],
+            "vocals": [
+                0,
+                169
+            ]
+        }
+    },
+    "Get Back To Jinsei": {
+        "status": "analysed",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism",
+        "baked_diagnosis": {
+            "drums": [
+                16,
+                65,
+                89,
+                258
+            ],
+            "bass": [
+                17,
+                329
+            ],
+            "guitar": [
+                0,
+                34,
+                48,
+                92,
+                153,
+                77,
+                240,
+                105
+            ],
+            "piano": [
+                0,
+                65,
+                89,
+                83,
+                194,
+                149
+            ],
+            "other": [
+                0,
+                83,
+                97,
+                68,
+                176,
+                133,
+                318,
+                26
+            ],
+            "vocals": [
+                0,
+                344
+            ]
+        }
+    },
+    "MIXED NUTS": {
+        "status": "analysed",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                210
+            ],
+            "bass": [
+                0,
+                210
+            ],
+            "guitar": [
+                0,
+                16,
+                24,
+                65,
+                99,
+                6,
+                119,
+                91
+            ],
+            "piano": [
+                0,
+                42,
+                51,
+                12,
+                93,
+                25,
+                164,
+                6,
+                187,
+                7
+            ],
+            "other": [
+                0,
+                16,
+                41,
+                169
+            ],
+            "vocals": [
+                0,
+                7,
+                16,
+                194
+            ]
+        }
+    },
+    "SOULSOUP": {
+        "status": "analysed",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                312
+            ],
+            "bass": [
+                0,
+                312
+            ],
+            "guitar": [
+                0,
+                22,
+                46,
+                266
+            ],
+            "piano": [
+                0,
+                71,
+                135,
+                28
+            ],
+            "other": [
+                0,
+                312
+            ],
+            "vocals": [
+                15,
+                283
+            ]
+        }
+    },
+    "Catch Ball": {
+        "status": "analysed",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism",
+        "baked_diagnosis": {
+            "drums": [
+                0,
+                218
+            ],
+            "bass": [
+                8,
+                92,
+                117,
+                100
+            ],
+            "guitar": [
+                13,
+                12,
+                35,
+                79,
+                128,
+                85
+            ],
+            "piano": [
+                9,
+                63,
+                81,
+                11,
+                102,
+                27,
+                140,
+                11,
+                161,
+                20
+            ],
+            "other": [
+                0,
+                25,
+                50,
+                168
+            ],
+            "vocals": [
+                8,
+                210
+            ]
+        }
+    },
+    "Nichijo": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Im home Interlude": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Sharon": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Dakuten": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Subtitle": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Anarchy  Rejoice ver": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "White Noise": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Urami Tsurami Kiwami": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Chessboard": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "TATTOO": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "BSide Blues": {
+        "status": "downloaded",
+        "artists": [
+            "OFFICIAL HIGE DANDISM"
+        ],
+        "baked_artists": "official hige dandism"
+    },
+    "Kings & Queens": {
+        "status": "downloaded",
+        "artists": [
+            "Ava Max"
+        ],
+        "baked_artists": "ava max"
     }
 }
