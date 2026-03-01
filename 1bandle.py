@@ -2,44 +2,72 @@ import subprocess
 from pathlib import Path
 import sys
 import json
-import yt_dlp
+import yt_dlp           # type: ignore
 from time import sleep
 import platform
 import _audio_helper
 
 # constants
-if "/" in str(Path(__file__)):
-    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
-elif "\\" in str(Path(__file__)):
-    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
-else:
-    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
 CURR_OS = platform.system()
 SCALE = 0.5
-SCRIPT_DIR = "bandle"
-CSV_PATH = f"{PROJECT_DIR}/{SCRIPT_DIR}/CSV.txt"
-INTERPRETER_PATH = sys.executable
-RAW_TRACK_AUDIO_DIR = f"{PROJECT_DIR}/raw_track_audio"
-SEPERATED_DIR = f"{PROJECT_DIR}/split"
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
 STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
 WEAK_INTERNET = False
 SKIP_SPLIT = True
 
+PROJECT_DIR =           Path(__file__).resolve().parent.parent
+INTERPRETER_PATH =      sys.executable
+SCRIPT_DIR =            PROJECT_DIR / "bandle"
+SEPERATED_DIR =         PROJECT_DIR / "split"
+RAW_TRACK_AUDIO_DIR =   PROJECT_DIR / "raw_track_audio"
+BUFFER_DIR =            PROJECT_DIR / "1playlist_info_buffer.json"
+SONGS_DIR =             PROJECT_DIR / "1songs.json"
+PLAYLIST_JSON_DIR =     PROJECT_DIR / "1playlists.json"
+CONFIG_DIR =            PROJECT_DIR / "config.txt"
+DEFAULT_CONFIG =        "SCALE=1\nDEBUG_VLC=False\nWEAK_INTERNET=False\nSKIP_SPLIT=False"
+
+
+# creating potentially missing files
+if not Path(BUFFER_DIR).exists():
+    Path(BUFFER_DIR).write_text("{}")
+if not Path(SONGS_DIR).exists():
+    Path(SONGS_DIR).write_text("{}")
+if not Path(PLAYLIST_JSON_DIR).exists():
+    Path(PLAYLIST_JSON_DIR).write_text("{}")
+if not Path(CONFIG_DIR).exists():
+    Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
+
+
 #overriding constants with config
-with open(f"{PROJECT_DIR}/config.txt", "r") as f:
+with open(PROJECT_DIR / "config.txt", "r") as f:
     txt = f.read().splitlines()
     for i in txt:
         if "SCALE" in i:
             if len(i.split("=")) > 0:
                 SCALE = i.split("=")[1]
             else:
-                help(f"no scale provided in {PROJECT_DIR}/config.txt")
+                help(f"no scale provided in {CONFIG_DIR}")
         if "CURR_OS" in i:
             if len(i.split("=")) > 0:
                 CURR_OS = i.split("=")[1]
             else:
-                help(f"no OS provided in {PROJECT_DIR}/config.txt")
+                help(f"no OS provided in {CONFIG_DIR}")
+        if "WEAK_INTERNET" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    WEAK_INTERNET = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else WEAK_INTERNET
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
+            else:
+                help(f"no OS provided in {CONFIG_DIR}")
+        if "SKIP_SPLIT" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    SKIP_SPLIT = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else SKIP_SPLIT
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
+            else:
+                help(f"no OS provided in {CONFIG_DIR}")
 
 # filtering possible OSes
 if CURR_OS == "Windows":
@@ -53,9 +81,7 @@ else:
 
 # init vars
 playlist_url = input("paste the spotify url you want to add (s for skip):  ")
-buffer_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlist_info_buffer.json"
-playlists_json_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1playlists.json"
-songs_dir = f"{PROJECT_DIR}/{SCRIPT_DIR}/1songs.json"
+
 
 def santize_string(str):
     new_str = ""
@@ -79,7 +105,7 @@ if playlist_url != "s" and playlist_url != "":
         "playlist" if not album else "album",
         playlist_url,
         "--output",
-        buffer_dir
+        BUFFER_DIR
     ]
 
     try:
@@ -89,7 +115,7 @@ if playlist_url != "s" and playlist_url != "":
         print("Error: ", e)
         print("Exit code:", e.returncode)
 
-    with open(buffer_dir, "r", encoding="utf-8") as f:
+    with open(BUFFER_DIR, "r", encoding="utf-8") as f:
         buffer_dir_contents = json.load(f)
 
     print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"]))
@@ -116,7 +142,7 @@ if playlist_url != "s" and playlist_url != "":
         })
 
     try:
-        with open(playlists_json_dir, "r", encoding="utf-8") as f:
+        with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
             playlists_json_dir_contents = json.load(f)
     except:
         playlists_json_dir_contents = {}
@@ -127,33 +153,33 @@ if playlist_url != "s" and playlist_url != "":
         "data": data
         }
 
-    with open(playlists_json_dir, "w", encoding="utf-8") as f:
+    with open(PLAYLIST_JSON_DIR, "w", encoding="utf-8") as f:
         json.dump(playlists_json_dir_contents, f, indent=4, ensure_ascii=False)
 
 
 # ensuring all songs are in songs.json
-with open(playlists_json_dir, "r", encoding="utf-8") as f:
+with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
     playlists_json_dir_contents = json.load(f)
 
 try:
-    with open(songs_dir, "r", encoding="utf-8") as f:
-        songs_dir_contents = json.load(f)
+    with open(SONGS_DIR, "r", encoding="utf-8") as f:
+        SONGS_DIR_contents = json.load(f)
 except:
-    songs_dir_contents = {}
+    SONGS_DIR_contents = {}
 
 for i in playlists_json_dir_contents:
     for j in playlists_json_dir_contents[i]:
         if j == "data":
             for k in playlists_json_dir_contents[i][j]:
-                if not k["name"] in songs_dir_contents:
-                    songs_dir_contents[k["name"]] = {"status": "new", "artists": k["artists"]}
+                if not k["name"] in SONGS_DIR_contents:
+                    SONGS_DIR_contents[k["name"]] = {"status": "new", "artists": k["artists"]}
 
 # baking names of artists into a better format for data parsing
-for i in songs_dir_contents.keys():
-    songs_dir_contents[i]["baked_artists"] = " ".join([x.lower() for x in songs_dir_contents[i]["artists"]])
+for i in SONGS_DIR_contents.keys():
+    SONGS_DIR_contents[i]["baked_artists"] = " ".join([x.lower() for x in SONGS_DIR_contents[i]["artists"]])
 
-with open(songs_dir, 'w', encoding="utf-8") as f:
-    json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+with open(SONGS_DIR, 'w', encoding="utf-8") as f:
+    json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
 
 
@@ -169,7 +195,7 @@ if not WEAK_INTERNET:
         def error(self, msg):
             print(f"[ERROR] {msg}")
 
-    songs_to_download = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "new"]
+    songs_to_download = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "new"]
     if songs_to_download != []:
         print(f"downloading {len(songs_to_download)} missing songs")
     else:
@@ -177,14 +203,14 @@ if not WEAK_INTERNET:
     for i in range(len(songs_to_download)):
         
         title = songs_to_download[i]
-        if songs_dir_contents[title]["status"] == "new":
+        if SONGS_DIR_contents[title]["status"] == "new":
 
-            artists = songs_dir_contents[songs_to_download[i]]["artists"]
+            artists = SONGS_DIR_contents[songs_to_download[i]]["artists"]
             query = f"{title} {' '.join(artists)} audio"
             ydl_opts = {
             "format": "bestaudio/best",
                 #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
-                "outtmpl": RAW_TRACK_AUDIO_DIR+"\\"+title+".%(ext)s",
+                "outtmpl": RAW_TRACK_AUDIO_DIR / title+".%(ext)s",
                 "quiet": True,
                 "no_warnings": True, 
                 "logger": YTDLPLogger(), 
@@ -198,10 +224,10 @@ if not WEAK_INTERNET:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
             sleep(3)
-            if Path(PROJECT_DIR + "/raw_track_audio/"+title+".wav").exists():
-                songs_dir_contents[title]["status"] = "downloaded"
-            with open(songs_dir, "w", encoding="utf-8") as f:
-                json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+            if Path(PROJECT_DIR / "raw_track_audio" /  title+".wav").exists():
+                SONGS_DIR_contents[title]["status"] = "downloaded"
+            with open(SONGS_DIR, "w", encoding="utf-8") as f:
+                json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 else:
     print("you have enabled the WEAK INTERNET the config, therefore the program wont download anything more.")
 
@@ -249,7 +275,7 @@ if not SKIP_SPLIT:
 
 
     if CURR_OS == "Windows":
-        songs_to_split = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] == "downloaded"]
+        songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
         if len(songs_to_split) == 0:
             print("lucky you: there's no audio to split!")
         else:
@@ -259,9 +285,9 @@ if not SKIP_SPLIT:
 
             cmd = [
                 "demucs",
-                RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav",
+                RAW_TRACK_AUDIO_DIR / title + ".wav",
                 "-o",
-                SEPERATED_DIR + "\\",
+                SEPERATED_DIR,
                 "-n",
                 "htdemucs_6s",
                 "--mp3"
@@ -271,15 +297,15 @@ if not SKIP_SPLIT:
             except subprocess.CalledProcessError as e:
                 print("RIP, there was an error")
                 print("Exit code:", e.returncode)
-            if Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).exists():
+            if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
                 print()
                 print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
-                songs_dir_contents[title]["status"] = "split"
+                SONGS_DIR_contents[title]["status"] = "split"
                 print("converting back to wavs for easier processing")
 
                 # converting to wavs
                 failure = False
-                for mp3_file in Path(SEPERATED_DIR + "\\" + "htdemucs_6s" + "\\" +  title).rglob("*.mp3"):
+                for mp3_file in Path(SEPERATED_DIR / "htdemucs_6s" / title).rglob("*.mp3"):
                     wav_file = mp3_file.with_suffix(".wav")
                     result = subprocess.run(
                         ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
@@ -290,45 +316,93 @@ if not SKIP_SPLIT:
                         failure = True
                 
                 if not failure: # check for faliure converting to wavs very unlikely
-                    print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav")
-                    Path(RAW_TRACK_AUDIO_DIR + "\\" + title + ".wav").unlink()
+                    print("removing now useless audio: " + Path(RAW_TRACK_AUDIO_DIR / title + ".wav"))
+                    Path(RAW_TRACK_AUDIO_DIR / title + ".wav").unlink()
                     # recording that
-                    with open(songs_dir, "w", encoding="utf-8") as f:
-                        json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+                    with open(SONGS_DIR, "w", encoding="utf-8") as f:
+                        json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                 else:
                     print("something went wrong")
             else:
                 print("did not split")
 
-if CURR_OS == "Linux":
-    print("need to write a linux splitter sry")
+    if CURR_OS == "Linux":
+        songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
+        if len(songs_to_split) == 0:
+            print("lucky you: there's no audio to split!")
+        else:
+            print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
+            for i in range(len(songs_to_split)):
+                title = songs_to_split[i]
 
+                cmd = [
+                    "demucs",
+                    RAW_TRACK_AUDIO_DIR / title + ".wav",
+                    "-o",
+                    SEPERATED_DIR,
+                    "-n",
+                    "htdemucs_6s",
+                    "--mp3"
+                ]
+                try:
+                    run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
+                except subprocess.CalledProcessError as e:
+                    print("RIP, there was an error")
+                    print("Exit code:", e.returncode)
+                if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
+                    print()
+                    print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
+                    SONGS_DIR_contents[title]["status"] = "split"
+                    print("converting back to wavs for easier processing")
+
+                    # converting to wavs
+                    failure = False
+                    for mp3_file in Path(SEPERATED_DIR / "htdemucs_6s" /  title).rglob("*.mp3"):
+                        wav_file = mp3_file.with_suffix(".wav")
+                        result = subprocess.run(
+                            ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
+                        )
+                        if result.returncode == 0:
+                            mp3_file.unlink()  # delete original
+                        else:
+                            failure = True
+                    
+                    if not failure: # check for faliure converting to wavs very unlikely
+                        print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR / title + ".wav")
+                        Path(RAW_TRACK_AUDIO_DIR / title + ".wav").unlink()
+                        # recording that
+                        with open(SONGS_DIR, "w", encoding="utf-8") as f:
+                            json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+                    else:
+                        print("something went wrong")
+                else:
+                    print("did not split")
 
 
 
 
 
 # analysing audio to detect stem presence
-songs_to_analyse = [i for i in songs_dir_contents.keys() if songs_dir_contents[i]["status"] in ["split", "analysed"]]
+songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split", "analysed"]]
 
 if len(songs_to_analyse) == 0:
     print("lucky you: there are no songs to analyse!")
 else:
     print(f"analysing {len(songs_to_analyse)} songs...")
 
-    analyser = _audio_helper.Player_obj(STEMS, SEPERATED_DIR + "/htdemucs_6s", volume=70)
+    analyser = _audio_helper.Player_obj(STEMS, SEPERATED_DIR / "htdemucs_6s", volume=70)
 
     for i in songs_to_analyse:
         analyser.load(i)
         compressed_diag = analyser.analyse_audio(False)
-        songs_dir_contents[i]["baked_diagnosis"] = compressed_diag
-        songs_dir_contents[i]["status"] = "analysed"
+        SONGS_DIR_contents[i]["baked_diagnosis"] = compressed_diag
+        SONGS_DIR_contents[i]["status"] = "analysed"
         print(f"[{songs_to_analyse.index(i)}/{len(songs_to_analyse)}] analysed {i}")
-        with open(songs_dir, "w", encoding="utf-8") as f:
-            json.dump(songs_dir_contents, f, indent=4, ensure_ascii=False)
+        with open(SONGS_DIR, "w", encoding="utf-8") as f:
+            json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
 
 
 print("done with preparations: opening GUI...")
-cmd = f"\"{INTERPRETER_PATH}\" \"{PROJECT_DIR}/{SCRIPT_DIR}/1mixer3.1.py\" --scale={SCALE}"
+cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / '1mixer3.1.py'}\" --scale={SCALE}"
 subprocess.run(cmd, shell=True)

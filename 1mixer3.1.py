@@ -1,4 +1,4 @@
-import pygame
+import pygame           # type: ignore
 import math
 import json
 import _audio_helper as audio_helper
@@ -13,19 +13,6 @@ from pathlib import Path
 
 
 # constants
-if "/" in str(Path(__file__)):
-    PROJECT_DIR =  "/".join(str(Path(__file__).resolve().parent).split("/")[:-1])
-elif "\\" in str(Path(__file__)):
-    PROJECT_DIR =  "\\".join(str(Path(__file__).resolve().parent).split("\\")[:-1])
-else:
-    raise Exception(f"failed to resolve current project directory with cwd={str(Path(__file__))}")
-SCRIPT_DIR = "bandle"
-STEMS_FOLDER = PROJECT_DIR+"/split/htdemucs_6s"
-JAPANESE_FONT_DIR = PROJECT_DIR+"/Noto_Sans_JP/static/NotoSansJP-Medium.ttf"
-
-PLAYLIST_JSON_DIR = PROJECT_DIR+"/"+SCRIPT_DIR+"/1playlists.json"
-SONGS_JSON_DIR = PROJECT_DIR+"/"+SCRIPT_DIR+"/1songs.json"
-
 CATEGORIES = ["japanese", "pop", "rock", "instrumental"]
 DEBUG = False
 WIDTH = 500
@@ -40,6 +27,15 @@ CHARS = "AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn ,?;.:/!1234567890�
 CF_DEBUG_VLC = False
 TARGET_FPS = 60
 
+PROJECT_DIR =       Path(__file__).resolve().parent.parent
+SCRIPT_DIR =        PROJECT_DIR / "bandle"
+STEMS_FOLDER =      PROJECT_DIR / "split" / "htdemucs_6s"
+JAPANESE_FONT_DIR = PROJECT_DIR / "Noto_Sans_JP" / "static" / "NotoSansJP-Medium.ttf"
+PLAYLIST_JSON_DIR = PROJECT_DIR / "1playlists.json"
+SONGS_JSON_DIR =    PROJECT_DIR / "1songs.json"
+BLACKLISTS_DIR =    PROJECT_DIR / "Blacklists.txt"
+CONFIG_DIR =        PROJECT_DIR / "config.txt"
+ASSETS_DIR =        SCRIPT_DIR  / "assets"
 
 # vars
 playlist_to_names = {}
@@ -72,8 +68,12 @@ def help(error=""):
     "\n")
     raise Exception(str(error))
 
+# creating potentially missing files
+if not Path(BLACKLISTS_DIR).exists():
+    Path(BLACKLISTS_DIR).write_text("")
+
 # read Blacklists.txt
-with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r", encoding="utf-8") as f:
+with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
     txt = f.read().splitlines()
     blacklists = []
     for i in txt:
@@ -86,13 +86,13 @@ with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r", encoding="utf-8") a
             blacklists[-1].pop(-1)
 if blacklists == []:
     print("no blacklists found in Blacklist.txt, creating a new one")
-    with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w", encoding="utf-8") as f:
+    with open(BLACKLISTS_DIR, "w", encoding="utf-8") as f:
         f.write("GENERATED_BLACKLIST=")
     blacklists = [[""]]
     blacklist_names = ["GENERATED_BLACKLIST"]
 
 # read config
-with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
+with open(CONFIG_DIR, "r", encoding="utf-8") as f:
     txt = f.read().splitlines()
     for i in txt:
         if "SCALE" in i:
@@ -102,7 +102,7 @@ with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
                 except:
                     help("failed to convert " + str(i.split("=")[1]) + "to a float" )
             else:
-                help(f"no scale provided in {PROJECT_DIR}/config.txt after SCALE=")
+                help(f"no scale provided in {CONFIG_DIR} after SCALE=")
         if "DEBUG_VLC" in i:
             if len(i.split("=")) > 0:
                 try:
@@ -110,7 +110,7 @@ with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
                 except:
                     help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
             else:
-                help(f"no scale provided in {PROJECT_DIR}/config.txt after DEBUG_VLC=")
+                help(f"no scale provided in {CONFIG_DIR} after DEBUG_VLC=")
         if "TARGET_FPS" in i:
             if len(i.split("=")) > 0:
                 try:
@@ -118,7 +118,7 @@ with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
                 except:
                     help(f"failed to convert" + str(i.split("=")[1]) + "to a float")
             else:
-                help(f"no target fps provided in {PROJECT_DIR}/config.txt after TARGET_FPS=")
+                help(f"no target fps provided in {CONFIG_DIR} after TARGET_FPS=")
         if "DEFAULT_BLACKLIST" in i:
             if len(i.split("=")) > 0:
                 curr_blacklist = str(i.split("=")[1])
@@ -127,7 +127,7 @@ with open(f"{PROJECT_DIR}/config.txt", "r", encoding="utf-8") as f:
                 else:
                     help("default blacklist is set to an unknown value")
             else:
-                help(f"no blacklist provided after DEFAULT_BLACKLIST= in {PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt")
+                help(f"no blacklist provided after DEFAULT_BLACKLIST= in {BLACKLISTS_DIR}")
 
 if curr_blacklist == -1:
     print("no default blacklist found in config.txt defaulting to the first")
@@ -224,7 +224,7 @@ except:
 # |      ╰    ╯  ╰----╯ ╰--'  ╰---╯ ╰----╯ |
 # ╰----------------------------------------╯
 
-player = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=70)
+player = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=6)
 
 # ╭--------------------------------------------------------------------╮
 # |      ╭----   ╭----╮ ╭-╮╭-╮ ╭----     ╭---╮  ╭╮   ╮ ╭---╮ ╭---╮     |
@@ -486,14 +486,16 @@ def skip(silent=False, skip_song=False, simple_update=False):
             if simple_update:
                 player.update_to_play(step)
             else:
-
+                
                 player.play(step)
+                player.seek(player.audio_len/5)
+                player.toggle()
             
         if step > len(STEMS) or skip_song:
             step = 1
 
             # update the correct blacklist
-            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "r", encoding="utf-8") as f:
+            with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
                 txt = f.read()
             txts=txt.splitlines()
             buffer = ""
@@ -502,7 +504,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
                     buffer += txts[i] + current_song + " " + "\n"
                 else:
                     buffer += txts[i] + "\n"
-            with open(f"{PROJECT_DIR}/{SCRIPT_DIR}/Blacklists.txt", "w", encoding="utf-8") as f:
+            with open(BLACKLISTS_DIR, "w", encoding="utf-8") as f:
                 f.write(buffer)
             blacklists[curr_blacklist].append(current_song)
                 
@@ -520,7 +522,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
                 else:
                     # print("song counter", song_counter)
                     current_song = queue[song_counter - 1]
-                    if Path(STEMS_FOLDER + "/" +  current_song).is_dir():
+                    if Path(STEMS_FOLDER / current_song).is_dir():
                         player.load(current_song)
                         a = False
                     else:
@@ -558,10 +560,26 @@ def main_menu_setup():
     global manage_blacklist_button  
     global curr_screen
     global test_song_button
+    global all_songs_sanitized_sorted
+    global all_songs_sanitized_sorted_availability
+
     playlist_select_button =     Button(WIDTH/2-200, 500 , 400, 120, (100, 100, 100), "play bandle from Playlist", radius=20)
     manage_blacklist_button =    Button(WIDTH/2-200, 650, 400, 120, (100, 100, 100), "manage blacklist", radius=20)
     test_song_button =           Button(WIDTH/2-200, 800, 400, 120, (100, 100, 100), "test specific song", radius=20)
     curr_screen = "main_menu"
+
+    all_songs_sanitized_sorted = all_songs_sanitized[:]
+    all_songs_sanitized_sorted.sort()
+
+    all_songs_sanitized_sorted_availability = []
+    
+    # all_songs_sanitized_sorted_availability and all_songs_sanitized_sorted are aligned
+    for i in range(len(all_songs_sanitized_sorted)):
+        if songs_json_dir_contents[all_songs_sanitized_sorted[i]]["status"] in ["split", "analysed"]:
+            all_songs_sanitized_sorted_availability.append(True)
+        else:
+            all_songs_sanitized_sorted_availability.append(False)
+
 
 def main_menu():
     global shadow_offset
@@ -835,10 +853,10 @@ def test_song_setup():
     rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     
-    skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
+    skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
 
-    rewind_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/rewind.png").convert_alpha()
+    rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
     rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
 
     textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, (200, 200, 200))
@@ -846,6 +864,7 @@ def test_song_setup():
     # preparing song queue
     queue = [current_song]
     player.load(current_song)
+    player.seek(player.audio_len / 5, step=1)
     curr_screen = "bandle"
     
 def playlist_select_setup():
@@ -880,18 +899,7 @@ def playlist_select_setup():
     curr_screen = "playlists"
 
 
-    all_songs_sanitized_sorted = all_songs_sanitized[:]
-    all_songs_sanitized_sorted.sort()
-
-    all_songs_sanitized_sorted_availability = []
     
-    # all_songs_sanitized_sorted_availability and all_songs_sanitized_sorted are aligned
-    for i in range(len(all_songs_sanitized_sorted)):
-        if songs_json_dir_contents[all_songs_sanitized_sorted[i]]["status"] in ["split", "analysed"]:
-            all_songs_sanitized_sorted_availability.append(True)
-        else:
-            all_songs_sanitized_sorted_availability.append(False)
-
 
 def playlist_select():
     global shadow_offset
@@ -1025,10 +1033,10 @@ def bandle_setup():
     rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     
-    skip_ahead_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/skip_ahead.png").convert_alpha()
+    skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
 
-    rewind_img = pygame.image.load(PROJECT_DIR+"/"+ SCRIPT_DIR + "/assets/rewind.png").convert_alpha()
+    rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
     rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
 
     textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, (200, 200, 200))
@@ -1063,6 +1071,8 @@ def bandle_setup():
         shuffle(queue)
         current_song = queue[0]
         player.load(current_song)
+        player.seek(player.audio_len / 5, step=1)
+
         print(player.status)
         curr_screen = "bandle"
     

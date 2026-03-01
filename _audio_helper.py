@@ -1,14 +1,16 @@
-from pydub import AudioSegment
-import simpleaudio as sa
+from pydub import AudioSegment      # type: ignore
+import simpleaudio as sa            # type: ignore
 from time import sleep, perf_counter
 import math
 from pathlib import Path
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt     # type: ignore
 
 if __name__ == "__main__":    
     #constants
     STEMS = ["drums", "bass", "guitar", "piano", "other", "vocals"]
-    SEPERATED_DIR = r"c:\Users\REMOVED_USERNAME\Documents\github projects\split\htdemucs_6s"
+    
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    SEPERATED_DIR = Path(BASE_DIR / "split"  / "htdemucs_6s")
 
 # ╭----------------------------------------╮
 # |      ╭----╮  ╭    ╮ ╭--.  ╭---╮ ╭----╮ |
@@ -88,11 +90,11 @@ class Player_obj:
 
     def load(self, track):
         self.track = track
-        if Path(self.SEPERATED_DIR + "\\" + track).exists:
+        if Path(self.SEPERATED_DIR / track).exists:
 
             try:   
                 # defining _raw_stems
-                self._raw_stems = { self.STEMS[i]: (AudioSegment.from_wav(self.SEPERATED_DIR + "\\" + track + "\\" + self.STEMS[i] + ".wav")) for i in range(len(self.STEMS))}
+                self._raw_stems = { self.STEMS[i]: (AudioSegment.from_wav(self.SEPERATED_DIR / track / (self.STEMS[i] + ".wav"))) for i in range(len(self.STEMS))}
                 
                 # defining _baked_step_audios
                 self._baked_step_audios = [self.overlay_step(i) for i in range(1, len(self.STEMS)+1)]
@@ -111,11 +113,16 @@ class Player_obj:
             print("couldnt find specified song's folder")
 
 
-    def seek(self, pos):
+    def seek(self, pos, step=-1):
         if self.status == "Playing":
             self.toggle()
         elif self.status == "Stopped":
-            pass
+            if step == -1:
+                pass
+            else:
+                self.play(step)
+                self.curr_step = step
+                self.toggle()
         if self.status == "Paused":
             self.previous_pointer = pos / 1000
 
@@ -312,7 +319,7 @@ class Player_obj:
                         else:
                             duration = compressed_diagnosis[x][i]-start
                             btr_compression[x].append(duration)
-                            if duration < 6: # if segment is too short, its probaly not worth saving
+                            if duration < 10: # if segment is too short, its probaly not worth saving
                                 btr_compression[x].pop()
                                 btr_compression[x].pop()
 
@@ -324,6 +331,7 @@ class Player_obj:
                 for x in self.STEMS:
                     if len(btr_compression[x]) % 2 == 1:
                         btr_compression[x].append(len(diagnosis[x]) - btr_compression[x][-1])
+
 
                 return btr_compression
 
@@ -473,23 +481,13 @@ class Player_obj:
 
 
     def determine_best_start(self, compd_diagnosis):
-        priority = ["vocals", "drums", "guitar", "piano", "bass", "other"]
+        pass
+        # problem for later me if ever
 
-        # sort by audible length and filter short samples
-        smiple_format = { x: [ ] for x in self.STEMS}
-        for x in self.STEMS:
-            for i in range(0, len(compd_diagnosis[x]), 2):
-                smiple_format[x].append([compd_diagnosis[x][i], compd_diagnosis[x][i+1]])
-        print(smiple_format)
+        # either a moment where 'bad' songs get filtered out
+        # or a super complicated compromise maker
+        # in any case, its super fucking hard
 
-        # if there are options, loop over them
-
-        # else, loop over 
-
-
-
-
-            
 
 
 
@@ -499,38 +497,6 @@ if __name__ == "__main__":
     player = Player_obj(STEMS, SEPERATED_DIR)
     #vars
 
-    player.determine_best_start({
-            "drums": [
-                10,
-                246
-            ],
-            "bass": [
-                24,
-                232
-            ],
-            "guitar": [
-                0,
-                16,
-                24,
-                232
-            ],
-            "piano": [],
-            "other": [
-                0,
-                14,
-                40,
-                8,
-                58,
-                84,
-                175,
-                70
-            ],
-            "vocals": [
-                38,
-                126,
-                197,59]})
-
-    sleep(100)
 
     curr_song = "The Sound of Silence"
 
