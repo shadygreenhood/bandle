@@ -19,11 +19,11 @@ WIDTH = 500
 HEIGHT = 950
 CF_SCALE = 1
 CHEAT_MODE = False
+GLOBAL_SUGGESTIONS = True
 STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
 SANITIZED_EXEPTIONS = {
     "Undertale_-_Spider_Dance_-_Shirobon_Remix": "Spider Dance",
 }
-CHARS = "AZERTYUIOPQSDFGHJKLMWXCVBNazertyuiopqsdfghjklmwxcvbn ,?;.:/!1234567890éè_&"
 CF_DEBUG_VLC = False
 TARGET_FPS = 60
 
@@ -36,6 +36,20 @@ SONGS_JSON_DIR =    PROJECT_DIR / "1songs.json"
 BLACKLISTS_DIR =    PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =        PROJECT_DIR / "config.txt"
 ASSETS_DIR =        SCRIPT_DIR  / "assets"
+
+COLOR_PALETTE = {
+    "background"            : (255, 255, 255),
+    "face"                  : (217, 217, 217),
+    "shadow"                : (127, 127, 127),
+    "textinput unselected"  : (244, 244, 244),
+    "textinput selected"    : (191, 191, 191),
+    "list item unselected"  : (183, 183, 183),
+    "list item selected"    : (145, 145, 145),
+    "black"                 : (0  , 0,   0  ),
+    "red accent"            : (195, 63 , 63 ),
+    "guessing background"   : (242, 242, 242),
+    "stems selected"        : (80 , 80 , 80 )
+}
 
 # vars
 playlist_to_names = {}
@@ -262,9 +276,18 @@ class Button:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         pygame.draw.rect(surface, display_color, self.rect, border_radius=self.radius)
 
-        text_surface = basic_font.render(self.text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        surface.blit(text_surface, text_rect)
+        lines = self.text.split("\n")
+
+        max_height = 0
+        for i in lines:
+            text_surface = basic_font.render(i, True, COLOR_PALETTE["black"])
+            if text_surface.get_height() > max_height:
+                max_height = text_surface.get_height()
+
+        for i in range(len(lines)):
+            text_surface = basic_font.render(lines[i], True, COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery - max_height * (len(lines)-1)/2 + max_height*i))
+            surface.blit(text_surface, text_rect)
 
     def is_clicked(self):
         for event in events:
@@ -279,72 +302,62 @@ class Button:
     ### TODO prevent it from incrementing clickcounter more than once per frame
 
 class Toggle:
-    def __init__(self, x, y, w, h, color_on, color_off, text_on, text_off, radius=-1, label=True):
+    def __init__(self, x, y, w=116, h=65, default=False):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
-        self.color_on = color_on
-        self.color_off = color_off
-        self.text_on = text_on
-        self.text_off = text_off
-        self.radius = radius
-        self.state = False
-        self.offpos  = self.x + self.radius
-        self.onpos = self.x + 100 - self.radius
-        self.togl_head = pygame.Rect(self.onpos if self.state else self.offpos, self.y - self.h/4, 80, self.h)
+        self.state = default
         self.velocity = 0
-        self.label = label
-        
+        self.spring_slider = 1 if self.state else 0
 
-        opt1 = basic_font.render(self.text_on, True, (0, 0, 0))
-        opt1 = opt1.get_width()
-        opt2 = basic_font.render(self.text_off, True, (0, 0, 0))
-        opt2 = opt2.get_width()
+        offpos  = self.x -1
+        onpos = self.x + self.w - 83
+        self.togl_head = pygame.Rect(onpos if self.state else offpos, self.y - self.h/4, 83, self.h)
 
-        self.biggest_text = max(opt2, opt1)
-        self.centering_offset = -(self.radius-self.togl_head.width/2) - ((((self.togl_head.width/2 - self.radius + 120 + self.biggest_text) - (self.w)) / 2) if self.label else 0)
-        self.togl_head = pygame.Rect(self.onpos if self.state else self.offpos, self.y - self.h/4, 80, self.h)
-        self.offpos  = self.x + self.radius + self.centering_offset
-        self.onpos = self.x + 100 - self.radius + self.centering_offset
-    
     def draw(self, surface):
 
-        rect = pygame.Rect(self.x + self.centering_offset, self.y, 100, self.h/2)
+        rect = pygame.Rect(self.x, self.y, self.w, self.h)
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.togl_head.collidepoint(event.pos) or rect.collidepoint(event.pos):
+                if pygame.Rect(self.x, self.y, self.w, self.h).collidepoint(event.pos):
                     self.state = not self.state
 
-        dest = self.onpos if self.state else self.offpos
-        offset = dest - self.togl_head.centerx 
-        self.velocity += offset * 0.2 - self.velocity * 0.4
-        if abs(offset) < 0.5 and self.velocity < 0.0008:
-            self.velocity = 0
-        self.togl_head.x += self.velocity
-        
-        pygame.draw.rect(surface, (90, 90, 90), rect, border_radius=self.radius)
-        rect.inflate_ip(-10, -10)
-        pygame.draw.rect(surface, (80, 80, 80), rect, border_radius=self.radius)
 
-        color = self.color_on if self.state else self.color_off
+        dest = 1 if self.state else 0
+
+        offset = dest - self.spring_slider 
+        self.velocity += offset * 0.2 - self.velocity * 0.4
+        if abs(offset) < 0.0001 and self.velocity < 0.0008:
+            self.velocity = 0
+        self.spring_slider += self.velocity
+
+        self.togl_head.x = self.x + self.spring_slider* (self.w-83)
+
+
         
-        pygame.draw.rect(surface, (100, 100, 100), self.togl_head, border_radius=self.radius)
+        # slider 
+        rect = pygame.Rect(self.x, self.y, self.w, self.h/2)
+        pygame.draw.rect(surface, COLOR_PALETTE["list item selected"], rect, border_radius=15)
+        rect = pygame.Rect(self.x + 5, self.y +5, self.w-10, self.h/2-10)
+        pygame.draw.rect(surface, COLOR_PALETTE["shadow"], rect, border_radius=10)
+
+        # On/Off head
+
+        color = [COLOR_PALETTE["face"][x] + (COLOR_PALETTE["list item selected"][x]-COLOR_PALETTE["face"][x])*(1-self.spring_slider) for x in range(3)]
+        pygame.draw.rect(surface, COLOR_PALETTE["textinput selected"], self.togl_head, border_radius=20)
         self.togl_head.inflate_ip(-10, -10)
-        pygame.draw.rect(surface, color, self.togl_head, border_radius=self.radius)
+        pygame.draw.rect(surface, color, self.togl_head, border_radius=15)
         self.togl_head.inflate_ip(10, 10)
 
+        text_surface = basic_font.render("On" if self.state else "Off", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(self.togl_head.centerx, self.togl_head.centery))
+        screen.blit(text_surface, text_rect)
 
 
+        # pygame.draw.rect(surface, (100, 100, 255), pygame.Rect(self.x, self.y,self.w, self.h))
+        # pygame.draw.rect(surface, (255, 100, 100), rect)   
 
-        text_surface1 = basic_font.render(self.text_on if self.state else self.text_off, True, (0, 0, 0))
-        screen.blit(text_surface1, (self.x + 120 + self.centering_offset, (self.y-7)))
-        text_surface = basic_font.render("On" if self.state else "Off", True, (0, 0, 0))
-        screen.blit(text_surface, (self.togl_head.centerx - text_surface.get_width()/2, self.y + self.h/4 - text_surface.get_height()/2))
-
-        # pygame.draw.rect(surface, (100, 255, 100), pygame.Rect(self.x+self.radius-self.togl_head.width/2, self.y, self.togl_head.w - self.radius + 120 + text_surface1.get_width(), self.h/5))
-        # pygame.draw.rect(surface, (100, 255, 100), pygame.Rect(self.x+self.radius-self.togl_head.width/2, self.y,self.togl_head.width/2 - self.radius + 120 + self.biggest_text, self.h/5))
-        # pygame.draw.rect(surface, (100, 100, 255), pygame.Rect(self.x, self.y + 20,self.w, self.h/5))
 
 class Warning:
     def __init__(self, text, position=(40, HEIGHT-80, WIDTH-80), level="warning", counter=180):
@@ -455,15 +468,12 @@ class Textinput:
                 else:
                     self.focused = False
 
-        text_text = basic_font.render(self.text, True, (10, 10 ,10))
+        text_text = basic_font.render(self.text, True, COLOR_PALETTE["black"])
         screen.blit(text_text, (self.x + 5, self.y + 5))
         
 
-
-
-
 if DEBUG:
-    button1 = Button(100, 100, 200, 80, (100, 100, 100), "Button 1", radius=20)
+    button1 = Button(100, 100, 200, 80, COLOR_PALETTE["list item selected"], "Button 1", radius=20)
 
 
 # ╭---------------------------------------------------------------------╮
@@ -492,6 +502,7 @@ def skip(silent=False, skip_song=False, simple_update=False):
                 player.toggle()
             
         if step > len(STEMS) or skip_song:
+            player.stop_all()
             step = 1
 
             # update the correct blacklist
@@ -533,201 +544,547 @@ def skip(silent=False, skip_song=False, simple_update=False):
 
 def debug():
     # text test
-    text_surface = basic_font.render("fps: " + str(int(clock.get_fps())), True, (10, 10 ,10))
+    text_surface = basic_font.render("fps: " + str(int(clock.get_fps())), True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (0,5))
     
     #button test
     if button1.is_clicked() == 1:
-        button_state_surf = basic_font.render('Button 1 clicked!', True, (10, 10 ,10))
+        button_state_surf = basic_font.render('Button 1 clicked!', True, COLOR_PALETTE["black"])
     else:
-        button_state_surf = basic_font.render('Button 1 not clicked', True, (10, 10 ,10))
+        button_state_surf = basic_font.render('Button 1 not clicked', True, COLOR_PALETTE["black"])
     screen.blit(button_state_surf, (50, 200))
     button1.draw(screen)
 
 def setup():
-    global curr_screen
-    global shadow_offset
-    global blacklists
-    global curr_blacklist
+    
+    # GUI SPECIFIC CONSTANTS
+    global SHADOW_OFFSET
+    SHADOW_OFFSET = 10
 
-    if blacklists == "no_blacklist":
-        pass
-    shadow_offset = 10
-    curr_screen = "main_menu_setup"
+    # GUI specific vars
+    global loading_anim_slider
+    loading_anim_slider = 0
+    global go_back_button
+    go_back_button = Button(19, 23, 101, 48, COLOR_PALETTE["red accent"], "Back", radius=15)
+    global _mb_wiki_bool
+    _mb_wiki_bool = True
 
-def main_menu_setup():
-    global playlist_select_button
-    global manage_blacklist_button  
-    global curr_screen
-    global test_song_button
+    # preparing data for rest of script
     global all_songs_sanitized_sorted
     global all_songs_sanitized_sorted_availability
 
-    playlist_select_button =     Button(WIDTH/2-200, 500 , 400, 120, (100, 100, 100), "play bandle from Playlist", radius=20)
-    manage_blacklist_button =    Button(WIDTH/2-200, 650, 400, 120, (100, 100, 100), "manage blacklist", radius=20)
-    test_song_button =           Button(WIDTH/2-200, 800, 400, 120, (100, 100, 100), "test specific song", radius=20)
-    curr_screen = "main_menu"
-
     all_songs_sanitized_sorted = all_songs_sanitized[:]
     all_songs_sanitized_sorted.sort()
-
     all_songs_sanitized_sorted_availability = []
-    
-    # all_songs_sanitized_sorted_availability and all_songs_sanitized_sorted are aligned
     for i in range(len(all_songs_sanitized_sorted)):
         if songs_json_dir_contents[all_songs_sanitized_sorted[i]]["status"] in ["split", "analysed"]:
             all_songs_sanitized_sorted_availability.append(True)
         else:
             all_songs_sanitized_sorted_availability.append(False)
 
+    # sending to main menu intro
+    global submenu
+    global curr_screen
+    submenu = "setup"
+    curr_screen = "main_menu"
+
+
+
 
 def main_menu():
-    global shadow_offset
-    global playlist_select_button
+    global submenu
+
+    # vars
     global curr_screen
-    global manage_blacklist_button
-    global test_song_button
+    global loading_anim_slider
+    global CHEAT_MODE
+    global GLOBAL_SUGGESTIONS
 
-    #Title text
-    text_surface = title_font.render("Bandle Clone", True, (10, 10 ,10))
-    screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
+    # internal vars, sprites and data
+    global _mm_y_spring_slider_anim
+    global _mm_x_spring_slider_anim
+    global _mm_y_spring_slider
+    global _mm_x_spring_slider
+    
+    global _mm_settings_button
+    global _mm_library_button
+    global _mm_manage_blacklist_button
+    global _mm_open_console_button
+    global _mm_search_button 
 
-    test_song_button.draw(screen)
-    manage_blacklist_button.draw(screen)
-    playlist_select_button.draw(screen)
-    if playlist_select_button.is_clicked():
-        curr_screen = "playlists_setup"
-    if manage_blacklist_button.is_clicked():
-        curr_screen = "manage_blacklist_setup"
-    if test_song_button.is_clicked():
-        curr_screen = "select_song_setup"
+    global _mm_CHEAT_MODE_toggle
+    global _mm_global_suggestions_toggle
+
+    global _mm_ANIM_SPEED
+    _mm_ANIM_SPEED = 1/5
+
+
+
+    if submenu == "setup":
+        # prep for main menu + settings screen
+
+        # sprites (mostly x=0 cuz its overwritten anyways)
+        _mm_settings_button             = Button(0, 41 , 69, 50, COLOR_PALETTE["background"], "", radius=20)
+        _mm_search_button               = Button(0, 360, 329, 115,  COLOR_PALETTE["face"], "Search", radius=20)
+        _mm_library_button              = Button(0, 530 , 329, 115, COLOR_PALETTE["face"], "Library", radius=20)
+        _mm_manage_blacklist_button     = Button(0, 508, 229, 82,  COLOR_PALETTE["face"], "Select\nblacklist", radius=20)
+        _mm_open_console_button         = Button(0, 782, 229, 82,  COLOR_PALETTE["face"], "Open\nConsole", radius=20)
+
+        _mm_CHEAT_MODE_toggle =         Toggle(0, 262)
+        _mm_global_suggestions_toggle = Toggle(0, 384, default=True)
+
+        # internal vars
+        _mm_y_spring_slider_anim = False
+        _mm_x_spring_slider_anim = False
+        _mm_y_spring_slider = 0
+        _mm_x_spring_slider = 0
+
+        submenu = "intro"
+
+
+    if submenu in ["settings", "main_menu", "intro", "loading_main_menu"]:
+        # intro title and y slider
+        if submenu == "intro":
+            text_surface = title_font.render("Bandle", True, COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(WIDTH/2, HEIGHT/2-_mm_y_spring_slider*(HEIGHT/2 - 155)))
+            screen.blit(text_surface, text_rect)
+
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    _mm_y_spring_slider_anim = True
+
+            if _mm_y_spring_slider_anim:
+                _mm_y_spring_slider += (1-_mm_y_spring_slider) * _mm_ANIM_SPEED
+
+            if abs(_mm_y_spring_slider - 1) * 1000 < 1:
+                submenu = "main_menu"
+
+        # y pos updates (only for main menu cuz y not)
+        _mm_search_button.y           = 360    + HEIGHT*(1-_mm_y_spring_slider)
+        _mm_library_button.y          = 530    + HEIGHT*(1-_mm_y_spring_slider)
+
+
+        _mm_settings_button.x = 35 + _mm_x_spring_slider*360
+        _mm_settings_button.y = 41 - (1-_mm_y_spring_slider)*100
+
+
+        _mm_settings_button.draw(screen)
+        if _mm_settings_button.is_clicked() == 1 and submenu != "intro":
+            _mm_x_spring_slider_anim = True
+
+        if _mm_x_spring_slider_anim:
+            t = 0 if submenu == "settings" else 1
+            _mm_x_spring_slider += (t-_mm_x_spring_slider)*_mm_ANIM_SPEED
+            if abs((t-_mm_x_spring_slider) * 100) < 1:    
+                _mm_x_spring_slider_anim = False
+                submenu = "main_menu" if submenu == "settings" else "settings"
+
+        if submenu != "intro":
+            #Title text (Bandle)
+            text_surface = title_font.render("Bandle", True, COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(WIDTH/2 + _mm_x_spring_slider*WIDTH, 155))
+            screen.blit(text_surface, text_rect)
+        #Title text (Settings)
+        text_surface = title_font.render("Settings", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(-WIDTH/2 + _mm_x_spring_slider*WIDTH, 155))
+        screen.blit(text_surface, text_rect)
+        #Title text (Dev Tools)
+        text_surface = title_font.render("Dev Tools", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(-WIDTH/2 + _mm_x_spring_slider*WIDTH, 685))
+        screen.blit(text_surface, text_rect)
+        #Toggle text (Cheat mode)
+        text_surface = basic_font.render("Cheat Mode", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(-180 + WIDTH*_mm_x_spring_slider, 274.5))
+        screen.blit(text_surface, text_rect)
+        #Toggle text (Global Suggestions)
+        text_surface = basic_font.render("Global", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(-180 + WIDTH*_mm_x_spring_slider, 380))
+        screen.blit(text_surface, text_rect)
+        text_surface = basic_font.render("Suggestions", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(-180 + WIDTH*_mm_x_spring_slider, 410))
+        screen.blit(text_surface, text_rect)
+
+
+
+        _mm_search_button.x           = 85    + WIDTH*_mm_x_spring_slider
+        _mm_library_button.x          = 85    + WIDTH*_mm_x_spring_slider
+        _mm_manage_blacklist_button.x = -448  + WIDTH*_mm_x_spring_slider
+        _mm_open_console_button.x     = -448  + WIDTH*_mm_x_spring_slider
+
+        _mm_CHEAT_MODE_toggle.x       = -448  + WIDTH*_mm_x_spring_slider
+        _mm_global_suggestions_toggle.x = -448  + WIDTH*_mm_x_spring_slider
+
+        # all shadows
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(_mm_search_button.x + SHADOW_OFFSET           , _mm_search_button.y + SHADOW_OFFSET + (1-_mm_y_spring_slider)*HEIGHT, _mm_search_button.w, _mm_search_button.h), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(_mm_library_button.x + SHADOW_OFFSET          , _mm_library_button.y + SHADOW_OFFSET + (1-_mm_y_spring_slider)*HEIGHT, _mm_library_button.w, _mm_library_button.h), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(_mm_manage_blacklist_button.x + SHADOW_OFFSET , _mm_manage_blacklist_button.y + SHADOW_OFFSET + (1-_mm_y_spring_slider)*HEIGHT, _mm_manage_blacklist_button.w, _mm_manage_blacklist_button.h), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(_mm_open_console_button.x + SHADOW_OFFSET     , _mm_open_console_button.y + SHADOW_OFFSET + (1-_mm_y_spring_slider)*HEIGHT, _mm_open_console_button.w, _mm_open_console_button.h), border_radius=20)
+
+        # settings tab icon
+        pygame.draw.rect(screen, COLOR_PALETTE["list item unselected"], pygame.Rect(_mm_settings_button.x, _mm_settings_button.y, _mm_settings_button.w, 14), border_radius=5)
+        pygame.draw.rect(screen, COLOR_PALETTE["list item unselected"], pygame.Rect(_mm_settings_button.x + _mm_x_spring_slider*15, _mm_settings_button.y + 18, 54, 14), border_radius=5)
+        pygame.draw.rect(screen, COLOR_PALETTE["list item unselected"], pygame.Rect(_mm_settings_button.x + _mm_x_spring_slider*41, _mm_settings_button.y + 36, 28, 14), border_radius=5)
+
+
+        _mm_search_button.draw(screen)
+        _mm_manage_blacklist_button.draw(screen)
+        _mm_open_console_button.draw(screen)
+        _mm_library_button.draw(screen)
+
+        _mm_CHEAT_MODE_toggle.draw(screen)
+        CHEAT_MODE = _mm_CHEAT_MODE_toggle.state
+
+        _mm_global_suggestions_toggle.draw(screen)
+        GLOBAL_SUGGESTIONS =_mm_global_suggestions_toggle.state
+
+        if _mm_library_button.is_clicked():
+            loading_anim_slider = 0
+            submenu = "loading_library"
+        if _mm_manage_blacklist_button.is_clicked():
+            loading_anim_slider = 0
+            submenu = "loading_blacklists"
+        if _mm_open_console_button.is_clicked():
+            loading_anim_slider = 0
+            # submenu = "loading_blacklists"  # need to add console
+        if _mm_search_button.is_clicked():
+            loading_anim_slider = 0
+            submenu = "loading_search"
+
+        if submenu == "loading_main_menu":
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(WIDTH*1/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
+
+            if abs((1-loading_anim_slider) * 100) < 1:
+                submenu = "main_menu"
+                loading_anim_slider = 0
+        
+
+    if submenu in ["loading_library", "loading_blacklists", "loading_search"]:
+        loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+        text_surface = title_font.render("Loading", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+        screen.blit(text_surface, text_rect)
+
+
+        if abs((1-loading_anim_slider) * 100) < 1:
+            if submenu == "loading_search":
+                submenu = "setup"
+                curr_screen = "select_song_setup"
+            elif submenu == "loading_blacklists":
+                curr_screen = "manage_blacklist_setup"
+            elif submenu == "loading_library":
+                curr_screen = "playlists_setup"
+
+            loading_anim_slider = 0
+
+
+
 
 def manage_blacklist_setup():
-    global go_back_button
+    global submenu
     global curr_screen
-    global close_button
-    global wiki
-    global wiki_bool
-    global blacklist_buttons
-
-    wiki_bool = True
-
-    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
-    close_button = Button(WIDTH-40, 150-20, 40, 40, (250 ,250 ,250), "x", 20)
+    submenu = "setup"
     curr_screen = "manage_blacklist"
-    blacklist_buttons = []
-
-
-    for i in range(len(blacklist_names)):
-        blacklist_buttons.append(Button(70, 170 + i*70, WIDTH-140, 60, (200, 200, 200), blacklist_names[i], 20))
-
-
-    wiki = []
-    wiki.append("The selected blacklist will")
-    wiki.append("remember the songs you played")
-    wiki.append("so you dont get them twice.")
-    wiki.append("")
-    wiki.append("Manage them as you wish!")
-    wiki.append("you can also directly edit")
-    wiki.append("\"Blacklists.txt\" for more control")
+    
 
 def manage_blacklist():
-    global shadow_offset
-    global go_back_button
+    global submenu
     global curr_screen
-    global wiki
-    global wiki_bool
-    global close_button
-    global manage_blacklist_button
+
+
+    # vars
+    global go_back_button
     global curr_blacklist
+    global loading_anim_slider
 
-    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+    # internal vars
+    global _mb_wiki
+    global _mb_wiki_bool
+    global _mb_wiki_slider
+    global _mb_ANIM_SPEED
+    _mb_ANIM_SPEED = 1/5
 
-    if wiki_bool:
-        pygame.draw.rect(screen, (190, 180, 170), pygame.Rect(20, 130, WIDTH-40, 270), border_radius=20)
-        for i in range(len(wiki)):
-            screen.blit(small_font.render(wiki[i], True, (10, 10, 10)), (45, 130 + 20 + 30*i))
+    global _mb_close_button
+    global _mb_blacklist_buttons
+    global _mb_name_edit
+
+    global _mb_modify_button
+    global _mb_add_button
+    global _mb_delete_button
+
+
+
+    if submenu == "setup":
+        
+        
+        _mb_close_button  = Button(388, 232, 50, 50, COLOR_PALETTE["list item unselected"], "ok", 15)
+        _mb_modify_button = Button(85, 790, 204, 52, COLOR_PALETTE["list item unselected"], "Modify", 15)
+        _mb_add_button    = Button(300, 790, 52, 52, COLOR_PALETTE["list item unselected"], "+", 15)
+        _mb_delete_button = Button(363, 790, 52, 52, COLOR_PALETTE["list item unselected"], "d", 15)
 
         
-        close_button.draw(screen)
+        _mb_blacklist_buttons = []
+        for i in range(len(blacklist_names)):
+            _mb_blacklist_buttons.append(Button(71, 536 + i*61, WIDTH-140, 60, COLOR_PALETTE["list item unselected"], blacklist_names[i], 15))
 
-        if close_button.is_clicked():
-            wiki_bool = False
+        _mb_wiki = []
+        _mb_wiki.append("The selected blacklist will")
+        _mb_wiki.append("remember the songs you")
+        _mb_wiki.append("played so you dont get them")
+        _mb_wiki.append("twice.")
+        _mb_wiki.append("Manage them as you wish!")
+        _mb_wiki.append("you can also directly edit")
+        _mb_wiki.append("\"Blacklists.txt\" for more control")
 
-    offset = 10
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + offset, (wiki_bool * 270) + 150 + offset, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
-    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, (wiki_bool * 270) + 150, WIDTH - 100, 450 - (wiki_bool * 270)), border_radius=20)
-
-    for i in range(len(blacklist_buttons)):
-
-        blacklist_buttons[i].y = i*70 + 170 + (wiki_bool * 270)
-        if blacklist_buttons[i].is_clicked():
-            curr_blacklist = i
-        if curr_blacklist == i:
-            blacklist_buttons[i].color = (100, 200, 100)
+        if _mb_wiki_bool:
+            _mb_wiki_slider = 1
         else:
-            blacklist_buttons[i].color = (200, 200, 200)
-        blacklist_buttons[i].draw(screen)
+            _mb_wiki_slider = 0
+
+        _mb_name_edit = Textinput(86, HEIGHT, 330, 53, 15, COLOR_PALETTE["textinput unselected"])
+
+        loading_anim_slider = 0
+        submenu = "loading_manage_blacklists"
+    
 
 
-    go_back_button.draw(screen)
-    if go_back_button.is_clicked() == 1:
-        curr_screen = "main_menu"
+    if submenu in ["manage_blacklists", "loading_manage_blacklists"]:
+        
+        
+
+
+
+        # banner
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+
+        #Title text (Bandle)
+        text_surface = title_font.render("Select Blacklist", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(WIDTH/2, 155))
+        screen.blit(text_surface, text_rect)
+
+        # wiki
+        if _mb_wiki_bool:
+            pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 227 + SHADOW_OFFSET, 387, 265), border_radius=20)
+            pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(56, 227, 387, 265), border_radius=20)
+            for i in range(len(_mb_wiki)):
+                screen.blit(small_font.render(_mb_wiki[i], True, COLOR_PALETTE["black"]), (70, 227 + 20 + 30*i))
+
+            _mb_close_button.draw(screen)
+
+            if _mb_close_button.is_clicked():
+                _mb_wiki_bool = False
+
+        # handling sliders
+        if not _mb_wiki_bool:
+            _mb_wiki_slider -= _mb_wiki_slider*_mb_ANIM_SPEED
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, (_mb_wiki_slider * 293) + 227 + SHADOW_OFFSET   , 387, 346), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["face"]  , pygame.Rect(56                , (_mb_wiki_slider * 293) + 227                   , 387, 346), border_radius=20)
+
+        for i in range(len(_mb_blacklist_buttons)):
+            _mb_blacklist_buttons[i].y = i*61 + 243 + (_mb_wiki_slider * 293)
+            if _mb_blacklist_buttons[i].is_clicked():
+                curr_blacklist = i
+            if curr_blacklist == i:
+                _mb_blacklist_buttons[i].color = COLOR_PALETTE["list item selected"]
+            else:
+                _mb_blacklist_buttons[i].color = COLOR_PALETTE["list item unselected"]
+            _mb_blacklist_buttons[i].draw(screen)
+
+
+        go_back_button.draw(screen)
+        if go_back_button.is_clicked() == 1:
+            submenu = "loading_main_menu"
+            
+
+
+        # edit blacklist island
+        #Title text (Edit Blacklist)
+        text_surface = basic_font.render("Edit Blacklist", True, COLOR_PALETTE["black"])
+        text_rect = text_surface.get_rect(center=(WIDTH/2, 638 + _mb_wiki_slider * 400))
+        screen.blit(text_surface, text_rect)
+
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 668 + SHADOW_OFFSET + _mb_wiki_slider * 600, 387, 201), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(56, 668 + _mb_wiki_slider * 500, 387, 201), border_radius=20)
+
+        # Text (Name)
+        text_surface = small_font.render("Name", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (85, 685 + _mb_wiki_slider * 700))
+
+        # Textinput
+        if _mb_name_edit.focused == False:
+            _mb_name_edit.text = blacklist_names[curr_blacklist]
+        else:
+            for event in  events:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    # editing blacklist name
+                    if not _mb_name_edit.text in blacklist_names and _mb_name_edit.text != "":
+                        blacklist_names[curr_blacklist] = _mb_name_edit.text
+                        _mb_blacklist_buttons[curr_blacklist].text = _mb_name_edit.text
+
+                        with open(BLACKLISTS_DIR, "r") as f:
+                            a = f.read()
+                        lines = a.splitlines()
+                        lines[curr_blacklist] = _mb_name_edit.text + "=" + lines[curr_blacklist].split("=")[1]
+                        b = "\n".join(lines)
+                        with open(BLACKLISTS_DIR, "w") as f:
+                            f.write(b)
+
+
+        _mb_name_edit.y = 727 + _mb_wiki_slider*800
+        _mb_name_edit.draw()
+
+        # buttons
+        _mb_modify_button.y = 790 + _mb_wiki_slider*900
+        _mb_add_button.y    = 790 + _mb_wiki_slider*900
+        _mb_delete_button.y = 790 + _mb_wiki_slider*900
+
+        _mb_modify_button.draw(screen)
+        _mb_add_button.draw(screen)
+        _mb_delete_button.draw(screen)
+
+        if _mb_add_button.is_clicked():
+            
+            # writing changes to Blacklists.txt
+            with open(BLACKLISTS_DIR, "r") as f:
+                a = f.read()
+            lines = a.splitlines()
+
+            # removing any empty lines that would mess things up
+            bfr = []
+            for i in range(len(lines)):
+                if lines[i] == "":
+                    bfr.append(i)
+            for i in range(len(bfr)):
+                lines.pop(bfr[i] - i)
+
+            i = 0
+            while True:
+                if not "new_blacklist_" + str(i) in blacklist_names:
+                    break
+                i += 1
+            n = f"new_blacklist_{i}"
+            lines.append(n + "=")
+            b = "\n".join(lines)
+            with open(BLACKLISTS_DIR, "w") as f:
+                f.write(b)
+
+            _mb_blacklist_buttons.append(Button(71, 536 + len(blacklist_names)*61, WIDTH-140, 60, COLOR_PALETTE["list item unselected"], n, 15))
+            blacklist_names.append(n)
+            blacklists.append([])
+
+        if _mb_delete_button.is_clicked():
+            if not len(blacklists) < 2:
+
+                # writing changes to Blacklists.txt
+                with open(BLACKLISTS_DIR, "r") as f:
+                    a = f.read()
+                lines = a.splitlines()
+
+                # removing any empty lines that would mess things up
+                bfr = []
+                for i in range(len(lines)):
+                    if lines[i] == "":
+                        bfr.append(i)
+                for i in range(len(bfr)):
+                    lines.pop(bfr[i] - i)
+
+
+                lines.pop(curr_blacklist)
+                b = "\n".join(lines)
+                with open(BLACKLISTS_DIR, "w") as f:
+                    f.write(b)
+
+                _mb_blacklist_buttons.pop(curr_blacklist)
+                blacklist_names.pop(curr_blacklist)
+                blacklists.pop(curr_blacklist)
+                if curr_blacklist > len(blacklist_names)-1:
+                    curr_blacklist -= 1 
+
+
+        # loading in stuff
+        if submenu == "loading_manage_blacklists":
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*1/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
+
+            if abs((1-loading_anim_slider) * 100) < 1:
+                submenu = "manage_blacklists"
+                loading_anim_slider = 0
+
+
+    if submenu in ["loading_main_menu"]:
+        loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+        text_surface = title_font.render("Loading", True, (10, 10 ,10))
+        text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+        screen.blit(text_surface, text_rect)
+
+
+        if abs((1-loading_anim_slider) * 100) < 1:
+            if submenu == "loading_main_menu":
+                loading_anim_slider = 0
+                submenu = "loading_main_menu"
+                curr_screen = "main_menu"
+
+
+
 
 def select_song_setup():
-    global curr_screen
-    global library_button
-    global global_search_button
-    global categories
-    global scrollpos
-    global pixelpositions
-    global scrollvel
-    global selected
-    global go_back_button
     global submenu
-    global select_song_button
-    global all_songs_sanitized_sorted
-    global all_songs_sanitized_sorted_availability
-    global textinput
-
-    submenu = "search"
-
-    selected = -1
-
-    scrollpos = 0
-    scrollvel = 0
-
-    library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, (65, 65, 65), "")
-    global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, (100, 65, 65), "")
-    go_back_button =            Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
-    select_song_button =        Button(35,700, WIDTH-70, 35, (200, 100, 100), "                                                    ...", radius=15)
-
-    textinput = Textinput(50, 160, WIDTH - 100, 50, 5, (230, 230 ,230))
-
-    categories = []
-    for i in range(len(CATEGORIES)):
-        categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, (100, 100, 100), CATEGORIES[i], radius=15))
-
-    pixelpositions = [i.y for i in categories]
-
-    
+    global curr_screen
+    submenu = "setup"
     curr_screen = "select_song"
 
 def select_song():
+    global go_back_button
+    global submenu
     global curr_screen
+
+    # local vars
+    global scrollpos
+    global scrollvel
+    global selected
+    global pixelpositions
+    global current_song
+
     global library_button
     global global_search_button
     global categories
-    global scrollpos
-    global pixelpositions
-    global scrollvel
-    global selected
-    global go_back_button
     global select_song_button
-    global current_song
-    global all_songs_sanitized_sorted
-    global all_songs_sanitized_sorted_availability
     global textinput
+    
+   
+    
+    
+    
+
+
+    if submenu == "setup":
+        selected = -1
+
+        scrollpos = 0
+        scrollvel = 0
+
+        library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["list item unselected"], "")
+        global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["face"], "")
+        select_song_button =        Button(35,700, WIDTH-70, 35, COLOR_PALETTE["list item selected"], "                                                    ...", radius=15)
+
+        textinput = Textinput(50, 160, WIDTH - 100, 50, 5, COLOR_PALETTE["textinput unselected"])
+
+        categories = []
+        for i in range(len(CATEGORIES)):
+            categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, COLOR_PALETTE["list item selected"], CATEGORIES[i], radius=15))
+
+        pixelpositions = [i.y for i in categories]
+        submenu = "search"
+
+
 
     # preparing listed song options
     text = textinput.text
@@ -754,9 +1111,9 @@ def select_song():
 
     for i in range(len(selection)):
         if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
-            text_surface = small_font.render(selection[i], True, (10, 10 ,10))
+            text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
             if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
-                text_surface = small_font.render(selection[i], True, (255, 100 ,100))
+                text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
             screen.blit(text_surface, (60,700 + scrollpos + i*40))
             
 
@@ -776,10 +1133,10 @@ def select_song():
     for i in categories:
         i.draw(screen)
     
-    text_surface = title_font.render("Categories", True, (10, 10 ,10))
+    text_surface = title_font.render("Categories", True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (60,220 + scrollpos))
 
-    text_surface = title_font.render("Songs", True, (10, 10 ,10))
+    text_surface = title_font.render("Songs", True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (60,570 + scrollpos))
 
     if selected != -1:
@@ -791,18 +1148,20 @@ def select_song():
     global_search_button.draw(screen)
 
     
-    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
 
-    text_surface = small_font.render("Search" if submenu == "search" else "Your Library", True, (105, 105, 105))
+    text_surface = small_font.render("Search" if submenu == "search" else "Your Library", True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
 
     go_back_button.draw(screen)
     if go_back_button.is_clicked() == 1:
+        submenu = "main_menu"
         curr_screen = "main_menu"
 
     textinput.draw()
     
 def test_song_setup():
+    global submenu
     global curr_screen
     global current_song
     global queue
@@ -841,14 +1200,10 @@ def test_song_setup():
     seeking = False
     single_song_bool = True
 
-    # setting buttons
-    
-    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
 
-
-    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
-    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
+    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Play"      , radius=20, click_counter=20)
+    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Skip"      , radius=20, click_counter=20)
+    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
 
     rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
     skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
@@ -859,7 +1214,7 @@ def test_song_setup():
     rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
     rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
 
-    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, (200, 200, 200))
+    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, COLOR_PALETTE["textinput unselected"])
 
     # preparing song queue
     queue = [current_song]
@@ -868,14 +1223,13 @@ def test_song_setup():
     curr_screen = "bandle"
     
 def playlist_select_setup():
+    
+    global submenu
     global selected_p
     global buttons
     global selected_playlist
     global curr_screen
     global start_button
-    global CHEAT_MODE_toggle
-    global CHEAT_MODE
-    global go_back_button
     global scrollpos
     global scrollvel
     global all_songs_sanitized_sorted
@@ -886,30 +1240,24 @@ def playlist_select_setup():
     buttons = []
     selected_playlist = ""
     
-    start_button = Button(WIDTH/2 - 100, 780, 200, 80, (100, 200, 100), "Start", radius=20, click_counter=20)
-
-    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
-
-    CHEAT_MODE_toggle = Toggle(WIDTH/2 - 200, 670, 400, 65, (100, 200, 100), (200, 100, 100), "CHEAT MODE: ON", "CHEAT MODE: OFF", radius=20)
-    CHEAT_MODE = CHEAT_MODE_toggle.state
+    start_button = Button(WIDTH/2 - 100, 780, 200, 80, COLOR_PALETTE["face"], "Start", radius=20, click_counter=20)
 
 
     for i in range(len(list(playlists_json_dir_contents.keys()))):
-        buttons.append(Button(77, 250 + i*60, WIDTH - 148, 48, (200, 200, 200), playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
+        buttons.append(Button(77, 250 + i*60, WIDTH - 148, 48, COLOR_PALETTE["list item unselected"], playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
     curr_screen = "playlists"
 
 
     
 
 def playlist_select():
-    global shadow_offset
+    global submenu
+    global SHADOW_OFFSET
     global curr_screen
-    global CHEAT_MODE
     global buttons
     global selected_playlist
     global selected_p
     global start_button
-    global CHEAT_MODE_toggle
     global go_back_button
     global scrollpos
     global scrollvel
@@ -928,9 +1276,9 @@ def playlist_select():
     
     # print(f"pos: {scrollpos},vel: {scrollvel} mouse_scroll; {mouse_scroll}, lnebuts: {len(buttons)*6}")
 
-    # background box
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(50 + shadow_offset, 230 + shadow_offset, WIDTH - 100, 400), border_radius=20)
-    pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
+    # island
+    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(50 + SHADOW_OFFSET, 230 + SHADOW_OFFSET, WIDTH - 100, 400), border_radius=20)
+    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
 
     # check who is selected
     for i in range(len(buttons)):
@@ -941,30 +1289,27 @@ def playlist_select():
     # draw buttons
     for i in range(len(buttons)):
         if i == selected_p:
-            buttons[i].color = (100, 200, 100)
+            buttons[i].color = COLOR_PALETTE["list item selected"]
         else:
-            buttons[i].color = (200, 200, 200)
+            buttons[i].color = COLOR_PALETTE["list item unselected"]
         buttons[i].x, buttons[i].y = (77, 250 + i*60 + scrollpos*10)
         buttons[i].draw(screen)
 
     # hacky caches for the buttons
-    pygame.draw.rect(screen, "pink", pygame.Rect(0, 0, WIDTH, 230))
-    pygame.draw.rect(screen, "pink", pygame.Rect(0, 630 + shadow_offset, WIDTH, 400))
-    pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(73, 630, 360, shadow_offset), border_radius=3)
+    pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 0, WIDTH, 230))
+    pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 630 + SHADOW_OFFSET, WIDTH, 400))
+    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(73, 630, 360, SHADOW_OFFSET), border_radius=3)
 
 
-    # draw cheat mode toggle
-    CHEAT_MODE_toggle.draw(screen)
-    CHEAT_MODE = CHEAT_MODE_toggle.state
-
-    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
 
     go_back_button.draw(screen)
     if go_back_button.is_clicked() == 1:
+        submenu = "main_menu"
         curr_screen = "main_menu"
 
     # title text
-    text_surface = title_font.render("Select playlist", True, (10, 10 ,10))
+    text_surface = title_font.render("Select playlist", True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
 
@@ -975,7 +1320,7 @@ def playlist_select():
 
     
     
-    pygame.draw.rect(screen, (50, 100, 50), pygame.Rect(start_button.x + shadow_offset, start_button.y + shadow_offset, start_button.w, start_button.h), border_radius=20)
+    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(start_button.x + SHADOW_OFFSET, start_button.y + SHADOW_OFFSET, start_button.w, start_button.h), border_radius=20)
     start_button.draw(screen)
 
     if start_button.is_clicked() == 1:  
@@ -985,6 +1330,7 @@ def playlist_select():
             warnings.append( Warning("you need to select a playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
 
 def bandle_setup():
+    global submenu
     global curr_screen
     global current_song
     global queue
@@ -1022,16 +1368,14 @@ def bandle_setup():
     single_song_bool = False
 
     # setting buttons
-    
-    go_back_button = Button(20, 20, 100, 50, (200, 100, 100), "Back", radius=15)
 
 
-    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , (100, 200, 100), "Play"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , (200, 100, 100), "Skip"      , radius=20, click_counter=20)
-    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , (100, 100, 200), "Guess", radius=15, click_counter=20)
+    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], ">"      , radius=20, click_counter=20)
+    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Skip"      , radius=20, click_counter=20)
+    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
 
-    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
+    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
+    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
     
     skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
     skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
@@ -1039,7 +1383,7 @@ def bandle_setup():
     rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
     rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
 
-    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, (200, 200, 200))
+    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, COLOR_PALETTE["textinput unselected"])
 
                  
         
@@ -1077,7 +1421,8 @@ def bandle_setup():
         curr_screen = "bandle"
     
 def bandle_screen():
-    global shadow_offset
+    global submenu
+    global SHADOW_OFFSET
     global curr_screen
     global step
     global song_counter
@@ -1133,10 +1478,10 @@ def bandle_screen():
 # |      ╞--╡ ╞-   ╞--╡ |  | ╞-  ╞=:╯      |
 # |      ╰  ╯ ╰=-  ╰  ╯ ╰='  ╰=- ╰  ╰      |
 # ╰----------------------------------------╯
-    pygame.draw.rect(screen, (230, 160, 160), pygame.Rect(0, -50, WIDTH, 145))
+    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
 
     # title text
-    bandle_title = title_font.render("Bandle", True, (10, 10 ,10))
+    bandle_title = title_font.render("Bandle", True, COLOR_PALETTE["black"])
     screen.blit(bandle_title, (WIDTH/2 - bandle_title.get_width()/2,120))
     
     
@@ -1166,13 +1511,13 @@ def bandle_screen():
             break
     
     for i in range(len(wordlines)):
-        selected_playlist_text = small_font.render(wordlines[i], True, (105, 105, 105))
+        selected_playlist_text = small_font.render(wordlines[i], True, COLOR_PALETTE["black"])
         screen.blit(selected_playlist_text, (WIDTH/2 + 55 - selected_playlist_text.get_width()/2,20 + go_back_button.h/2 - 18 - (len(wordlines)-1)*30/2 + i*30))
 
     
     # cheat mode display
     if CHEAT_MODE:
-        song_text = basic_font.render(f"Current song: {current_song}, ya little CHEATER", True, (10, 10 ,10))
+        song_text = basic_font.render(f"Current song: {current_song}, ya little CHEATER", True, COLOR_PALETTE["black"])
         screen.blit(song_text, (50, 200))
 
 
@@ -1183,8 +1528,8 @@ def bandle_screen():
 # ╰----------------------------------╯
     # draw stem rectangles
     for i in range(len(STEMS)):
-        pygame.draw.rect(screen, (200, 200, 200) if i < step else (150, 150, 150), pygame.Rect(50, 245 + i*75, WIDTH - 100, 60), border_radius=15)
-        stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
+        pygame.draw.rect(screen, COLOR_PALETTE["stems selected"] if i < step else COLOR_PALETTE["face"], pygame.Rect(50, 245 + i*75, WIDTH - 100, 60), border_radius=15)
+        stem_text = basic_font.render(f"{STEMS[i]}", True, COLOR_PALETTE["black"])
         screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 249 + i*75))
 
 
@@ -1208,7 +1553,7 @@ def bandle_screen():
                 if mouse_y < HEIGHT - 500:
                     curr_screen = "bandle"
     else:
-        guess_button.draw(screen, (150, 150, 150))
+        guess_button.draw(screen, COLOR_PALETTE["face"])
         if guess_button.is_clicked() == 1:
             warnings.append(Warning("cannot guess in admire mode", level="warning"))
     
@@ -1232,8 +1577,8 @@ def bandle_screen():
     screen.blit(rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
 
     # progression bar
-    pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
-    pygame.draw.circle(screen, (200, 200, 200), (WIDTH/2-115 + 230*(progression), 895), 5)
+    pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
+    pygame.draw.circle(screen, COLOR_PALETTE["face"], (WIDTH/2-115 + 230*(progression), 895), 5)
 
     # progress bar hitbox visualizer
     # pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
@@ -1339,11 +1684,11 @@ def bandle_screen():
         # slight shade
         s = pygame.Surface((1000,1000))  
         s.set_alpha(bandle_guessing_counter * 128)             
-        s.fill((100,100,100))           
+        s.fill(COLOR_PALETTE["background"])           
         screen.blit(s, (0,0))  
 
         #popup
-        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(0, HEIGHT - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT - 500, WIDTH, 600), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0, HEIGHT - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT - 500, WIDTH, 600), border_radius=20)
         
         textinput.y = HEIGHT + 30 - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT + 30 - 500
         textinput.draw()
@@ -1415,10 +1760,10 @@ def bandle_screen():
         
 
         if selected != -1:
-            pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(10, 560 + (selected-offset)*40, WIDTH-20, 30), border_radius=5)
+            pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(10, 560 + (selected-offset)*40, WIDTH-20, 30), border_radius=5)
 
         for i in suggestions:
-            suggestion_surf = basic_font.render(i, True, (10, 10 ,10))
+            suggestion_surf = basic_font.render(i, True, COLOR_PALETTE["black"])
             screen.blit(suggestion_surf, (50, HEIGHT + 100 + suggestions.index(i)*40 - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT + 100 + suggestions.index(i)*40 - 500))
 
         bandle_guessing_counter += 1/30
@@ -1435,26 +1780,26 @@ def bandle_screen():
         
         s = pygame.Surface((1000,1000))  
         s.set_alpha(bandle_guessing_counter * 128)             
-        s.fill((100,100,100))           
+        s.fill(COLOR_PALETTE["background"])           
         screen.blit(s, (0,0)) 
 
-        pygame.draw.rect(screen, (230, 230, 230), pygame.Rect(WIDTH/2-225, HEIGHT/2 -225, 450, 450), border_radius=20)
-        win_text = title_font.render("YOU WON", True, (10, 10, 10))
+        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH/2-225, HEIGHT/2 -225, 450, 450), border_radius=20)
+        win_text = title_font.render("YOU WON", True, COLOR_PALETTE["black"])
         screen.blit(win_text, (WIDTH/2 - win_text.get_width()/2, HEIGHT/2 - 200))
 
         if not single_song_bool:
-            butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "go back and admire", 20)
+            butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "go back and admire", 20)
             butt.draw(screen)
             if butt.is_clicked():
                 curr_screen = "bandle_stare"
             
-            next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, (155, 155, 155), "go next", 20)
+            next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, COLOR_PALETTE["list item selected"], "go next", 20)
             next.draw(screen)
             if next.is_clicked():
                 skip(True, True)
                 curr_screen = "bandle"
         else:
-            next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, (155, 155, 155), "Return to selection", 20)
+            next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "Return to selection", 20)
             next.draw(screen)
             if next.is_clicked():
                 player.stop_all()
@@ -1464,7 +1809,7 @@ def bandle_screen():
         stems = []
         for i in range(len(STEMS)):
             
-            stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, (200, 200, 200) if i < step else (150, 150, 150), f"{STEMS[i]}", 15))
+            stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, COLOR_PALETTE["stems selected"] if i < step else COLOR_PALETTE["face"], f"{STEMS[i]}", 15))
             stems[i].draw(screen)
 
             if stems[i].is_clicked():
@@ -1484,7 +1829,7 @@ warnings = []
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
-    screen.fill("pink")  # fill screen with pink
+    screen.fill(COLOR_PALETTE["background"])  # fill screen with pink
 
     events = pygame.event.get()
     keys = pygame.key.get_pressed()
@@ -1513,8 +1858,8 @@ while running:
 
     if DEBUG == True:
         debug()
-    elif curr_screen == "main_menu_setup":
-        main_menu_setup()
+    elif curr_screen == "setup":
+        setup()
     elif curr_screen == "main_menu":
         main_menu()
     elif curr_screen == "manage_blacklist_setup":
@@ -1529,8 +1874,6 @@ while running:
         test_song_setup()
     elif curr_screen == "playlists_setup":
         playlist_select_setup()
-    elif curr_screen == "setup":
-        setup()
     elif curr_screen == "playlists":
         playlist_select()
     elif curr_screen == "bandle_setup":

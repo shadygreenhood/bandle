@@ -99,9 +99,7 @@ def santize_string(str):
 if playlist_url != "s" and playlist_url != "":
     album =  True if "album" in playlist_url else False
     cmd = [
-        INTERPRETER_PATH,
-        "-m",
-        "spotify_scraper",
+        "spotify-scraper",
         "playlist" if not album else "album",
         playlist_url,
         "--output",
@@ -207,10 +205,11 @@ if not WEAK_INTERNET:
 
             artists = SONGS_DIR_contents[songs_to_download[i]]["artists"]
             query = f"{title} {' '.join(artists)} audio"
+            folder_end = (title+".%(ext)s")
             ydl_opts = {
             "format": "bestaudio/best",
                 #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
-                "outtmpl": RAW_TRACK_AUDIO_DIR / title+".%(ext)s",
+                "outtmpl": str(RAW_TRACK_AUDIO_DIR / folder_end),
                 "quiet": True,
                 "no_warnings": True, 
                 "logger": YTDLPLogger(), 
@@ -223,8 +222,8 @@ if not WEAK_INTERNET:
             print(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
-            sleep(3)
-            if Path(PROJECT_DIR / "raw_track_audio" /  title+".wav").exists():
+            folder_end = title+".wav"
+            if Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
                 SONGS_DIR_contents[title]["status"] = "downloaded"
             with open(SONGS_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
@@ -282,10 +281,10 @@ if not SKIP_SPLIT:
             print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
-
+            folder_end = title + ".wav"
             cmd = [
                 "demucs",
-                RAW_TRACK_AUDIO_DIR / title + ".wav",
+                RAW_TRACK_AUDIO_DIR / folder_end,
                 "-o",
                 SEPERATED_DIR,
                 "-n",
@@ -316,8 +315,9 @@ if not SKIP_SPLIT:
                         failure = True
                 
                 if not failure: # check for faliure converting to wavs very unlikely
-                    print("removing now useless audio: " + Path(RAW_TRACK_AUDIO_DIR / title + ".wav"))
-                    Path(RAW_TRACK_AUDIO_DIR / title + ".wav").unlink()
+                    folder_end = title + ".wav"
+                    print("removing now useless audio: " + Path(RAW_TRACK_AUDIO_DIR / folder_end))
+                    Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
                     with open(SONGS_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
@@ -334,10 +334,10 @@ if not SKIP_SPLIT:
             print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
             for i in range(len(songs_to_split)):
                 title = songs_to_split[i]
-
+                folder_end = title + ".wav"
                 cmd = [
                     "demucs",
-                    RAW_TRACK_AUDIO_DIR / title + ".wav",
+                    RAW_TRACK_AUDIO_DIR / folder_end,
                     "-o",
                     SEPERATED_DIR,
                     "-n",
@@ -368,8 +368,9 @@ if not SKIP_SPLIT:
                             failure = True
                     
                     if not failure: # check for faliure converting to wavs very unlikely
-                        print("removing now useless audio: " + RAW_TRACK_AUDIO_DIR / title + ".wav")
-                        Path(RAW_TRACK_AUDIO_DIR / title + ".wav").unlink()
+                        folder_end = title + ".wav"
+                        print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
+                        Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                         # recording that
                         with open(SONGS_DIR, "w", encoding="utf-8") as f:
                             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
