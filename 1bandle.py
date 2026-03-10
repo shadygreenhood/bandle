@@ -272,9 +272,12 @@ if not SKIP_SPLIT:
             logger.error(f"Demucs exited with code {process.returncode}")
             raise subprocess.CalledProcessError(process.returncode, cmd)
 
-
+    print("hello")
     if CURR_OS == "Windows":
+        print(SONGS_DIR_contents)
+        print(SONGS_DIR)
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
+        skip = "no"
         if len(songs_to_split) == 0:
             print("lucky you: there's no audio to split!")
         else:
@@ -282,20 +285,39 @@ if not SKIP_SPLIT:
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
             folder_end = title + ".wav"
-            cmd = [
-                "demucs",
-                RAW_TRACK_AUDIO_DIR / folder_end,
-                "-o",
-                SEPERATED_DIR,
-                "-n",
-                "htdemucs_6s",
-                "--mp3"
-            ]
-            try:
-                run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
-            except subprocess.CalledProcessError as e:
-                print("RIP, there was an error")
-                print("Exit code:", e.returncode)
+
+            if skip in  ["no", "s", "c"]:
+                if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
+                    print("it seems this file already has an output directory, do you still want to process it (if files are overwritten you will be individually warned, dont worry)")
+                    while True:
+                        skip = input("[s]kip, [c]ontinue anyways, skip [a]ll...")
+                        if skip in ["s", "c", "a"]:
+                            break
+                        else:
+                            print("invalid input")
+            
+            if skip in  ["s", "c"]:
+                cmd = [
+                    "demucs",
+                    RAW_TRACK_AUDIO_DIR / folder_end,
+                    "-o",
+                    SEPERATED_DIR,
+                    "-n",
+                    "htdemucs_6s",
+                    "--mp3"
+                ]
+
+                try:
+                    run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
+                except subprocess.CalledProcessError as e:
+                    print("RIP, there was an error")
+                    print("Exit code:", e.returncode)
+                
+
+            elif skip == "a":
+                print("skipping: " + title)
+                pass
+            
             if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
                 print()
                 print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
@@ -325,6 +347,9 @@ if not SKIP_SPLIT:
                     print("something went wrong")
             else:
                 print("did not split")
+
+
+
 
     if CURR_OS == "Linux":
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]

@@ -139,7 +139,7 @@ with open(CONFIG_DIR, "r", encoding="utf-8") as f:
                 if curr_blacklist in blacklist_names:
                     curr_blacklist = blacklist_names.index(curr_blacklist)
                 else:
-                    help("default blacklist is set to an unknown value")
+                    help(f"default blacklist is set to an unknown value in {CONFIG_DIR}")
             else:
                 help(f"no blacklist provided after DEFAULT_BLACKLIST= in {BLACKLISTS_DIR}")
 
