@@ -1,37 +1,18 @@
 import subprocess
 from pathlib import Path
-import sys
 import json
 import yt_dlp           # type: ignore
 from time import sleep
-import platform
-import _audio_helper
 
-# constants
-CURR_OS = platform.system()
-SCALE = 0.5
-ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
-STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
-WEAK_INTERNET = False
-SKIP_SPLIT = False
+import audio_helper
 
-PROJECT_DIR =           Path(__file__).resolve().parent.parent
-INTERPRETER_PATH =      sys.executable
-SCRIPT_DIR =            PROJECT_DIR / "bandle"
-SEPERATED_DIR =         PROJECT_DIR / "split"
-RAW_TRACK_AUDIO_DIR =   PROJECT_DIR / "raw_track_audio"
-BUFFER_DIR =            PROJECT_DIR / "1playlist_info_buffer.json"
-SONGS_DIR =             PROJECT_DIR / "1songs.json"
-PLAYLIST_JSON_DIR =     PROJECT_DIR / "1playlists.json"
-CONFIG_DIR =            PROJECT_DIR / "config.txt"
-DEFAULT_CONFIG =        "SCALE=1\nDEBUG_VLC=False\nWEAK_INTERNET=False\nSKIP_SPLIT=False"
-
+from constants import *
 
 # creating potentially missing files
 if not Path(BUFFER_DIR).exists():
     Path(BUFFER_DIR).write_text("{}")
-if not Path(SONGS_DIR).exists():
-    Path(SONGS_DIR).write_text("{}")
+if not Path(SONGS_JSON_DIR).exists():
+    Path(SONGS_JSON_DIR).write_text("{}")
 if not Path(PLAYLIST_JSON_DIR).exists():
     Path(PLAYLIST_JSON_DIR).write_text("{}")
 if not Path(CONFIG_DIR).exists():
@@ -44,7 +25,7 @@ with open(PROJECT_DIR / "config.txt", "r") as f:
     for i in txt:
         if "SCALE" in i:
             if len(i.split("=")) > 0:
-                SCALE = i.split("=")[1]
+                CF_SCALE = i.split("=")[1]
             else:
                 help(f"no scale provided in {CONFIG_DIR}")
         if "CURR_OS" in i:
@@ -93,9 +74,9 @@ def santize_string(str):
     if str != new_str:
         print(f"sanitized: {str} to {new_str}")
     return new_str
-    
-# adding playlist to playlists.json
 
+
+# adding playlist to playlists.json
 if playlist_url != "s" and playlist_url != "":
     album =  True if "album" in playlist_url else False
     cmd = [
@@ -160,7 +141,7 @@ with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
     playlists_json_dir_contents = json.load(f)
 
 try:
-    with open(SONGS_DIR, "r", encoding="utf-8") as f:
+    with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
 except:
     SONGS_DIR_contents = {}
@@ -176,7 +157,7 @@ for i in playlists_json_dir_contents:
 for i in SONGS_DIR_contents.keys():
     SONGS_DIR_contents[i]["baked_artists"] = " ".join([x.lower() for x in SONGS_DIR_contents[i]["artists"]])
 
-with open(SONGS_DIR, 'w', encoding="utf-8") as f:
+with open(SONGS_JSON_DIR, 'w', encoding="utf-8") as f:
     json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
 
@@ -225,7 +206,7 @@ if not WEAK_INTERNET:
             folder_end = title+".wav"
             if Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
                 SONGS_DIR_contents[title]["status"] = "downloaded"
-            with open(SONGS_DIR, "w", encoding="utf-8") as f:
+            with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 else:
     print("you have enabled the WEAK INTERNET the config, therefore the program wont download anything more.")
@@ -338,7 +319,7 @@ if not SKIP_SPLIT:
                     print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
-                    with open(SONGS_DIR, "w", encoding="utf-8") as f:
+                    with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                 else:
                     print("something went wrong")
@@ -394,7 +375,7 @@ if not SKIP_SPLIT:
                         print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                         Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                         # recording that
-                        with open(SONGS_DIR, "w", encoding="utf-8") as f:
+                        with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                     else:
                         print("something went wrong")
@@ -406,14 +387,14 @@ if not SKIP_SPLIT:
 
 
 # analysing audio to detect stem presence
-songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split", "analysed"]]
+songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
 
 if len(songs_to_analyse) == 0:
     print("lucky you: there are no songs to analyse!")
 else:
     print(f"analysing {len(songs_to_analyse)} songs...")
 
-    analyser = _audio_helper.Player_obj(STEMS, SEPERATED_DIR / "htdemucs_6s", volume=70)
+    analyser = audio_helper.Player_obj(STEMS, SEPERATED_DIR / "htdemucs_6s", volume=70)
 
     for i in songs_to_analyse:
         analyser.load(i)
@@ -421,11 +402,11 @@ else:
         SONGS_DIR_contents[i]["baked_diagnosis"] = compressed_diag
         SONGS_DIR_contents[i]["status"] = "analysed"
         print(f"[{songs_to_analyse.index(i)}/{len(songs_to_analyse)}] analysed {i}")
-        with open(SONGS_DIR, "w", encoding="utf-8") as f:
+        with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
 
 
 print("done with preparations: opening GUI...")
-cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / '1mixer3.1.py'}\" --scale={SCALE}"
+cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / 'mixer3.1.py'}\" --scale={CF_SCALE}"
 subprocess.run(cmd, shell=True)
