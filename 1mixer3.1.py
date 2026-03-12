@@ -852,11 +852,7 @@ def manage_blacklist():
     
 
 
-    if submenu in ["manage_blacklists", "loading_manage_blacklists"]:
-        
-        
-
-
+    if submenu in ["manage_blacklists", "loading_manage_blacklists", "loading_main_menu"]:
 
         # banner
         pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
@@ -1005,7 +1001,11 @@ def manage_blacklist():
                     curr_blacklist -= 1 
 
 
-        # loading in stuff
+# ╭---------------------------------------------------------------------------------------------╮
+# |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
+# |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
+# |      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯  ╰ ╰╯  ╰==╯       ╰==╯  ╰=-╯  ╰  ╰  ╰=-  ╰=-  ╰ ╰╯  ╰==╯      |
+# ╰---------------------------------------------------------------------------------------------╯
         if submenu == "loading_manage_blacklists":
             loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
             pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
@@ -1018,19 +1018,19 @@ def manage_blacklist():
                 loading_anim_slider = 0
 
 
-    if submenu in ["loading_main_menu"]:
-        loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
-        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
-        text_surface = title_font.render("Loading", True, (10, 10 ,10))
-        text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
-        screen.blit(text_surface, text_rect)
+        if submenu in ["loading_main_menu"]:
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
 
 
-        if abs((1-loading_anim_slider) * 100) < 1:
-            if submenu == "loading_main_menu":
-                loading_anim_slider = 0
-                submenu = "loading_main_menu"
-                curr_screen = "main_menu"
+            if abs((1-loading_anim_slider) * 100) < 1:
+                if submenu == "loading_main_menu":
+                    loading_anim_slider = 0
+                    submenu = "loading_main_menu"
+                    curr_screen = "main_menu"
 
 
 
@@ -1047,8 +1047,8 @@ def select_song():
     global curr_screen
 
     # local vars
-    global scrollpos
-    global scrollvel
+    global _ss_scrollpos
+    global _ss_scrollvel
     global selected
     global pixelpositions
     global current_song
@@ -1059,17 +1059,12 @@ def select_song():
     global select_song_button
     global textinput
     
-   
-    
-    
-    
-
 
     if submenu == "setup":
         selected = -1
 
-        scrollpos = 0
-        scrollvel = 0
+        _ss_scrollpos = 0
+        _ss_scrollvel = 0
 
         library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["list item unselected"], "")
         global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["face"], "")
@@ -1096,9 +1091,9 @@ def select_song():
             selection.append(i)
     
     # handling the 
-    if mouse_y > 700 + scrollpos and mouse_y < HEIGHT-100:
-        selected = math.floor((mouse_y-700-scrollpos)/40)
-        select_song_button.y = math.floor((mouse_y-700-scrollpos)/40) * 40 + 700 + scrollpos
+    if mouse_y > 700 + _ss_scrollpos and mouse_y < HEIGHT-100:
+        selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
+        select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
         if selected < len(selection):
             select_song_button.draw(screen)
             if select_song_button.is_clicked():
@@ -1110,34 +1105,34 @@ def select_song():
                     curr_screen = "test_song_setup"
 
     for i in range(len(selection)):
-        if 700 + scrollpos + i*40 > 0 and 700 + scrollpos + i*40 < HEIGHT:
+        if 700 + _ss_scrollpos + i*40 > 0 and 700 + _ss_scrollpos + i*40 < HEIGHT:
             text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
             if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
                 text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
-            screen.blit(text_surface, (60,700 + scrollpos + i*40))
+            screen.blit(text_surface, (60,700 + _ss_scrollpos + i*40))
             
 
-    scrollvel = (scrollvel + mouse_scroll*5)/2
-    scrollpos = scrollpos + scrollvel*10
-    if scrollpos < len(selection) * -40 + 145:
-        scrollpos = len(selection) * -40 + 145
-    if scrollpos > 0:
-        scrollpos = 0
+    _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
+    _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
+    if _ss_scrollpos < len(selection) * -40 + 145:
+        _ss_scrollpos = len(selection) * -40 + 145
+    if _ss_scrollpos > 0:
+        _ss_scrollpos = 0
 
-    categories[0].y =        pixelpositions[0] + scrollpos
-    categories[1].y =        pixelpositions[1] + scrollpos
-    categories[2].y =        pixelpositions[2] + scrollpos
-    categories[3].y =        pixelpositions[3] + scrollpos
-    textinput.y = 160 + scrollpos if scrollpos > -30 else 130
+    categories[0].y =        pixelpositions[0] + _ss_scrollpos
+    categories[1].y =        pixelpositions[1] + _ss_scrollpos
+    categories[2].y =        pixelpositions[2] + _ss_scrollpos
+    categories[3].y =        pixelpositions[3] + _ss_scrollpos
+    textinput.y = 160 + _ss_scrollpos if _ss_scrollpos > -30 else 130
 
     for i in categories:
         i.draw(screen)
     
     text_surface = title_font.render("Categories", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (60,220 + scrollpos))
+    screen.blit(text_surface, (60,220 + _ss_scrollpos))
 
     text_surface = title_font.render("Songs", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (60,570 + scrollpos))
+    screen.blit(text_surface, (60,570 + _ss_scrollpos))
 
     if selected != -1:
         pass
@@ -1223,111 +1218,134 @@ def test_song_setup():
     curr_screen = "bandle"
     
 def playlist_select_setup():
-    
     global submenu
-    global selected_p
-    global buttons
-    global selected_playlist
     global curr_screen
-    global start_button
-    global scrollpos
-    global scrollvel
-    global all_songs_sanitized_sorted
-    global all_songs_sanitized_sorted_availability
-
-    scrollpos, scrollvel = 0, 0
-    selected_p = -1
-    buttons = []
-    selected_playlist = ""
-    
-    start_button = Button(WIDTH/2 - 100, 780, 200, 80, COLOR_PALETTE["face"], "Start", radius=20, click_counter=20)
-
-
-    for i in range(len(list(playlists_json_dir_contents.keys()))):
-        buttons.append(Button(77, 250 + i*60, WIDTH - 148, 48, COLOR_PALETTE["list item unselected"], playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
+    submenu = "setup"
     curr_screen = "playlists"
 
 
-    
-
 def playlist_select():
     global submenu
-    global SHADOW_OFFSET
     global curr_screen
-    global buttons
+
+    global loading_anim_slider
+
     global selected_playlist
-    global selected_p
-    global start_button
-    global go_back_button
-    global scrollpos
-    global scrollvel
-    
-    if len(buttons) > 6:
-        scrollvel = (scrollvel + mouse_scroll*3)/2
-        scrollpos += scrollvel
-        if scrollpos > 0:
-            scrollpos = 0
-        elif scrollpos < -len(buttons)*6 + 37.5:
-            scrollpos = -len(buttons)*6 + 37.5
-        scrollvel=round(scrollvel*10)/10
-        scrollpos=round(scrollpos*100)/100
-    else:
-        scrollpos = 0
-    
-    # print(f"pos: {scrollpos},vel: {scrollvel} mouse_scroll; {mouse_scroll}, lnebuts: {len(buttons)*6}")
 
-    # island
-    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(50 + SHADOW_OFFSET, 230 + SHADOW_OFFSET, WIDTH - 100, 400), border_radius=20)
-    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(50, 230, WIDTH - 100, 400), border_radius=20)
+    global _ps_selected_playlist_idx
+    global _ps_playlist_buttons
+    global _ps_start_button
+    global _ps_scrollpos
+    global _ps_scrollvel
+    global all_songs_sanitized_sorted
+    global all_songs_sanitized_sorted_availability
+    
+    if submenu == "setup":
+        _ps_scrollpos, _ps_scrollvel = 0, 0
+        _ps_selected_playlist_idx = -1
+        _ps_playlist_buttons = []
+        selected_playlist = ""
+        
+        _ps_start_button = Button(135, 774, 229, 92, COLOR_PALETTE["face"], "Start", radius=20, click_counter=20)
 
-    # check who is selected
-    for i in range(len(buttons)):
-        if mouse_y > 230 and mouse_y < 630:
-            if buttons[i].is_clicked():
-                selected_p = i
-                selected_playlist = buttons[i].info
-    # draw buttons
-    for i in range(len(buttons)):
-        if i == selected_p:
-            buttons[i].color = COLOR_PALETTE["list item selected"]
+
+        for i in range(len(list(playlists_json_dir_contents.keys()))):
+            _ps_playlist_buttons.append(Button(86, 247 + i*62, 328, 52, COLOR_PALETTE["list item unselected"], playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
+        
+        loading_anim_slider = 0
+        submenu = "loading_main"
+
+    
+    if submenu in ["main", "loading_main", "out_loading_main_menu"]:
+        if len(_ps_playlist_buttons) > 6:
+            _ps_scrollvel = (_ps_scrollvel + mouse_scroll*3)/2
+            _ps_scrollpos += _ps_scrollvel
+            if _ps_scrollpos > 0:
+                _ps_scrollpos = 0
+            elif _ps_scrollpos < -len(_ps_playlist_buttons)*6 + 37.5:
+                _ps_scrollpos = -len(_ps_playlist_buttons)*6 + 37.5
+            _ps_scrollvel=round(_ps_scrollvel*10)/10
+            _ps_scrollpos=round(_ps_scrollpos*100)/100
         else:
-            buttons[i].color = COLOR_PALETTE["list item unselected"]
-        buttons[i].x, buttons[i].y = (77, 250 + i*60 + scrollpos*10)
-        buttons[i].draw(screen)
+            _ps_scrollpos = 0
+        
+        # island
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 231 + SHADOW_OFFSET, 387, 412), border_radius=20)
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(56, 231, 387, 412), border_radius=20)
 
-    # hacky caches for the buttons
-    pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 0, WIDTH, 230))
-    pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 630 + SHADOW_OFFSET, WIDTH, 400))
-    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(73, 630, 360, SHADOW_OFFSET), border_radius=3)
+        # check who is selected
+        for i in range(len(_ps_playlist_buttons)):
+            if mouse_y > 230 and mouse_y < 619:
+                if _ps_playlist_buttons[i].is_clicked():
+                    _ps_selected_playlist_idx = i
+                    selected_playlist = _ps_playlist_buttons[i].info
+        # draw buttons
+        for i in range(len(_ps_playlist_buttons)):
+            if i == _ps_selected_playlist_idx:
+                _ps_playlist_buttons[i].color = COLOR_PALETTE["list item selected"]
+            else:
+                _ps_playlist_buttons[i].color = COLOR_PALETTE["list item unselected"]
+            _ps_playlist_buttons[i].x, _ps_playlist_buttons[i].y = (86, 247 + i*62 + _ps_scrollpos*10)
+            _ps_playlist_buttons[i].draw(screen)
+
+        # hacky caches for the buttons
+        pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 0, WIDTH, 231))
+        pygame.draw.rect(screen, COLOR_PALETTE["background"], pygame.Rect(0, 643 + SHADOW_OFFSET, WIDTH, 400))
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(86, 643, 328, SHADOW_OFFSET), border_radius=-1)
 
 
-    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+        text_surface = small_font.render("Select playlist", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
 
-    go_back_button.draw(screen)
-    if go_back_button.is_clicked() == 1:
-        submenu = "main_menu"
-        curr_screen = "main_menu"
+        go_back_button.draw(screen)
+        if go_back_button.is_clicked() == 1:
+            submenu = "out_loading_main_menu"
 
-    # title text
-    text_surface = title_font.render("Select playlist", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
-
+        # title text
+        text_surface = title_font.render("Select playlist", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (WIDTH/2 - text_surface.get_width()/2,120))
 
     
+        
+        pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(_ps_start_button.x + SHADOW_OFFSET, _ps_start_button.y + SHADOW_OFFSET, _ps_start_button.w, _ps_start_button.h), border_radius=20)
+        _ps_start_button.draw(screen)
 
-    
+        if _ps_start_button.is_clicked() == 1:  
+            if selected_playlist != "":
+                curr_screen = "bandle_setup"
+            else:
+                warnings.append( Warning("you need to select a playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
 
 
-    
-    
-    pygame.draw.rect(screen, COLOR_PALETTE["shadow"], pygame.Rect(start_button.x + SHADOW_OFFSET, start_button.y + SHADOW_OFFSET, start_button.w, start_button.h), border_radius=20)
-    start_button.draw(screen)
+# ╭---------------------------------------------------------------------------------------------╮
+# |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
+# |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
+# |      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯  ╰ ╰╯  ╰==╯       ╰==╯  ╰=-╯  ╰  ╰  ╰=-  ╰=-  ╰ ╰╯  ╰==╯      |
+# ╰---------------------------------------------------------------------------------------------╯
+        if submenu == "loading_main":
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*1/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
 
-    if start_button.is_clicked() == 1:  
-        if selected_playlist != "":
-            curr_screen = "bandle_setup"
-        else:
-            warnings.append( Warning("you need to select a playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
+            if abs((1-loading_anim_slider) * 100) < 1:
+                submenu = "main"
+                loading_anim_slider = 0
+
+        if submenu in ["out_loading_main_menu"]:
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
+
+            if submenu == "out_loading_main_menu":
+                if abs((1-loading_anim_slider) * 100) < 1:
+                    submenu = "loading_main_menu"
+                    curr_screen = "main_menu"
+                    loading_anim_slider = 0
 
 def bandle_setup():
     global submenu
@@ -1896,7 +1914,7 @@ while running:
     if CF_DEBUG_VLC:
         print("debug_vlc()")
     pygame.display.flip()
-    pygame.event.clear()  # clear event queuem
+    pygame.event.clear()  # clear event queue
     counter += 1
 
     # managing fps

@@ -13,7 +13,7 @@ SCALE = 0.5
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
 STEMS = ["drums", "bass", "guitar", "piano","other", "vocals"]
 WEAK_INTERNET = False
-SKIP_SPLIT = True
+SKIP_SPLIT = False
 
 PROJECT_DIR =           Path(__file__).resolve().parent.parent
 INTERPRETER_PATH =      sys.executable
@@ -272,10 +272,7 @@ if not SKIP_SPLIT:
             logger.error(f"Demucs exited with code {process.returncode}")
             raise subprocess.CalledProcessError(process.returncode, cmd)
 
-    print("hello")
     if CURR_OS == "Windows":
-        print(SONGS_DIR_contents)
-        print(SONGS_DIR)
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
         skip = "no"
         if len(songs_to_split) == 0:
@@ -338,7 +335,7 @@ if not SKIP_SPLIT:
                 
                 if not failure: # check for faliure converting to wavs very unlikely
                     folder_end = title + ".wav"
-                    print("removing now useless audio: " + Path(RAW_TRACK_AUDIO_DIR / folder_end))
+                    print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
                     with open(SONGS_DIR, "w", encoding="utf-8") as f:
