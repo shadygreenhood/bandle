@@ -58,7 +58,7 @@ COLOR_PALETTE = {
 # |      ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯   ╰╯   ╰  ╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰-------------------------------------------------------------------------------------------------------------╯
 DEFAULT_CONFIG =        "SCALE=1\nDEBUG_VLC=False\nWEAK_INTERNET=False\nSKIP_SPLIT=False"
-ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 "
+ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 " # important that no ";" are allowed
 CURR_OS = platform.system()
 
 

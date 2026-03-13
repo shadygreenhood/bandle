@@ -53,7 +53,7 @@ with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
     blacklists = []
     for i in txt:
         try:
-            blacklists.append([j for j in i.split("=")[1].split(" ")])
+            blacklists.append([j for j in i.split("=")[1].split(";")])
             blacklist_names.append(i.split("=")[0])
         except:
             help(f"failed to extract contents of {i} in Blacklists.txt")
@@ -211,25 +211,25 @@ def scale_mouse_pos(pos):
 # ╰---------------------------------------------------------------------╯
 
 def skip(silent=False, skip_song=False, simple_update=False):
-        global step
-        global song_counter
-        global queue
-        global current_song
+        global _b_step
+        global _b_song_counter
+        global _b_queue
+        global _b_current_song
         global curr_screen
         global player
-        step += 1
-        if not step > len(STEMS) and not skip_song:
+        _b_step += 1
+        if not _b_step > len(STEMS) and not skip_song:
             if simple_update:
-                player.update_to_play(step)
+                player.update_to_play(_b_step)
             else:
                 
-                player.play(step)
+                player.play(_b_step)
                 player.seek(player.audio_len/5)
                 player.toggle()
             
-        if step > len(STEMS) or skip_song:
+        if _b_step > len(STEMS) or skip_song:
             player.stop_all()
-            step = 1
+            _b_step = 1
 
             # update the correct blacklist
             with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
@@ -238,34 +238,34 @@ def skip(silent=False, skip_song=False, simple_update=False):
             buffer = ""
             for i in range(len(txts)):
                 if i == curr_blacklist:
-                    buffer += txts[i] + current_song + " " + "\n"
+                    buffer += txts[i] + _b_current_song + ";" + "\n"
                 else:
                     buffer += txts[i] + "\n"
             with open(BLACKLISTS_DIR, "w", encoding="utf-8") as f:
                 f.write(buffer)
-            blacklists[curr_blacklist].append(current_song)
+            blacklists[curr_blacklist].append(_b_current_song)
                 
             
             if not silent:
-                warnings.append(Warning(f"song was {sanitize(current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
+                warnings.append(Warning(f"song was {sanitize(_b_current_song)}", (40, HEIGHT-80, WIDTH-80), "info"))
             a = True
             while a:    
-                song_counter += 1
-                # print("song counter", song_counter, "queue: ", queue)
-                if song_counter > len(queue):
+                _b_song_counter += 1
+                # print("song counter", _b_song_counter, "_b_queue: ", _b_queue)
+                if _b_song_counter > len(_b_queue):
                     warnings.append(Warning(f"you finished the playlist!", (40, HEIGHT-80, WIDTH-80), "info"))
                     curr_screen = "playlists"
                     a = False
                 else:
-                    # print("song counter", song_counter)
-                    current_song = queue[song_counter - 1]
-                    if Path(STEMS_FOLDER / current_song).is_dir():
-                        player.load(current_song)
+                    # print("song counter", _b_song_counter)
+                    _b_current_song = _b_queue[_b_song_counter - 1]
+                    if Path(STEMS_FOLDER / _b_current_song).is_dir():
+                        player.load(_b_current_song)
                         a = False
                     else:
                         warnings.append(Warning(f"couldnt find song folder", (40, HEIGHT-80, WIDTH-80), "warning"))
                         a = False
-                        # print(f'{STEMS_FOLDER + "/" +  current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
+                        # print(f'{STEMS_FOLDER + "/" +  _b_current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
 
 
 def setup():
@@ -300,9 +300,6 @@ def setup():
     global curr_screen
     submenu = "setup"
     curr_screen = "main_menu"
-
-
-
 
 def main_menu():
     global submenu
@@ -495,14 +492,12 @@ def main_menu():
             loading_anim_slider = 0
 
 
-
 def manage_blacklist_setup():
     global submenu
     global curr_screen
     submenu = "setup"
     curr_screen = "manage_blacklist"
     
-
 def manage_blacklist():
     global submenu
     global curr_screen
@@ -749,8 +744,9 @@ def select_song_setup():
 def select_song():
     global submenu
     global curr_screen
-    global current_song
+    global _b_current_song
     global go_back_button
+    global loading_anim_slider
 
     # local vars
     global _ss_library_button
@@ -766,173 +762,143 @@ def select_song():
 
 
     if submenu == "setup":
-        _ss_selected = -1
 
+        _ss_selected = -1
         _ss_scrollpos = 0
         _ss_scrollvel = 0
 
         _ss_library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["list item unselected"], "")
         _ss_global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["face"], "")
         _ss_select_song_button =        Button(35,700, WIDTH-70, 35, COLOR_PALETTE["list item selected"], "                                                    ...", radius=15)
-
-        _ss_textinput = Textinput(50, 160, WIDTH - 100, 50, 5, COLOR_PALETTE["textinput unselected"])
+        _ss_textinput =                 Textinput(50, 160, WIDTH - 100, 50, 5, COLOR_PALETTE["textinput unselected"])
 
         _ss_categories = []
         for i in range(len(CATEGORIES)):
             _ss_categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, COLOR_PALETTE["list item selected"], CATEGORIES[i], radius=15))
 
         _ss_pixelpositions = [i.y for i in _ss_categories]
-        submenu = "search"
+        loading_anim_slider = 0
+        submenu = "loading_search"
 
 
+    if submenu in ["search", "loading_search", "loading_main_menu", "loading_bandle"]:
+        
+        # preparing listed song options
+        text = _ss_textinput.text
+        selection = []
+        for i in all_songs_sanitized_sorted:
+            if text.lower() in i.lower():
+                selection.append(i)
+            elif text.lower() in songs_json_dir_contents[i]["baked_artists"]:
+                selection.append(i)
+        
+        # updating scroll      
+        _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
+        _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
+        if _ss_scrollpos < len(selection) * -40 + 145:
+            _ss_scrollpos = len(selection) * -40 + 145
+        if _ss_scrollpos > 0:
+            _ss_scrollpos = 0
 
-    # preparing listed song options
-    text = _ss_textinput.text
-    selection = []
-    for i in all_songs_sanitized_sorted:
-        if text.lower() in i.lower():
-            selection.append(i)
-        elif text.lower() in songs_json_dir_contents[i]["baked_artists"]:
-            selection.append(i)
-    
-    # handling the 
-    if mouse_y > 700 + _ss_scrollpos and mouse_y < HEIGHT-100:
-        _ss_selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
-        _ss_select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
-        if _ss_selected < len(selection):
-            _ss_select_song_button.draw(screen)
-            if _ss_select_song_button.is_clicked(events):
-                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[_ss_selected])] == False:
-                    warnings.append( Warning("this song isnt available", (40, HEIGHT-80, WIDTH-80), level="warning"))
-                else:
-                    print(all_songs[all_songs_sanitized.index(selection[_ss_selected])])
-                    current_song = all_songs[all_songs_sanitized.index(selection[_ss_selected])]
-                    curr_screen = "test_song_setup"
+        # placing a button under the cursor if hovering on the options
+        if mouse_y > 700 + _ss_scrollpos and mouse_y < HEIGHT-100:
+            _ss_selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
+            _ss_select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
+            if _ss_selected < len(selection):
+                _ss_select_song_button.draw(screen)
+                if _ss_select_song_button.is_clicked(events):
+                    if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[_ss_selected])] == False:
+                        warnings.append( Warning("this song isnt available", (40, HEIGHT-80, WIDTH-80), level="warning"))
+                    else:
+                        print(all_songs[all_songs_sanitized.index(selection[_ss_selected])])
+                        _b_current_song = all_songs[all_songs_sanitized.index(selection[_ss_selected])]
+                        submenu = "loading_bandle"
 
-    for i in range(len(selection)):
-        if 700 + _ss_scrollpos + i*40 > 0 and 700 + _ss_scrollpos + i*40 < HEIGHT:
-            text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
-            if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
+        # render options text
+        for i in range(len(selection)):
+            if 700 + _ss_scrollpos + i*40 > 0 and 700 + _ss_scrollpos + i*40 < HEIGHT:
                 text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
-            screen.blit(text_surface, (60,700 + _ss_scrollpos + i*40))
-            
-
-    _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
-    _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
-    if _ss_scrollpos < len(selection) * -40 + 145:
-        _ss_scrollpos = len(selection) * -40 + 145
-    if _ss_scrollpos > 0:
-        _ss_scrollpos = 0
-
-    _ss_categories[0].y =        _ss_pixelpositions[0] + _ss_scrollpos
-    _ss_categories[1].y =        _ss_pixelpositions[1] + _ss_scrollpos
-    _ss_categories[2].y =        _ss_pixelpositions[2] + _ss_scrollpos
-    _ss_categories[3].y =        _ss_pixelpositions[3] + _ss_scrollpos
-    _ss_textinput.y = 160 + _ss_scrollpos if _ss_scrollpos > -30 else 130
-
-    for i in _ss_categories:
-        i.draw(screen)
-    
-    text_surface = title_font.render("Categories", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (60,220 + _ss_scrollpos))
-
-    text_surface = title_font.render("Songs", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (60,570 + _ss_scrollpos))
-
-    if _ss_selected != -1:
-        pass
+                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
+                    text_surface = small_font.render(selection[i], True, COLOR_PALETTE["black"])
+                screen.blit(text_surface, (60,700 + _ss_scrollpos + i*40))
 
 
+        _ss_categories[0].y =        _ss_pixelpositions[0] + _ss_scrollpos
+        _ss_categories[1].y =        _ss_pixelpositions[1] + _ss_scrollpos
+        _ss_categories[2].y =        _ss_pixelpositions[2] + _ss_scrollpos
+        _ss_categories[3].y =        _ss_pixelpositions[3] + _ss_scrollpos
+        _ss_textinput.y = 160 + _ss_scrollpos if _ss_scrollpos > -30 else 130
 
-    _ss_library_button.draw(screen)
-    _ss_global_search_button.draw(screen)
+        for i in _ss_categories:
+            i.draw(screen)
+        
+        # Categories header
+        text_surface = title_font.render("Categories", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (60,220 + _ss_scrollpos))
+        # Songs header
+        text_surface = title_font.render("Songs", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (60,570 + _ss_scrollpos))
+        
+        # Library and Search buttons
+        _ss_library_button.draw(screen)
+        _ss_global_search_button.draw(screen)
 
-    
-    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+        # banner
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+        text_surface = small_font.render("Search" if submenu in ["search", "loading_search", "loading_main_menu"] else "Your Library" if submenu == "library" else "", True, COLOR_PALETTE["black"])
+        screen.blit(text_surface, (WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
 
-    text_surface = small_font.render("Search" if submenu == "search" else "Your Library", True, COLOR_PALETTE["black"])
-    screen.blit(text_surface, (WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
+        go_back_button.draw(screen)
+        if go_back_button.is_clicked(events) == 1:
+            submenu = "loading_main_menu"
 
-    go_back_button.draw(screen)
-    if go_back_button.is_clicked(events) == 1:
-        submenu = "main_menu"
-        curr_screen = "main_menu"
+        _ss_textinput.draw(screen, events)
 
-    _ss_textinput.draw(screen, events)
-    
-def test_song_setup():
-    global submenu
-    global curr_screen
-    global current_song
-    global queue
-    global step
-    global song_counter
-    global bandle_guessing_counter
-    global text
-    global selected
-    global offset
-    global seeking
+# ╭---------------------------------------------------------------------------------------------╮
+# |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
+# |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
+# |      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯  ╰ ╰╯  ╰==╯       ╰==╯  ╰=-╯  ╰  ╰  ╰=-  ╰=-  ╰ ╰╯  ╰==╯      |
+# ╰---------------------------------------------------------------------------------------------╯
+        if submenu == "loading_search":
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*1/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
 
-    global skip_button
-    global go_back_button
-    global play_button
-    global guess_button
-    global skip_ahead
-    global skip_ahead_img
-    global rewind
-    global rewind_img
-    global textinput
-    global single_song_bool
-    global CHEAT_MODE
-    global player
-
-    global skip
-
-
-    CHEAT_MODE = False
-    # setting vars
-    step = 1
-    song_counter = 1
-    bandle_guessing_counter = 0
-    text = ""
-    selected = -1
-    offset = 0
-    seeking = False
-    single_song_bool = True
+            if abs((1-loading_anim_slider) * 100) < 1:
+                submenu = "search"
+                loading_anim_slider = 0
 
 
-    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Play"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Skip"      , radius=20, click_counter=20)
-    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
+        if submenu in ["loading_main_menu", "loading_bandle"]:
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
 
-    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , "pink", ""      , radius=20, click_counter=20)
-    
-    skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
-    skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
 
-    rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
-    rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
+            if abs((1-loading_anim_slider) * 100) < 1:
+                if submenu == "loading_main_menu":
+                    loading_anim_slider = 0
+                    submenu = "loading_main_menu"
+                    curr_screen = "main_menu"
+                elif submenu == "loading_bandle":
+                    loading_anim_slider = 0
+                    submenu = "setup_song"
+                    curr_screen = "bandle_setup"
 
-    textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, COLOR_PALETTE["textinput unselected"])
 
-    # preparing song queue
-    queue = [current_song]
-    player.load(current_song)
-    player.seek(player.audio_len / 5, step=1)
-    curr_screen = "bandle"
-    
 def playlist_select_setup():
     global submenu
     global curr_screen
     submenu = "setup"
     curr_screen = "playlists"
 
-
 def playlist_select():
     global submenu
     global curr_screen
-
     global loading_anim_slider
 
     global selected_playlist
@@ -960,7 +926,7 @@ def playlist_select():
         submenu = "loading_main"
 
     
-    if submenu in ["main", "loading_main", "out_loading_main_menu"]:
+    if submenu in ["main", "loading_main", "out_loading_main_menu", "loading_bandle"]:
         if len(_ps_playlist_buttons) > 6:
             _ps_scrollvel = (_ps_scrollvel + mouse_scroll*3)/2
             _ps_scrollpos += _ps_scrollvel
@@ -1017,7 +983,7 @@ def playlist_select():
 
         if _ps_start_button.is_clicked(events) == 1:  
             if selected_playlist != "":
-                curr_screen = "bandle_setup"
+                submenu = "loading_bandle"
             else:
                 warnings.append( Warning("you need to select a playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
 
@@ -1038,7 +1004,7 @@ def playlist_select():
                 submenu = "main"
                 loading_anim_slider = 0
 
-        if submenu in ["out_loading_main_menu"]:
+        if submenu in ["out_loading_main_menu", "loading_bandle"]:
             loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
             pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
             text_surface = title_font.render("Loading", True, (10, 10 ,10))
@@ -1050,126 +1016,141 @@ def playlist_select():
                     submenu = "loading_main_menu"
                     curr_screen = "main_menu"
                     loading_anim_slider = 0
+            elif submenu == "loading_bandle":
+                if abs((1-loading_anim_slider) * 100) < 1:
+                    submenu = "setup_playlist"
+                    curr_screen = "bandle_setup"
+                    loading_anim_slider = 0
+                    
+
 
 def bandle_setup():
     global submenu
     global curr_screen
-    global current_song
-    global queue
-    global step
-    global song_counter
-    global bandle_guessing_counter
+    global loading_anim_slider
+
+    # bandle screen vars
+    global _b_loading_status
+    global _b_current_song
+    global _b_song_counter
+    global _b_queue
+    global _b_step
+    global _b_bandle_guessing_counter
+    global _b_single_song_bool
     global text
     global selected
     global offset
     global seeking
 
-    global skip_button
-    global go_back_button
-    global play_button
-    global guess_button
-    global skip_ahead
-    global skip_ahead_img
-    global rewind
-    global rewind_img
+    global _b_skip_button
+    global _b_play_button
+    global _b_guess_button
+    global _b_skip_ahead
+    global _b_skip_ahead_img
+    global _b_rewind
+    global _b_rewind_img
     global textinput
-    global single_song_bool
-    global all_songs_sanitized_sorted_availability
+
     global player
-    
-    global skip
-    
+
     # setting vars
-    step = 1
-    song_counter = 1
-    bandle_guessing_counter = 0
+    _b_step = 1
+    _b_song_counter = 1
+    _b_bandle_guessing_counter = 0
     text = ""
     selected = -1
     offset = 0
     seeking = False
-    single_song_bool = False
 
     # setting buttons
+    _b_play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], ">"      , radius=20, click_counter=20)
+    _b_skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Skip"      , radius=20, click_counter=20)
+    _b_guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
 
-
-    play_button  = Button(WIDTH/2 - 45       , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], ">"      , radius=20, click_counter=20)
-    skip_button  = Button(WIDTH/2 + 135      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Skip"      , radius=20, click_counter=20)
-    guess_button = Button(WIDTH/2 - 135 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
-
-    rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
-    skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
+    _b_rewind =     Button(WIDTH/2 - 45 -90  , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
+    _b_skip_ahead = Button(WIDTH/2 + 45      , HEIGHT -210, 90 , 85 , COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
     
-    skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
-    skip_ahead_img = pygame.transform.smoothscale(skip_ahead_img, (60, 60))
+    _b_skip_ahead_img = pygame.image.load(ASSETS_DIR / "skip_ahead.png").convert_alpha()
+    _b_skip_ahead_img = pygame.transform.smoothscale(_b_skip_ahead_img, (60, 60))
 
-    rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
-    rewind_img = pygame.transform.smoothscale(rewind_img, (60, 60))
+    _b_rewind_img = pygame.image.load(ASSETS_DIR / "rewind.png").convert_alpha()
+    _b_rewind_img = pygame.transform.smoothscale(_b_rewind_img, (60, 60))
 
     textinput = Textinput(25, HEIGHT, WIDTH-50, 60, 20, COLOR_PALETTE["textinput unselected"])
 
-                 
-        
 
-    # preparing song queue
-    # all songs in a playlist
-    queue = [playlists_json_dir_contents[selected_playlist]["data"][i]["name"] for i in range(len(playlists_json_dir_contents[selected_playlist]["data"]))]
-    
-    # removing ones that havent been fully processed yet
-    bfr = []
-    for i in range(len(queue)):
-        if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(queue[i])] == False:
-            bfr.append(i)
-    for i in range(len(bfr)):
-        queue.pop(bfr[i] - i)
-    
-    # removing ones encountered ni active blacklist
-    bfr = []
-    for i in range(len(queue)):
-        if queue[i] in blacklists[curr_blacklist]:
-            bfr.append(i)
-    for i in range(len(bfr)):
-        queue.pop(bfr[i] - i)
 
-    if queue == []:
-        curr_screen = "playlists"
-        warnings.append( Warning("already finished this playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
-    else:
-        shuffle(queue)
-        current_song = queue[0]
-        player.load(current_song)
+    if submenu == "setup_song":
+        _b_single_song_bool = True
+        # preparing song _b_queue
+        _b_queue = [_b_current_song]
+        player.load(_b_current_song)
         player.seek(player.audio_len / 5, step=1)
 
-        print(player.status)
-        curr_screen = "bandle"
+
+    elif submenu == "setup_playlist":
+        _b_single_song_bool = False
+        # preparing song _b_queue
+        # all songs in a playlist
+        _b_queue = [playlists_json_dir_contents[selected_playlist]["data"][i]["name"] for i in range(len(playlists_json_dir_contents[selected_playlist]["data"]))]
+        # removing ones that havent been fully processed yet
+        bfr = []
+        for i in range(len(_b_queue)):
+            if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(_b_queue[i])] == False:
+                bfr.append(i)
+        for i in range(len(bfr)):
+            _b_queue.pop(bfr[i] - i)
+        # removing ones encountered in active blacklist
+        bfr = []
+        for i in range(len(_b_queue)):
+            if _b_queue[i] in blacklists[curr_blacklist]:
+                bfr.append(i)
+        for i in range(len(bfr)):
+            _b_queue.pop(bfr[i] - i)
+        # check if there's anything left
+        if _b_queue == []:
+            curr_screen = "playlists"
+            warnings.append( Warning("already finished this playlist", (40, HEIGHT-80, WIDTH-80), level="warning"))
+        else:
+            shuffle(_b_queue)
+            _b_current_song = _b_queue[0]
+            player.load(_b_current_song)
+            player.seek(player.audio_len / 5, step=1)
+        
+    loading_anim_slider = 0
+    _b_loading_status = "loading_in"
+    submenu = "bandle"
+    curr_screen = "bandle"
     
 def bandle_screen():
     global submenu
-    global SHADOW_OFFSET
     global curr_screen
-    global step
-    global song_counter
-    global current_song
-    global bandle_guessing_counter
+    global loading_anim_slider
+    global _b_loading_status
+    global _b_step
+    global _b_song_counter
+    global _b_current_song
+    global _b_bandle_guessing_counter
     global offset
     global selected
-    global skip_ahead_img
-    global rewind_img
+    global _b_skip_ahead_img
+    global _b_rewind_img
     global mouse_x
     global mouse_y
     global seeking
 
-    global skip_button
+    global _b_skip_button
     global go_back_button
-    global play_button
-    global skip_ahead
-    global rewind
+    global _b_play_button
+    global _b_skip_ahead
+    global _b_rewind
     global textinput
     global player
 
     global skip
 
 
-    # curr_screen can have a whole range of values:
+    # submenu can have a whole range of values:
     # ["bandle"; "bandle_guessing"; "bandle_win"; "bandle_stare"]
     #
     # bandle is the default one, 
@@ -1177,7 +1158,7 @@ def bandle_screen():
     # bandle_win means the victory popup should appear, most actions are therefore prevented
     # bandle stare is a special restricted mode in which you cant guess, can only skip to next track (instead of stem) and clicking on a stem should enable/disable it
     #
-    # single_song_bool is also important: if True, queue isnt defined, and after finishing the stems, you should directly go to select_songs
+    # _b_single_song_bool is also important: if True, _b_queue isnt defined, and after finishing the stems, you should directly go to select_songs
     #
     # each individual section will be marked by an adequate marker, ex:
 
@@ -1187,359 +1168,394 @@ def bandle_screen():
 # |      ╰=-  ╰  ╯ ╰  ╯ ╰  ╯ ╰    ╰-╯ ╰=-      |
 # ╰--------------------------------------------╯
 
+    if submenu in ["bandle", "bandle_guessing", "bandle_win", "bandle_stare"]:
+        #deal with players
+        #MUTED OUTPUT  print("progression would be updated here")
+        player.update_pointer()
+        progression = player.pointer * 1000 / player.audio_len
 
+    # ╭----------------------------------------╮
+    # |      ╭  ╮ ╭=-  ╭==╮ ╭-.  ╭=- ╭==╮      |
+    # |      ╞--╡ ╞-   ╞--╡ |  | ╞-  ╞=:╯      |
+    # |      ╰  ╯ ╰=-  ╰  ╯ ╰='  ╰=- ╰  ╰      |
+    # ╰----------------------------------------╯
+        pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
 
+        # title text
+        bandle_title = title_font.render("Bandle", True, COLOR_PALETTE["black"])
+        screen.blit(bandle_title, (WIDTH/2 - bandle_title.get_width()/2,120))
+        
+        
+        
+        # selected playlist text (cool little script)
+        if not _b_single_song_bool:
+            selected_playlist_text = f"Selected playlist: {playlists_json_dir_contents[selected_playlist]['name']}"
+        else:
+            selected_playlist_text = f"testing single song"
+        words = selected_playlist_text.split(" ")
+        wordlines = []
 
-    #deal with players
-    #MUTED OUTPUT  print("progression would be updated here")
-    player.update_pointer()
-    progression = player.pointer * 1000 / player.audio_len
+        for i in range(len(words)):
+            for j in range(len(words)):
+                # print(f"j: {j}, len of {str(words[:len(words) - j])} is {sum(len(words[i]) for i in range(len(words) - j))}")
+                if sum(len(words[i]) for i in range(len(words) - j)) < 25 or j == len(words) - 1:
 
-# ╭----------------------------------------╮
-# |      ╭  ╮ ╭=-  ╭==╮ ╭-.  ╭=- ╭==╮      |
-# |      ╞--╡ ╞-   ╞--╡ |  | ╞-  ╞=:╯      |
-# |      ╰  ╯ ╰=-  ╰  ╯ ╰='  ╰=- ╰  ╰      |
-# ╰----------------------------------------╯
-    pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
+                    selected_playlist_text = "".join((words[i] + " ") for i in (range(len(words) - j)))
+                    selected_playlist_text = selected_playlist_text[:-1]
+                    wordlines.append(selected_playlist_text)
 
-    # title text
-    bandle_title = title_font.render("Bandle", True, COLOR_PALETTE["black"])
-    screen.blit(bandle_title, (WIDTH/2 - bandle_title.get_width()/2,120))
-    
-    
-    
-    # selected playlist text (cool little script)
-    if not single_song_bool:
-        selected_playlist_text = f"Selected playlist: {playlists_json_dir_contents[selected_playlist]['name']}"
-    else:
-        selected_playlist_text = f"testing single song"
-    words = selected_playlist_text.split(" ")
-    wordlines = []
-
-    for i in range(len(words)):
-        for j in range(len(words)):
-            # print(f"j: {j}, len of {str(words[:len(words) - j])} is {sum(len(words[i]) for i in range(len(words) - j))}")
-            if sum(len(words[i]) for i in range(len(words) - j)) < 25 or j == len(words) - 1:
-
-                selected_playlist_text = "".join((words[i] + " ") for i in (range(len(words) - j)))
-                selected_playlist_text = selected_playlist_text[:-1]
-                wordlines.append(selected_playlist_text)
-
-                for i in range(len(words[:len(words) - j])):
-                    words.pop(0)
+                    for i in range(len(words[:len(words) - j])):
+                        words.pop(0)
+                    break
+            # print(f"i: {i}, words: {words}")
+            if words == []:
                 break
-        # print(f"i: {i}, words: {words}")
-        if words == []:
-            break
-    
-    for i in range(len(wordlines)):
-        selected_playlist_text = small_font.render(wordlines[i], True, COLOR_PALETTE["black"])
-        screen.blit(selected_playlist_text, (WIDTH/2 + 55 - selected_playlist_text.get_width()/2,20 + go_back_button.h/2 - 18 - (len(wordlines)-1)*30/2 + i*30))
-
-    
-    # cheat mode display
-    if CHEAT_MODE:
-        song_text = basic_font.render(f"Current song: {current_song}, ya little CHEATER", True, COLOR_PALETTE["black"])
-        screen.blit(song_text, (50, 200))
-
-
-# ╭----------------------------------╮
-# |      ╭==╮ ╭=╮ ╭=-  ╭╮╭╮ ╭==╮     |
-# |      ╰--╮  |  ╞-   |╰╯| ╰--╮     |
-# |      ╰==╯  ╰  ╰=-  ╰  ╯ ╰==╯     |
-# ╰----------------------------------╯
-    # draw stem rectangles
-    for i in range(len(STEMS)):
-        pygame.draw.rect(screen, COLOR_PALETTE["stems selected"] if i < step else COLOR_PALETTE["face"], pygame.Rect(50, 245 + i*75, WIDTH - 100, 60), border_radius=15)
-        stem_text = basic_font.render(f"{STEMS[i]}", True, COLOR_PALETTE["black"])
-        screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 249 + i*75))
-
-
-# ╭------------------------------------------------------------------╮
-# |      ╭==╮ ╭  ╮ ╭=- ╭==╮ ╭==╮    ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
-# |      |  ╮ |  | ╞-  ╰--╮ ╰--╮    ╞-:╯ |  |  |   |  |  | |╰╮|      |
-# |      ╰==╯ ╰==╯ ╰=- ╰==╯ ╰==╯    ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
-# ╰------------------------------------------------------------------╯
-    # guess button
-    if curr_screen != "bandle_stare":
-        guess_button.draw(screen)
-        if guess_button.is_clicked(events) == 1:
-            if curr_screen != "bandle_guessing":
-                curr_screen = "bandle_guessing"
-                offset = 0                      # shows the top of the possible options
-                selected = -1                   # unselects any option
-                bandle_guessing_counter = 0     # sort of frame timer used for fade in
-                textinput.focused = True
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and curr_screen == "bandle_guessing":
-                if mouse_y < HEIGHT - 500:
-                    curr_screen = "bandle"
-    else:
-        guess_button.draw(screen, COLOR_PALETTE["face"])
-        if guess_button.is_clicked(events) == 1:
-            warnings.append(Warning("cannot guess in admire mode", level="warning"))
-    
-
-# ╭-----------------------------------------------------------╮
-# |      ╭╮ ╮ ╭==╮  ╭   ╮  .  ╭==╮ ╭==╮ ╭=╮  .  ╭==╮ ╭╮ ╮     |
-# |      |╰╮| ╞--╡  '   '  |  |  ╮ ╞--╡  |   |  |  | |╰╮|     |
-# |      ╰ ╰╯ ╰  ╯   ╰=╯   ╰  ╰==╯ ╰  ╯  ╰   ╰  ╰==╯ ╰ ╰╯     |
-# ╰-----------------------------------------------------------╯
-    # naviagtion
-    skip_ahead.draw(screen)
-    if skip_ahead.is_clicked(events):
-        player.offset_player(5000)
-
-    screen.blit(skip_ahead_img, (WIDTH/2 + 90 -30  , HEIGHT -195))
-
-    rewind.draw(screen)
-    if rewind.is_clicked(events):
-        player.offset_player(-5000)
-
-    screen.blit(rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
-
-    # progression bar
-    pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
-    pygame.draw.circle(screen, COLOR_PALETTE["face"], (WIDTH/2-115 + 230*(progression), 895), 5)
-
-    # progress bar hitbox visualizer
-    # pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
-    # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2+120, 870, 100, 110))
-    # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2-220, 870, 100, 110))
-
-    if pygame.mouse.get_pressed()[0]:
-        if mouse_y > 870 and mouse_y < 870+110 and mouse_x > WIDTH/2-220 and mouse_x < WIDTH/2+220:
-            if mouse_x > WIDTH/2-120:
-                if mouse_x > WIDTH/2+120:
-                    player.seek(player.audio_len)
-                    seeking = True
-                else:
-                    player.seek((mouse_x - (WIDTH/2-120))/240 * player.audio_len)
-                    seeking = True
-            else:
-                player.seek(0)
-                seeking = True
-    else:
-        if seeking:
-            seeking = not seeking
-    
-    if seeking:
-        if player.status == "Playing":
-            player.toggle()
-        # if players[0].is_playing():
-        #     print("pause()")
-
-
-# ╭-------------------------------------------------------------------------╮
-# |      ╭==╮ ╭==╮   ╭=-. ╭==╮ ╭=-╮ ╭  ╭   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
-# |      |  ╮ |  |   ╞=:╯ ╞--╡ |    ╞=:    ╞=:╯ |  |  |   |  |  | |╰╮|      |
-# |      ╰==╯ ╰==╯   ╰=-╯ ╰  ╯ ╰=-╯ ╰  ╰   ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
-# ╰-------------------------------------------------------------------------╯
-    # go back button
-    go_back_button.draw(screen)
-    if  curr_screen != "bandle_guessing":
-        if go_back_button.is_clicked(events) == 1:
-            player.stop_all()
-            if not single_song_bool:
-                curr_screen = "playlists"
-            else:
-                curr_screen = "select_song_setup"
-
-# ╭------------------------------------------------------------╮
-# |      ╭==╮ ╭  ╭  .  ╭==╮   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
-# |      ╰--╮ ╞=:   |  ╞==╯   ╞=:╯ |  |  |   |  |  | |╰╮|      |
-# |      ╰==╯ ╰  ╰  ╰  ╰      ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      | 
-# ╰------------------------------------------------------------╯
-    # skip button
-    skip_button.draw(screen)
-    if curr_screen != "bandle_guessing":
-        if skip_button.is_clicked(events) == 1:
-            if single_song_bool and step == 6: # when in test single song mode, instead of skipping, you simply go back to select_song
-                print("NOT skipping, going directly to select screen")
-                curr_screen = "select_song"
-            else:
-                # here, bandle_stare is the only mode that should both be silent (no warnings) and simple_update (no going back to the start of the song)
-                skip(True if curr_screen == "bandle_stare" else False, True if curr_screen == "bandle_stare" else False)
-            if step == len(STEMS):
-                skip_button.text = "End"
-            if curr_screen != "playlists" and curr_screen != "select_song": #if curr screen was one of the two, an earlier part of the script tried to change screens, which shouldnt be overridden
-                curr_screen = "bandle"
         
+        for i in range(len(wordlines)):
+            selected_playlist_text = small_font.render(wordlines[i], True, COLOR_PALETTE["black"])
+            screen.blit(selected_playlist_text, (WIDTH/2 + 55 - selected_playlist_text.get_width()/2,20 + go_back_button.h/2 - 18 - (len(wordlines)-1)*30/2 + i*30))
 
-# ╭--------------------------------------------------------------------------------------╮
-# |      ╭==╮ ╭   ╭==╮ ╮ ╭   ╮╭==╮ ╭==╮ ╭  ╮ ╭==╮ ╭=-   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
-# |      ╞==╯ |   ╞--╡ ╰╭╯ ╭╯ ╞==╯ ╞--╡ |  | ╰--╮ ╞-    ╞=:╯ |  |  |   |  |  | |╰╮|      |
-# |      ╰    ╰-╯ ╰  ╯  ╯ ╰   ╰    ╰  ╯ ╰==╯ ╰==╯ ╰=-   ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
-# ╰--------------------------------------------------------------------------------------╯
-    # play/pause button
-    # make the button change depending on state
-    #MUTED OUTPUT  print("check if playing to change play button appearance")
-    if  player.status != "Playing":
-        play_button.text = "Play"
-    else:
-        play_button.text = "Pause"
-    play_button.draw(screen)
-
-    if curr_screen != "bandle_guessing":
-        if play_button.is_clicked(events) == 1:
-            player.curr_step = step    
-            player.toggle()
-            # if not players[0].is_playing():
-            #     if players[0].get_time() >= players[0].get_length():
-            #         print("set_position(0)")
-            #         print("play_step()")
-            #     else:
-            #         print("play_step()")
-            # else:
-            #     print("pause()")
-            
-    #MUTED OUTPUT  print("set_volume(step)")
-
-# ╭----------------------------------------------------------------------------╮
-# |      ╭==╮ ╭  ╮ ╭=- ╭==╮ ╭==╮  .  ╭╮ ╮ ╭==╮   ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮      |
-# |      |  ╮ |  | ╞-  ╰--╮ ╰--╮  |  |╰╮| |  ╮   ╞==╯ |  | ╞==╯ |  | ╞==╯      |
-# |      ╰==╯ ╰==╯ ╰=- ╰==╯ ╰==╯  ╰  ╰ ╰╯ ╰==╯   ╰    ╰==╯ ╰    ╰==╯ ╰         |
-# ╰----------------------------------------------------------------------------╯
-    # bandle guessing screen popup
-    if curr_screen == "bandle_guessing":
-            
-        # slight shade
-        s = pygame.Surface((1000,1000))  
-        s.set_alpha(bandle_guessing_counter * 128)             
-        s.fill(COLOR_PALETTE["background"])           
-        screen.blit(s, (0,0))  
-
-        #popup
-        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0, HEIGHT - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT - 500, WIDTH, 600), border_radius=20)
         
-        textinput.y = HEIGHT + 30 - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT + 30 - 500
-        textinput.draw(screen, events)
-        
-
-        limit = 10
-        text = textinput.text
-        suggestions = []
-        actual_suggestions = []
-        for i in range(len(all_songs_sanitized)):
-            if text.lower() in all_songs_sanitized[i].lower():
-                if all_songs_sanitized[i] not in suggestions:
-                    suggestions.append(all_songs_sanitized[i])
-                    actual_suggestions.append(all_songs[i])
-            elif text.lower() in songs_json_dir_contents[all_songs_sanitized[i]]["baked_artists"]:
-                if all_songs_sanitized[i] not in suggestions:
-                    suggestions.append(all_songs_sanitized[i])
-                    actual_suggestions.append(all_songs[i])
-
-        go_down = True if (k_down-20 > 0 and counter%4 == 0) or k_down == 1 else False
-        go_up = True if (k_up-20 > 0 and counter%4 == 0) or k_up == 1 else False
-        enter = 0
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                enter = True if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN else False
-                if event.key == pygame.K_ESCAPE:
-                    curr_screen = "bandle"
-        
-
-        if textinput.focused:
-            if enter or go_down:
-                textinput.focused = False
-                selected = 0
-        else:
-            if go_down:
-                selected += 1
-            if go_up:
-                selected -= 1
-            if enter:
-                #guess
-                guess = actual_suggestions[selected]
-                # print(f"you guessed: {guess}, correct would be {current_song}")
-                if guess == current_song:
-                    curr_screen = "bandle_win"
-                else: 
-                    warnings.append(Warning("nope", (40, HEIGHT-80, WIDTH-80), "info"))
-                    skip()
-                    curr_screen = "bandle"
+        # cheat mode display
+        if CHEAT_MODE:
+            song_text = basic_font.render(f"Current song: {_b_current_song}, ya little CHEATER", True, COLOR_PALETTE["black"])
+            screen.blit(song_text, (50, 200))
 
 
-        if selected > len(suggestions) - 1:
-            selected = len(suggestions) - 1
-        elif selected < 0:
-            selected = -1
-            textinput.focused = True
-       
-
-        if selected >  offset + limit - 2:
-            offset += 1
-        elif selected < offset+1:
-            offset -= 1
-        
-        if offset < 0:
-            offset = 0
-        elif offset > len(suggestions)  - limit:
-            offset = (len(suggestions)  - limit) if (len(suggestions) - limit) > 0 else 0
-            
-        suggestions = suggestions[offset:offset + limit]
-        
-
-        if selected != -1:
-            pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(10, 560 + (selected-offset)*40, WIDTH-20, 30), border_radius=5)
-
-        for i in suggestions:
-            suggestion_surf = basic_font.render(i, True, COLOR_PALETTE["black"])
-            screen.blit(suggestion_surf, (50, HEIGHT + 100 + suggestions.index(i)*40 - (500/0.5)*bandle_guessing_counter if bandle_guessing_counter < 0.5 else HEIGHT + 100 + suggestions.index(i)*40 - 500))
-
-        bandle_guessing_counter += 1/30
-        if bandle_guessing_counter > 1:
-            bandle_guessing_counter = 1
-
-# ╭-----------------------------------------------------------------------╮
-# |      ╭   ╮  .  ╭=-╮ ╭=╮ ╭==╮ ╭==╮ ╮ ╭    ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮     |
-# |      '   '  |  |     |  |  | ╞=:╯ ╰╮╯    ╞==╯ |  | ╞==╯ |  | ╞==╯     |
-# |       ╰=╯   ╰  ╰=-╯  ╰  ╰==╯ ╰  ╰  ╯     ╰    ╰==╯ ╰    ╰==╯ ╰        |
-# ╰-----------------------------------------------------------------------╯
-    # big victory popup
-    if curr_screen == "bandle_win":
-        
-        s = pygame.Surface((1000,1000))  
-        s.set_alpha(bandle_guessing_counter * 128)             
-        s.fill(COLOR_PALETTE["background"])           
-        screen.blit(s, (0,0)) 
-
-        pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH/2-225, HEIGHT/2 -225, 450, 450), border_radius=20)
-        win_text = title_font.render("YOU WON", True, COLOR_PALETTE["black"])
-        screen.blit(win_text, (WIDTH/2 - win_text.get_width()/2, HEIGHT/2 - 200))
-
-        if not single_song_bool:
-            butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "go back and admire", 20)
-            butt.draw(screen)
-            if butt.is_clicked(events):
-                curr_screen = "bandle_stare"
-            
-            next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, COLOR_PALETTE["list item selected"], "go next", 20)
-            next.draw(screen)
-            if next.is_clicked(events):
-                skip(True, True)
-                curr_screen = "bandle"
-        else:
-            next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "Return to selection", 20)
-            next.draw(screen)
-            if next.is_clicked(events):
-                player.stop_all()
-                curr_screen = "select_song_setup"
-
-    if curr_screen == "bandle_stare":
-        stems = []
+    # ╭----------------------------------╮
+    # |      ╭==╮ ╭=╮ ╭=-  ╭╮╭╮ ╭==╮     |
+    # |      ╰--╮  |  ╞-   |╰╯| ╰--╮     |
+    # |      ╰==╯  ╰  ╰=-  ╰  ╯ ╰==╯     |
+    # ╰----------------------------------╯
+        # draw stem rectangles
         for i in range(len(STEMS)):
-            
-            stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, COLOR_PALETTE["stems selected"] if i < step else COLOR_PALETTE["face"], f"{STEMS[i]}", 15))
-            stems[i].draw(screen)
+            pygame.draw.rect(screen, COLOR_PALETTE["stems selected"] if i < _b_step else COLOR_PALETTE["face"], pygame.Rect(50, 245 + i*75, WIDTH - 100, 60), border_radius=15)
+            stem_text = basic_font.render(f"{STEMS[i]}", True, COLOR_PALETTE["black"])
+            screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 249 + i*75))
 
-            if stems[i].is_clicked(events):
-                step = i
-                skip(True, simple_update=True)
-            # pygame.draw.rect(screen, (200, 200, 200) if i < step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
-            # stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
-            # screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
+
+    # ╭------------------------------------------------------------------╮
+    # |      ╭==╮ ╭  ╮ ╭=- ╭==╮ ╭==╮    ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
+    # |      |  ╮ |  | ╞-  ╰--╮ ╰--╮    ╞-:╯ |  |  |   |  |  | |╰╮|      |
+    # |      ╰==╯ ╰==╯ ╰=- ╰==╯ ╰==╯    ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
+    # ╰------------------------------------------------------------------╯
+        # guess button
+        if submenu != "bandle_stare":
+            _b_guess_button.draw(screen)
+            if _b_guess_button.is_clicked(events) == 1:
+                if submenu != "bandle_guessing":
+                    submenu = "bandle_guessing"
+                    offset = 0                      # shows the top of the possible options
+                    selected = -1                   # unselects any option
+                    _b_bandle_guessing_counter = 0     # sort of frame timer used for fade in
+                    textinput.focused = True
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN and submenu == "bandle_guessing":
+                    if mouse_y < HEIGHT - 500:
+                        submenu = "bandle"
+        else:
+            _b_guess_button.draw(screen, COLOR_PALETTE["face"])
+            if _b_guess_button.is_clicked(events) == 1:
+                warnings.append(Warning("cannot guess in admire mode", level="warning"))
+        
+
+    # ╭-----------------------------------------------------------╮
+    # |      ╭╮ ╮ ╭==╮  ╭   ╮  .  ╭==╮ ╭==╮ ╭=╮  .  ╭==╮ ╭╮ ╮     |
+    # |      |╰╮| ╞--╡  '   '  |  |  ╮ ╞--╡  |   |  |  | |╰╮|     |
+    # |      ╰ ╰╯ ╰  ╯   ╰=╯   ╰  ╰==╯ ╰  ╯  ╰   ╰  ╰==╯ ╰ ╰╯     |
+    # ╰-----------------------------------------------------------╯
+        # naviagtion
+        _b_skip_ahead.draw(screen)
+        if _b_skip_ahead.is_clicked(events):
+            player.offset_player(5000)
+
+        screen.blit(_b_skip_ahead_img, (WIDTH/2 + 90 -30  , HEIGHT -195))
+
+        _b_rewind.draw(screen)
+        if _b_rewind.is_clicked(events):
+            player.offset_player(-5000)
+
+        screen.blit(_b_rewind_img, (WIDTH/2 - 90 -30  , HEIGHT -195))
+
+        # progression bar
+        pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(WIDTH/2-120, 890, 240, 10), border_radius=5)
+        pygame.draw.circle(screen, COLOR_PALETTE["face"], (WIDTH/2-115 + 230*(progression), 895), 5)
+
+        # progress bar hitbox visualizer
+        # pygame.draw.rect(screen, (30, 30, 30), pygame.Rect(WIDTH/2-120, 870, 240, 110))
+        # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2+120, 870, 100, 110))
+        # pygame.draw.rect(screen, (100, 100, 100), pygame.Rect(WIDTH/2-220, 870, 100, 110))
+
+        if pygame.mouse.get_pressed()[0]:
+            if mouse_y > 870 and mouse_y < 870+110 and mouse_x > WIDTH/2-220 and mouse_x < WIDTH/2+220:
+                if mouse_x > WIDTH/2-120:
+                    if mouse_x > WIDTH/2+120:
+                        player.seek(player.audio_len)
+                        seeking = True
+                    else:
+                        player.seek((mouse_x - (WIDTH/2-120))/240 * player.audio_len)
+                        seeking = True
+                else:
+                    player.seek(0)
+                    seeking = True
+        else:
+            if seeking:
+                seeking = not seeking
+        
+        if seeking:
+            if player.status == "Playing":
+                player.toggle()
+
+
+    # ╭-------------------------------------------------------------------------╮
+    # |      ╭==╮ ╭==╮   ╭=-. ╭==╮ ╭=-╮ ╭  ╭   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
+    # |      |  ╮ |  |   ╞=:╯ ╞--╡ |    ╞=:    ╞=:╯ |  |  |   |  |  | |╰╮|      |
+    # |      ╰==╯ ╰==╯   ╰=-╯ ╰  ╯ ╰=-╯ ╰  ╰   ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
+    # ╰-------------------------------------------------------------------------╯
+        # go back button
+        go_back_button.draw(screen)
+        if  submenu != "bandle_guessing":
+            if go_back_button.is_clicked(events) == 1:
+                player.stop_all()
+                if not _b_single_song_bool:
+                    _b_loading_status = "out_loading_playlist"
+                else:
+                    _b_loading_status = "out_loading_song"
+
+    # ╭------------------------------------------------------------╮
+    # |      ╭==╮ ╭  ╭  .  ╭==╮   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
+    # |      ╰--╮ ╞=:   |  ╞==╯   ╞=:╯ |  |  |   |  |  | |╰╮|      |
+    # |      ╰==╯ ╰  ╰  ╰  ╰      ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      | 
+    # ╰------------------------------------------------------------╯
+        # skip button
+        _b_skip_button.draw(screen)
+        if submenu != "bandle_guessing":
+            if _b_skip_button.is_clicked(events) == 1:
+                if _b_single_song_bool and _b_step == 6: # when in test single song mode, instead of skipping, you simply go back to select_song
+                    _b_loading_status = "out_loading_song"
+                else:
+                    # here, bandle_stare is the only mode that should both be silent (no warnings) and simple_update (no going back to the start of the song)
+                    skip(True if submenu == "bandle_stare" else False, True if submenu == "bandle_stare" else False)
+                if _b_step == len(STEMS):
+                    _b_skip_button.text = "End"
+                else:
+                    _b_skip_button.text = "Skip"
+                if submenu in ["bandle", "bandle_guessing", "bandle_win", "bandle_stare"]: #if its not, an earlier part of the script tried to change screens, which shouldnt be overridden
+                    submenu = "bandle"
+            
+
+    # ╭--------------------------------------------------------------------------------------╮
+    # |      ╭==╮ ╭   ╭==╮ ╮ ╭   ╮╭==╮ ╭==╮ ╭  ╮ ╭==╮ ╭=-   ╭=-. ╭  ╮ ╭=╮ ╭=╮ ╭==╮ ╭╮ ╮      |
+    # |      ╞==╯ |   ╞--╡ ╰╭╯ ╭╯ ╞==╯ ╞--╡ |  | ╰--╮ ╞-    ╞=:╯ |  |  |   |  |  | |╰╮|      |
+    # |      ╰    ╰-╯ ╰  ╯  ╯ ╰   ╰    ╰  ╯ ╰==╯ ╰==╯ ╰=-   ╰=-╯ ╰==╯  ╰   ╰  ╰==╯ ╰ ╰╯      |
+    # ╰--------------------------------------------------------------------------------------╯
+        # play/pause button
+        # make the button change depending on state
+        #MUTED OUTPUT  print("check if playing to change play button appearance")
+        if  player.status != "Playing":
+            _b_play_button.text = "Play"
+        else:
+            _b_play_button.text = "Pause"
+        _b_play_button.draw(screen)
+
+        if submenu != "bandle_guessing":
+            if _b_play_button.is_clicked(events) == 1:
+                player.curr_step = _b_step    
+                player.toggle()
+                # if not players[0].is_playing():
+                #     if players[0].get_time() >= players[0].get_length():
+                #         print("set_position(0)")
+                #         print("play_step()")
+                #     else:
+                #         print("play_step()")
+                # else:
+                #     print("pause()")
+                
+        #MUTED OUTPUT  print("set_volume(_b_step)")
+
+    # ╭----------------------------------------------------------------------------╮
+    # |      ╭==╮ ╭  ╮ ╭=- ╭==╮ ╭==╮  .  ╭╮ ╮ ╭==╮   ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮      |
+    # |      |  ╮ |  | ╞-  ╰--╮ ╰--╮  |  |╰╮| |  ╮   ╞==╯ |  | ╞==╯ |  | ╞==╯      |
+    # |      ╰==╯ ╰==╯ ╰=- ╰==╯ ╰==╯  ╰  ╰ ╰╯ ╰==╯   ╰    ╰==╯ ╰    ╰==╯ ╰         |
+    # ╰----------------------------------------------------------------------------╯
+        # bandle guessing screen popup
+        if submenu == "bandle_guessing":
+                
+            # slight shade
+            s = pygame.Surface((1000,1000))  
+            s.set_alpha(_b_bandle_guessing_counter * 128)             
+            s.fill(COLOR_PALETTE["background"])           
+            screen.blit(s, (0,0))  
+
+            #popup
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0, HEIGHT - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else HEIGHT - 500, WIDTH, 600), border_radius=20)
+            
+            textinput.y = HEIGHT + 30 - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else HEIGHT + 30 - 500
+            textinput.draw(screen, events)
+            
+
+            limit = 10
+            text = textinput.text
+            suggestions = []
+            actual_suggestions = []
+            for i in range(len(all_songs_sanitized)):
+                if text.lower() in all_songs_sanitized[i].lower():
+                    if all_songs_sanitized[i] not in suggestions:
+                        suggestions.append(all_songs_sanitized[i])
+                        actual_suggestions.append(all_songs[i])
+                elif text.lower() in songs_json_dir_contents[all_songs_sanitized[i]]["baked_artists"]:
+                    if all_songs_sanitized[i] not in suggestions:
+                        suggestions.append(all_songs_sanitized[i])
+                        actual_suggestions.append(all_songs[i])
+
+            go_down = True if (k_down-20 > 0 and counter%4 == 0) or k_down == 1 else False
+            go_up = True if (k_up-20 > 0 and counter%4 == 0) or k_up == 1 else False
+            enter = 0
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    enter = True if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN else False
+                    if event.key == pygame.K_ESCAPE:
+                        submenu = "bandle"
+            
+
+            if textinput.focused:
+                if enter or go_down:
+                    textinput.focused = False
+                    selected = 0
+            else:
+                if go_down:
+                    selected += 1
+                if go_up:
+                    selected -= 1
+                if enter:
+                    #guess
+                    guess = actual_suggestions[selected]
+                    # print(f"you guessed: {guess}, correct would be {_b_current_song}")
+                    if guess == _b_current_song:
+                        submenu = "bandle_win"
+                    else: 
+                        warnings.append(Warning("nope", (40, HEIGHT-80, WIDTH-80), "info"))
+                        skip()
+                        submenu = "bandle"
+
+
+            if selected > len(suggestions) - 1:
+                selected = len(suggestions) - 1
+            elif selected < 0:
+                selected = -1
+                textinput.focused = True
+        
+
+            if selected >  offset + limit - 2:
+                offset += 1
+            elif selected < offset+1:
+                offset -= 1
+            
+            if offset < 0:
+                offset = 0
+            elif offset > len(suggestions)  - limit:
+                offset = (len(suggestions)  - limit) if (len(suggestions) - limit) > 0 else 0
+                
+            suggestions = suggestions[offset:offset + limit]
+            
+
+            if selected != -1:
+                pygame.draw.rect(screen, COLOR_PALETTE["list item selected"], pygame.Rect(10, 560 + (selected-offset)*40, WIDTH-20, 30), border_radius=5)
+
+            for i in suggestions:
+                suggestion_surf = basic_font.render(i, True, COLOR_PALETTE["black"])
+                screen.blit(suggestion_surf, (50, HEIGHT + 100 + suggestions.index(i)*40 - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else HEIGHT + 100 + suggestions.index(i)*40 - 500))
+
+            _b_bandle_guessing_counter += 1/30
+            if _b_bandle_guessing_counter > 1:
+                _b_bandle_guessing_counter = 1
+
+    # ╭-----------------------------------------------------------------------╮
+    # |      ╭   ╮  .  ╭=-╮ ╭=╮ ╭==╮ ╭==╮ ╮ ╭    ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮     |
+    # |      '   '  |  |     |  |  | ╞=:╯ ╰╮╯    ╞==╯ |  | ╞==╯ |  | ╞==╯     |
+    # |       ╰=╯   ╰  ╰=-╯  ╰  ╰==╯ ╰  ╰  ╯     ╰    ╰==╯ ╰    ╰==╯ ╰        |
+    # ╰-----------------------------------------------------------------------╯
+        # big victory popup
+        if submenu == "bandle_win":
+            
+            s = pygame.Surface((1000,1000))  
+            s.set_alpha(_b_bandle_guessing_counter * 128)             
+            s.fill(COLOR_PALETTE["background"])           
+            screen.blit(s, (0,0)) 
+
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH/2-225, HEIGHT/2 -225, 450, 450), border_radius=20)
+            win_text = title_font.render("YOU WON", True, COLOR_PALETTE["black"])
+            screen.blit(win_text, (WIDTH/2 - win_text.get_width()/2, HEIGHT/2 - 200))
+
+            if not _b_single_song_bool:
+                butt = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "go back and admire", 20)
+                butt.draw(screen)
+                if butt.is_clicked(events):
+                    submenu = "bandle_stare"
+                
+                next = Button(WIDTH/2-150, HEIGHT/2+100, 300, 100, COLOR_PALETTE["list item selected"], "go next", 20)
+                next.draw(screen)
+                if next.is_clicked(events):
+                    skip(True, True)
+                    submenu = "bandle"
+            else:
+                next = Button(WIDTH/2-150, HEIGHT/2-50, 300, 100, COLOR_PALETTE["list item selected"], "Return to selection", 20)
+                next.draw(screen)
+                if next.is_clicked(events):
+                    player.stop_all()
+                    _b_loading_status = "out_loading_song"
+
+        if submenu == "bandle_stare":
+            stems = []
+            for i in range(len(STEMS)):
+                
+                stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, COLOR_PALETTE["stems selected"] if i < _b_step else COLOR_PALETTE["face"], f"{STEMS[i]}", 15))
+                stems[i].draw(screen)
+
+                if stems[i].is_clicked(events):
+                    _b_step = i
+                    skip(True, simple_update=True)
+                # pygame.draw.rect(screen, (200, 200, 200) if i < _b_step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
+                # stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
+                # screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
+
+# ╭---------------------------------------------------------------------------------------------╮
+# |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
+# |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
+# |      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯  ╰ ╰╯  ╰==╯       ╰==╯  ╰=-╯  ╰  ╰  ╰=-  ╰=-  ╰ ╰╯  ╰==╯      |
+# ╰---------------------------------------------------------------------------------------------╯
+        if _b_loading_status == "loading_in":
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*1/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
+
+            if abs((1-loading_anim_slider) * 100) < 1:
+                submenu = "bandle"
+                loading_anim_slider = 0
+                _b_loading_status = "nope"
+
+        if _b_loading_status in ["out_loading_playlist", "out_loading_song"]:
+            loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+            pygame.draw.rect(screen, COLOR_PALETTE["guessing background"], pygame.Rect(WIDTH -loading_anim_slider*WIDTH,0, WIDTH, HEIGHT))
+            text_surface = title_font.render("Loading", True, (10, 10 ,10))
+            text_rect = text_surface.get_rect(center=(WIDTH*3/2 - loading_anim_slider*WIDTH, HEIGHT/2))
+            screen.blit(text_surface, text_rect)
+
+            if _b_loading_status == "out_loading_playlist":
+                if abs((1-loading_anim_slider) * 100) < 1:
+                    submenu = "loading_main"
+                    curr_screen = "playlists"
+                    loading_anim_slider = 0
+            elif _b_loading_status == "out_loading_song":
+                if abs((1-loading_anim_slider) * 100) < 1:
+                    submenu = "loading_search"
+                    curr_screen = "select_song"
+                    loading_anim_slider = 0
+                    
+
+
 
 
 
@@ -1590,8 +1606,6 @@ while running:
         select_song_setup()
     elif curr_screen == "select_song":
         select_song()
-    elif curr_screen == "test_song_setup":
-        test_song_setup()
     elif curr_screen == "playlists_setup":
         playlist_select_setup()
     elif curr_screen == "playlists":
@@ -1616,7 +1630,7 @@ while running:
     if CF_DEBUG_VLC:
         print("debug_vlc()")
     pygame.display.flip()
-    pygame.event.clear()  # clear event queue
+    pygame.event.clear()  # clear event _b_queue
     counter += 1
 
     # managing fps
