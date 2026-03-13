@@ -747,23 +747,23 @@ def select_song_setup():
     curr_screen = "select_song"
 
 def select_song():
-    global go_back_button
     global submenu
     global curr_screen
+    global current_song
+    global go_back_button
 
     # local vars
+    global _ss_library_button
+    global _ss_global_search_button
+    global _ss_categories
+    global _ss_select_song_button
+    global _ss_textinput
+
     global _ss_scrollpos
     global _ss_scrollvel
     global _ss_selected
-    global pixelpositions
-    global current_song
+    global _ss_pixelpositions
 
-    global library_button
-    global global_search_button
-    global categories
-    global select_song_button
-    global textinput
-    
 
     if submenu == "setup":
         _ss_selected = -1
@@ -771,23 +771,23 @@ def select_song():
         _ss_scrollpos = 0
         _ss_scrollvel = 0
 
-        library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["list item unselected"], "")
-        global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["face"], "")
-        select_song_button =        Button(35,700, WIDTH-70, 35, COLOR_PALETTE["list item selected"], "                                                    ...", radius=15)
+        _ss_library_button =            Button(0, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["list item unselected"], "")
+        _ss_global_search_button =      Button(WIDTH/2, HEIGHT-100, WIDTH/2, 100, COLOR_PALETTE["face"], "")
+        _ss_select_song_button =        Button(35,700, WIDTH-70, 35, COLOR_PALETTE["list item selected"], "                                                    ...", radius=15)
 
-        textinput = Textinput(50, 160, WIDTH - 100, 50, 5, COLOR_PALETTE["textinput unselected"])
+        _ss_textinput = Textinput(50, 160, WIDTH - 100, 50, 5, COLOR_PALETTE["textinput unselected"])
 
-        categories = []
+        _ss_categories = []
         for i in range(len(CATEGORIES)):
-            categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, COLOR_PALETTE["list item selected"], CATEGORIES[i], radius=15))
+            _ss_categories.append(Button(50 + (i%2)*(WIDTH/2-60+20), 350 + math.floor(i/2)*100, WIDTH/2-60, 80, COLOR_PALETTE["list item selected"], CATEGORIES[i], radius=15))
 
-        pixelpositions = [i.y for i in categories]
+        _ss_pixelpositions = [i.y for i in _ss_categories]
         submenu = "search"
 
 
 
     # preparing listed song options
-    text = textinput.text
+    text = _ss_textinput.text
     selection = []
     for i in all_songs_sanitized_sorted:
         if text.lower() in i.lower():
@@ -798,10 +798,10 @@ def select_song():
     # handling the 
     if mouse_y > 700 + _ss_scrollpos and mouse_y < HEIGHT-100:
         _ss_selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
-        select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
+        _ss_select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
         if _ss_selected < len(selection):
-            select_song_button.draw(screen)
-            if select_song_button.is_clicked(events):
+            _ss_select_song_button.draw(screen)
+            if _ss_select_song_button.is_clicked(events):
                 if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[_ss_selected])] == False:
                     warnings.append( Warning("this song isnt available", (40, HEIGHT-80, WIDTH-80), level="warning"))
                 else:
@@ -824,13 +824,13 @@ def select_song():
     if _ss_scrollpos > 0:
         _ss_scrollpos = 0
 
-    categories[0].y =        pixelpositions[0] + _ss_scrollpos
-    categories[1].y =        pixelpositions[1] + _ss_scrollpos
-    categories[2].y =        pixelpositions[2] + _ss_scrollpos
-    categories[3].y =        pixelpositions[3] + _ss_scrollpos
-    textinput.y = 160 + _ss_scrollpos if _ss_scrollpos > -30 else 130
+    _ss_categories[0].y =        _ss_pixelpositions[0] + _ss_scrollpos
+    _ss_categories[1].y =        _ss_pixelpositions[1] + _ss_scrollpos
+    _ss_categories[2].y =        _ss_pixelpositions[2] + _ss_scrollpos
+    _ss_categories[3].y =        _ss_pixelpositions[3] + _ss_scrollpos
+    _ss_textinput.y = 160 + _ss_scrollpos if _ss_scrollpos > -30 else 130
 
-    for i in categories:
+    for i in _ss_categories:
         i.draw(screen)
     
     text_surface = title_font.render("Categories", True, COLOR_PALETTE["black"])
@@ -844,8 +844,8 @@ def select_song():
 
 
 
-    library_button.draw(screen)
-    global_search_button.draw(screen)
+    _ss_library_button.draw(screen)
+    _ss_global_search_button.draw(screen)
 
     
     pygame.draw.rect(screen, COLOR_PALETTE["face"], pygame.Rect(0, -50, WIDTH, 145))
@@ -858,7 +858,7 @@ def select_song():
         submenu = "main_menu"
         curr_screen = "main_menu"
 
-    textinput.draw(screen, events)
+    _ss_textinput.draw(screen, events)
     
 def test_song_setup():
     global submenu
