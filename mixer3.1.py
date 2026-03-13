@@ -754,7 +754,7 @@ def select_song():
     # local vars
     global _ss_scrollpos
     global _ss_scrollvel
-    global selected
+    global _ss_selected
     global pixelpositions
     global current_song
 
@@ -766,7 +766,7 @@ def select_song():
     
 
     if submenu == "setup":
-        selected = -1
+        _ss_selected = -1
 
         _ss_scrollpos = 0
         _ss_scrollvel = 0
@@ -797,16 +797,16 @@ def select_song():
     
     # handling the 
     if mouse_y > 700 + _ss_scrollpos and mouse_y < HEIGHT-100:
-        selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
+        _ss_selected = math.floor((mouse_y-700-_ss_scrollpos)/40)
         select_song_button.y = math.floor((mouse_y-700-_ss_scrollpos)/40) * 40 + 700 + _ss_scrollpos
-        if selected < len(selection):
+        if _ss_selected < len(selection):
             select_song_button.draw(screen)
             if select_song_button.is_clicked(events):
-                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[selected])] == False:
+                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[_ss_selected])] == False:
                     warnings.append( Warning("this song isnt available", (40, HEIGHT-80, WIDTH-80), level="warning"))
                 else:
-                    print(all_songs[all_songs_sanitized.index(selection[selected])])
-                    current_song = all_songs[all_songs_sanitized.index(selection[selected])]
+                    print(all_songs[all_songs_sanitized.index(selection[_ss_selected])])
+                    current_song = all_songs[all_songs_sanitized.index(selection[_ss_selected])]
                     curr_screen = "test_song_setup"
 
     for i in range(len(selection)):
@@ -839,7 +839,7 @@ def select_song():
     text_surface = title_font.render("Songs", True, COLOR_PALETTE["black"])
     screen.blit(text_surface, (60,570 + _ss_scrollpos))
 
-    if selected != -1:
+    if _ss_selected != -1:
         pass
 
 
@@ -942,8 +942,7 @@ def playlist_select():
     global _ps_start_button
     global _ps_scrollpos
     global _ps_scrollvel
-    global all_songs_sanitized_sorted
-    global all_songs_sanitized_sorted_availability
+
     
     if submenu == "setup":
         _ps_scrollpos, _ps_scrollvel = 0, 0
