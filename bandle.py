@@ -78,6 +78,11 @@ def santize_string(str):
 
 # adding playlist to playlists.json
 if playlist_url != "s" and playlist_url != "":
+
+    # ensuring buffer isnt contaminated
+    with open(BUFFER_DIR, "w") as f:
+        f.write("")
+
     album =  True if "album" in playlist_url else False
     cmd = [
         "spotify-scraper",
@@ -387,7 +392,7 @@ if not SKIP_SPLIT:
 
 
 # analysing audio to detect stem presence
-songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
+songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split", "analysed"]]
 
 if len(songs_to_analyse) == 0:
     print("lucky you: there are no songs to analyse!")
@@ -398,7 +403,7 @@ else:
 
     for i in songs_to_analyse:
         analyser.load(i)
-        compressed_diag = analyser.analyse_audio(False)
+        compressed_diag = analyser.analysing_pipeline()
         SONGS_DIR_contents[i]["baked_diagnosis"] = compressed_diag
         SONGS_DIR_contents[i]["status"] = "analysed"
         print(f"[{songs_to_analyse.index(i)}/{len(songs_to_analyse)}] analysed {i}")

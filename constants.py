@@ -41,7 +41,7 @@ COLOR_PALETTE = {
     "face"                  : (217, 217, 217),
     "shadow"                : (127, 127, 127),
     "textinput unselected"  : (244, 244, 244),
-    "textinput selected"    : (191, 191, 191),
+    "textinput selected"    : (200, 200, 200),
     "list item unselected"  : (183, 183, 183),
     "list item selected"    : (145, 145, 145),
     "black"                 : (0  , 0,   0  ),

@@ -285,7 +285,8 @@ class Player_obj:
 # |      ╞--╡   |  |   |  |   |   |  |         ╞--╡   |╰╮|   ╞--╡   |     ╰╮╯   ╰--╮   |   ╰--╮       |
 # |      ╰  ╯   ╰==╯   ╰='    ╯   ╰==╯         ╰  ╯   ╰ ╰╯   ╰  ╯   ╰-╯    ╯    ╰==╯   ╯   ╰==╯       |
 # ╰---------------------------------------------------------------------------------------------------╯
-
+    
+    # unused
     def analyse_audio(self, simple_testing=False):
         if self.track != "" and self.status != "Undefined":
             
@@ -384,7 +385,7 @@ class Player_obj:
                         plt.close()
                         break
 
-
+    # unused
     def diagnose_audio(self, charts_dict, return_intermediate_steps=False):
 
         # removing invalid input
@@ -480,15 +481,29 @@ class Player_obj:
             return [charts_dict, cleaned_charts, denoised_charts, averaged_charts, cut_charts, diagnosis]
 
 
-    def determine_best_start(self, compd_diagnosis):
-        pass
-        # problem for later me if ever
+    def analysing_pipeline(self):
+        if self.track != "" and self.status != "Undefined":
 
-        # either a moment where 'bad' songs get filtered out
-        # or a super complicated compromise maker
-        # in any case, its super fucking hard
+            
+
+            # calculate a simplified version of the waveform to display
+            step_one = { x: [] for x in self.STEMS }
+
+            for x in self.STEMS:
+                # amt of values expected is 45
+                for i in range(45):
+                    d = self._raw_stems[x][ i *self.audio_len/45: (i+1)*self.audio_len/45 ]
+                    silence_value = d.rms / d.max_possible_amplitude
+                    step_one[x].append((round(silence_value*10000)/10000) ** 0.5)
 
 
+            step_three = { x: [] for x in self.STEMS }
+            # formatting stuff for prettier json
+            for x in self.STEMS:  
+                s = "0" if (self._raw_stems[x].rms/self._raw_stems[x].max_possible_amplitude)**0.5 < 0.1 else "1"
+                step_three[x] = "|".join([s,";".join([str(i) for i in step_one[x]])])
+            
+            return step_three
 
 
 
@@ -498,8 +513,7 @@ if __name__ == "__main__":
     #vars
 
 
-    curr_song = "The Sound of Silence"
-
+    
     while True:
         action = input("[s]top_all, [u]pdate_to_play, [t]oggle, update_[v]olume, [i]s_playing, [l]oad, p[o]inter, st[a]tus, [p]lay, a[n]alyse")
         if action == "s":
