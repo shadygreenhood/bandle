@@ -1235,6 +1235,20 @@ def bandle_screen():
         # draw stem rectangles
         for i in range(len(STEMS)):
             
+            if submenu == "bandle_stare":
+                
+                b = Button(71, 246 + i*74, 361, 60, COLOR_PALETTE["black"], f"{STEMS[i]}", 15)
+                
+                b.draw(screen)
+                if b.is_clicked(events):
+                    _b_step = i
+                    skip(True, simple_update=True)
+                # pygame.draw.rect(screen, (200, 200, 200) if i < _b_step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
+                # stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
+                # screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
+
+
+
             # stems
             pygame.draw.rect(screen, COLOR_PALETTE["stems selected"] if i < _b_step else COLOR_PALETTE["face"], pygame.Rect(71, 246 + i*74, 361, 60), border_radius=15)
             
@@ -1535,19 +1549,7 @@ def bandle_screen():
                     player.stop_all()
                     _b_loading_status = "out_loading_song"
 
-        if submenu == "bandle_stare":
-            stems = []
-            for i in range(len(STEMS)):
-                
-                stems.append(Button(50, 245 + i*75, WIDTH - 100, 60, COLOR_PALETTE["stems selected"] if i < _b_step else COLOR_PALETTE["face"], f"{STEMS[i]}", 15))
-                stems[i].draw(screen)
 
-                if stems[i].is_clicked(events):
-                    _b_step = i
-                    skip(True, simple_update=True)
-                # pygame.draw.rect(screen, (200, 200, 200) if i < _b_step else (150, 150, 150), pygame.Rect(50, 250 + i*80, WIDTH - 100, 60), border_radius=15)
-                # stem_text = basic_font.render(f"{STEMS[i]}", True, (10, 10 ,10))
-                # screen.blit(stem_text, (WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
 
 # ╭---------------------------------------------------------------------------------------------╮
 # |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
