@@ -3,3 +3,4 @@ pydub==0.25.1
 pygame==2.6.1
 simpleaudio==1.0.4
 yt_dlp==2026.3.13
+demucs==4.0.1
