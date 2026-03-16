@@ -62,9 +62,9 @@ with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
 if blacklists == []:
     print("no blacklists found in Blacklist.txt, creating a new one")
     with open(BLACKLISTS_DIR, "w", encoding="utf-8") as f:
-        f.write("GENERATED_BLACKLIST=")
+        f.write("DEFAULT=")
     blacklists = [[""]]
-    blacklist_names = ["GENERATED_BLACKLIST"]
+    blacklist_names = ["DEFAULT"]
 
 # read config
 with open(CONFIG_DIR, "r", encoding="utf-8") as f:
