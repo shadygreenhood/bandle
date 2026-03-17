@@ -207,7 +207,7 @@ if not WEAK_INTERNET:
         if SONGS_DIR_contents[title]["status"] == "new":
 
             artists = SONGS_DIR_contents[songs_to_download[i]]["artists"]
-            query = f"{title} {' '.join(artists)} audio"
+            query = f"{title.split('_')[:-1]} {' '.join(artists)} audio"
             folder_end = (title+".%(ext)s")
             ydl_opts = {
             "format": "bestaudio/best",
@@ -216,7 +216,7 @@ if not WEAK_INTERNET:
                 "quiet": True,
                 "no_warnings": True, 
                 "logger": YTDLPLogger(), 
-                "match_filter": duration_filter(), # less than 10 minutes
+                "match_filter": duration_filter, # less than 10 minutes
                 "postprocessors": [{
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "wav",
@@ -298,6 +298,8 @@ if not SKIP_SPLIT:
             
             if skip in  ["s", "c"]:
                 cmd = [
+                   "python",
+                    "-m",
                     "demucs",
                     RAW_TRACK_AUDIO_DIR / folder_end,
                     "-o",
@@ -361,6 +363,8 @@ if not SKIP_SPLIT:
                 title = songs_to_split[i]
                 folder_end = title + ".wav"
                 cmd = [
+                   "python",
+                    "-m",
                     "demucs",
                     RAW_TRACK_AUDIO_DIR / folder_end,
                     "-o",
