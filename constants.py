@@ -74,7 +74,7 @@ COLOR_PALETTE = {
 # |      |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮   ||   ╞--╡  |╰╮|   ||   ╰--╮      |
 # |      ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯   ╰╯   ╰  ╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰-------------------------------------------------------------------------------------------------------------╯
-ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 " # important that no ";" are allowed
+DISALLOWED_CHARS_IN_SANITIZED_TEXT = "<>:\"/\\|?*\x00-\x1F;" # important that no ";" are allowed
 CURR_OS = platform.system()
 
 
