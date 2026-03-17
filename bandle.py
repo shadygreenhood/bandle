@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import yt_dlp           # type: ignore
 from time import sleep
+import hashlib
 
 import audio_helper
 
@@ -55,13 +56,25 @@ else:
 playlist_url = input("paste the spotify url you want to add (s for skip):  ")
 
 
-def santize_string(str):
+def santize_string(str, use="", data=""):
     new_str = ""
     for i in str:
-        if i.lower() in ALLOWED_CHARS_IN_SANITIZED_TEXT:
+        if not i.lower() in DISALLOWED_CHARS_IN_SANITIZED_TEXT:
             new_str += i
+
     if new_str == "":
-        new_str = "FAILED TO SANITIZE"
+        if use == "print":
+            new_str = "song"
+        elif use == "artist":
+            new_str = "unknown_artist"
+        elif use == "song":
+            new_str = "unknown_song"
+    
+    if use == "song":
+        temp_data = new_str + "".join(data)
+        temp_hash = hashlib.sha1(temp_data.encode("utf-8")).hexdigest()[:8]
+        new_str += "_" + temp_hash
+    
     if str != new_str:
         print(f"sanitized: {str} to {new_str}")
     return new_str
@@ -93,7 +106,7 @@ if playlist_url != "s" and playlist_url != "":
     with open(BUFFER_DIR, "r", encoding="utf-8") as f:
         buffer_dir_contents = json.load(f)
 
-    print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"]))
+    print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"], use="print"))
 
     tracks = buffer_dir_contents["tracks"]
 
@@ -109,10 +122,11 @@ if playlist_url != "s" and playlist_url != "":
         if len(artists) == 1:
             if "," in artists[0]["name"]:
                 split = artists[0]["name"].split(",\xa0")
-        artists = [santize_string(i) for i in split]
-        
+
+
+        artists = [santize_string(i, use="artist") for i in split]
         data.append({
-            "name": santize_string(track["name"]),
+            "name": santize_string(track["name"], use="song", data=artists),
             "artists": artists
         })
 
@@ -345,7 +359,7 @@ if not SKIP_SPLIT:
                 ]
                 try:
                     run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
-                except subprocess.CalledProcessError as e:
+                except Exception as e:
                     print("RIP, there was an error")
                     print("Exit code:", e.returncode)
                 if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
