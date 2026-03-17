@@ -5,6 +5,9 @@ import sys
 from pathlib import Path
 
 
+
+
+
 # ╭----------------------------------------╮
 # |      ╭==╮  ╭==╮  ╭==╮  ╭  ╮  ╭==╮      |
 # |      ╞==╯  ╞--╡   ||   ╞--╡  ╰--╮      |
@@ -23,6 +26,20 @@ BUFFER_DIR =            PROJECT_DIR / "playlist_info_buffer.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
 FONT_DIR =              "None"      # extracted from config in GUI
+
+
+DEFAULT_CONFIG =        "SCALE=0.5\nWEAK_INTERNET=False\nSKIP_SPLIT=False\nFONT_DIR=\"bandle/font/NotoSansJP-Medium.ttf\""
+# creating potentially missing files
+if not Path(BUFFER_DIR).exists():
+    Path(BUFFER_DIR).write_text("{}")
+if not Path(SONGS_JSON_DIR).exists():
+    Path(SONGS_JSON_DIR).write_text("{}")
+if not Path(PLAYLIST_JSON_DIR).exists():
+    Path(PLAYLIST_JSON_DIR).write_text("{}")
+if not Path(CONFIG_DIR).exists():
+    Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
+
+
 
 # ╭------------------------------------------------------------------------------------╮
 # |      ╭==╮  ╭  ╮  .       ╭=-╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮      |
@@ -57,7 +74,6 @@ COLOR_PALETTE = {
 # |      |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮   ||   ╞--╡  |╰╮|   ||   ╰--╮      |
 # |      ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯   ╰╯   ╰  ╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰-------------------------------------------------------------------------------------------------------------╯
-DEFAULT_CONFIG =        "SCALE=0.5\nWEAK_INTERNET=False\nSKIP_SPLIT=False\nFONT_DIR=\"bandle/font/NotoSansJP-Medium.ttf\""
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 " # important that no ";" are allowed
 CURR_OS = platform.system()
 
