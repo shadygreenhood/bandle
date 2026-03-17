@@ -19,7 +19,7 @@ No spaces are allowed around =.
 | Option | Type | Description |
 |--------|------|-------------|
 | SCALE | float | Factor by which the 950×500 screen is scaled before being printed to screen |
-| DEBUG_VLC | bool | Whether to print VLC debug info (can fill the entire terminal) |
+| FONT_DIR | "string" | relative path to the ttf font you want (i recommend some Noto font). **MUST** be in quotation marks. |
 | DEFAULT_BLACKLIST | string | Exact name of the default blacklist (must exist in Blacklists.txt) |
 | CURR_OS | Windows / Linux | Specifies which version of the backend script to use (default: platform.system()) |
 | TARGET_FPS | float | Defaults to 60; FPS that the program tries to run at |
@@ -50,6 +50,13 @@ PROJECT_DIRECTORY/
 └─ split/               # Generated folder
 ```
 The script writes files to the parent directory of this repository.
+
+### Installing a font
+
+put the ttf file somewhere in PROJECT_DIR, and specify the path in the config with 
+
+FONT_DIR="path"
+
 
 ## Installation
 
