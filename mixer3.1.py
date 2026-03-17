@@ -103,14 +103,6 @@ with open(CONFIG_DIR, "r", encoding="utf-8") as f:
                     help(f"default blacklist is set to an unknown value in {CONFIG_DIR}")
             else:
                 help(f"no blacklist provided after DEFAULT_BLACKLIST= in {BLACKLISTS_DIR}")
-        if "FONT_DIR" in i:
-            if len(i.split("=")) > 0:
-                try:
-                    FONT_DIR = str(i.split("=")[1][1:-1])
-                except:
-                    help(f"failed to extract font path in {CONFIG_DIR}")
-            else:
-                help(f"no path provided after FONT_DIR= in {CONFIG_DIR}")
 
 if curr_blacklist == -1:
     print("no default blacklist found in config.txt defaulting to the first")
@@ -176,23 +168,6 @@ window = pygame.display.set_mode((WIDTH*CF_SCALE, HEIGHT*CF_SCALE))
 screen = pygame.Surface((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 running = True
-
-if FONT_DIR != "None":
-
-    try:
-        small_font = pygame.font.Font(FONT_DIR, 25)
-        basic_font = pygame.font.Font(FONT_DIR, 30)
-        title_font = pygame.font.Font(FONT_DIR, 60)
-    except Exception as e:
-        print(f"there was an error loading custom font: \n{e}")
-        small_font = pygame.font.SysFont('Comic Sans MS', 25)
-        basic_font = pygame.font.SysFont('Comic Sans MS', 30)
-        title_font = pygame.font.SysFont('Comic Sans MS', 80)
-else:
-    small_font = pygame.font.SysFont('Comic Sans MS', 25)
-    basic_font = pygame.font.SysFont('Comic Sans MS', 30)
-    title_font = pygame.font.SysFont('Comic Sans MS', 80)
-
 
 # ╭----------------------------------------╮
 # |      ╭----╮  ╭    ╮ ╭--.  ╭---╮ ╭----╮ |
