@@ -57,7 +57,7 @@ COLOR_PALETTE = {
 # |      |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮   ||   ╞--╡  |╰╮|   ||   ╰--╮      |
 # |      ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯   ╰╯   ╰  ╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰-------------------------------------------------------------------------------------------------------------╯
-DEFAULT_CONFIG =        "SCALE=1\nDEBUG_VLC=False\nWEAK_INTERNET=False\nSKIP_SPLIT=False"
+DEFAULT_CONFIG =        "SCALE=0.5\nWEAK_INTERNET=False\nSKIP_SPLIT=False\nFONT_DIR=\"bandle/font/NotoSansJP-Medium.ttf\""
 ALLOWED_CHARS_IN_SANITIZED_TEXT = "azertyuiopqsdfghjklmwxcvbn1234567890 " # important that no ";" are allowed
 CURR_OS = platform.system()
 
@@ -70,16 +70,30 @@ CURR_OS = platform.system()
 # |      ╞-   |  |  |╰╮|   ||   ╰--╮      |
 # |      ╰    ╰==╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰---------------------------------------╯
+
+with open(CONFIG_DIR, "r", encoding="utf-8") as f:
+    txt = f.read().splitlines()
+    for i in txt:
+        if "FONT_DIR" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    FONT_DIR = str(i.split("=")[1][1:-1])
+                except:
+                    print(f"failed to extract font path in {CONFIG_DIR}")
+            else:
+                print(f"no path provided after FONT_DIR= in {CONFIG_DIR}")
+
 pygame.font.init()
+
 try:
-    small_font = pygame.font.Font(JAPANESE_FONT_DIR, 25)
-    basic_font = pygame.font.Font(JAPANESE_FONT_DIR, 30)
-    title_font = pygame.font.Font(JAPANESE_FONT_DIR, 60)
-except:
+    small_font = pygame.font.Font(FONT_DIR, 25)
+    basic_font = pygame.font.Font(FONT_DIR, 30)
+    title_font = pygame.font.Font(FONT_DIR, 60)
+except Exception as e:
+    print(f"did not load custom font :(\n{e}")
     small_font = pygame.font.SysFont('Comic Sans MS', 25)
     basic_font = pygame.font.SysFont('Comic Sans MS', 30)
     title_font = pygame.font.SysFont('Comic Sans MS', 80)
-
 
 
 # ╭----------------------------------------------------------------------------------------------------------------------------------------╮
