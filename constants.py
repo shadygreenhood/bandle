@@ -21,8 +21,8 @@ PLAYLIST_JSON_DIR =     PROJECT_DIR / "playlists.json"
 SONGS_JSON_DIR =        PROJECT_DIR / "songs.json"
 BUFFER_DIR =            PROJECT_DIR / "playlist_info_buffer.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
-JAPANESE_FONT_DIR =     PROJECT_DIR / "Noto_Sans_JP" / "static" / "NotoSansJP-Medium.ttf"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
+FONT_DIR =              "None"      # extracted from config in GUI
 
 # ╭------------------------------------------------------------------------------------╮
 # |      ╭==╮  ╭  ╮  .       ╭=-╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮      |
