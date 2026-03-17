@@ -8,15 +8,6 @@ import audio_helper
 
 from constants import *
 
-# creating potentially missing files
-if not Path(BUFFER_DIR).exists():
-    Path(BUFFER_DIR).write_text("{}")
-if not Path(SONGS_JSON_DIR).exists():
-    Path(SONGS_JSON_DIR).write_text("{}")
-if not Path(PLAYLIST_JSON_DIR).exists():
-    Path(PLAYLIST_JSON_DIR).write_text("{}")
-if not Path(CONFIG_DIR).exists():
-    Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
 
 
 #overriding constants with config
