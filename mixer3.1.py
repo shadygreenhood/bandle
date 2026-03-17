@@ -132,17 +132,21 @@ with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
 all_songs = list(songs_json_dir_contents.keys())
 
 def sanitize(text):
-    if text in SANITIZED_EXEPTIONS:
-        sanitized = SANITIZED_EXEPTIONS[text]
-        return sanitized
+    return text
+
+    # sanitization happens earlier
+
+    # if text in SANITIZED_EXEPTIONS:
+    #     sanitized = SANITIZED_EXEPTIONS[text]
+    #     return sanitized
     
-    sanitized = text.replace("_", " ")
-    if "(" in sanitized:
-        sanitized = sanitized.split("(")[0].strip()
-    if "-" in sanitized:
-        sanitized = sanitized.split("-")[0].strip()
+    # sanitized = text.replace("_", " ")
+    # if "(" in sanitized:
+    #     sanitized = sanitized.split("(")[0].strip()
+    # if "-" in sanitized:
+    #     sanitized = sanitized.split("-")[0].strip()
     
-    return sanitized
+    # return sanitized
 
 all_songs_sanitized = []
 
