@@ -189,6 +189,18 @@ if not WEAK_INTERNET:
         print(f"downloading {len(songs_to_download)} missing songs")
     else:
         print("lucky you: there's nothing to download!")
+
+
+    def duration_filter(info, *, incomplete):
+        duration = info.get("duration")
+        
+        if duration is None:
+            return None  # allow if unknown
+        
+        if duration > 600:
+            return "Video longer than 10 minutes"
+        
+        return None
     for i in range(len(songs_to_download)):
         
         title = songs_to_download[i]
@@ -204,7 +216,7 @@ if not WEAK_INTERNET:
                 "quiet": True,
                 "no_warnings": True, 
                 "logger": YTDLPLogger(), 
-                "match_filters": "duration<=600", # less than 10 minutes
+                "match_filter": duration_filter(), # less than 10 minutes
                 "postprocessors": [{
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "wav",
@@ -359,7 +371,7 @@ if not SKIP_SPLIT:
                 ]
                 try:
                     run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
-                except Exception as e:
+                except subprocess.CalledProcessError as e:
                     print("RIP, there was an error")
                     print("Exit code:", e.returncode)
                 if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():

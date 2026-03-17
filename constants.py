@@ -25,7 +25,7 @@ SONGS_JSON_DIR =        PROJECT_DIR / "songs.json"
 BUFFER_DIR =            PROJECT_DIR / "playlist_info_buffer.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
-FONT_DIR =              "None"      # extracted from config in GUI
+FONT_DIR =              "None"      # extracted later
 
 
 DEFAULT_CONFIG =        "SCALE=0.5\nWEAK_INTERNET=False\nSKIP_SPLIT=False\nFONT_DIR=\"bandle/font/NotoSansJP-Medium.ttf\""
@@ -39,6 +39,12 @@ if not Path(PLAYLIST_JSON_DIR).exists():
 if not Path(CONFIG_DIR).exists():
     Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
 
+if not Path(SEPERATED_DIR).exists():
+    Path(SEPERATED_DIR).mkdir(exist_ok=True)
+if not Path(STEMS_FOLDER).exists():
+    Path(STEMS_FOLDER).mkdir(exist_ok=True)
+if not Path(RAW_TRACK_AUDIO_DIR).exists():
+    Path(RAW_TRACK_AUDIO_DIR).mkdir(exist_ok=True)
 
 
 # ╭------------------------------------------------------------------------------------╮
