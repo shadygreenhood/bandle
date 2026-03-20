@@ -8,7 +8,7 @@ import hashlib
 import audio_helper
 
 from constants import *
-
+from mixer3_1 import main
 
 
 #overriding constants with config
@@ -413,7 +413,7 @@ if not SKIP_SPLIT:
 
 
 # analysing audio to detect stem presence
-songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split", "analysed"]]
+songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
 
 if len(songs_to_analyse) == 0:
     print("lucky you: there are no songs to analyse!")
@@ -433,6 +433,8 @@ else:
 
 
 
-print("done with preparations: opening GUI...")
-cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / 'mixer3.1.py'}\" --scale={CF_SCALE}"
-subprocess.run(cmd, shell=True)
+# print("done with preparations: opening GUI...")
+# cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / 'mixer3.1.py'}\" --scale={CF_SCALE}"
+# subprocess.run(cmd, shell=True)
+
+main()

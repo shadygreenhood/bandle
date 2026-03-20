@@ -3,7 +3,7 @@ import math
 
 from pathlib import Path
 
-from constants import *
+import constants as con
 
 
 class Button:
@@ -34,12 +34,12 @@ class Button:
 
         max_height = 0
         for i in lines:
-            text_surface = basic_font.render(i, True, COLOR_PALETTE["black"])
+            text_surface = con.basic_font.render(i, True, con.COLOR_PALETTE["black"])
             if text_surface.get_height() > max_height:
                 max_height = text_surface.get_height()
 
         for i in range(len(lines)):
-            text_surface = basic_font.render(lines[i], True, COLOR_PALETTE["black"])
+            text_surface = con.basic_font.render(lines[i], True, con.COLOR_PALETTE["black"])
             text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery - max_height * (len(lines)-1)/2 + max_height*i))
             surface.blit(text_surface, text_rect)
 
@@ -92,19 +92,19 @@ class Toggle:
         
         # slider 
         rect = pygame.Rect(self.x, self.y, self.w, self.h/2)
-        pygame.draw.rect(surface, COLOR_PALETTE["list item selected"], rect, border_radius=15)
+        pygame.draw.rect(surface, con.COLOR_PALETTE["list item selected"], rect, border_radius=15)
         rect = pygame.Rect(self.x + 5, self.y +5, self.w-10, self.h/2-10)
-        pygame.draw.rect(surface, COLOR_PALETTE["shadow"], rect, border_radius=10)
+        pygame.draw.rect(surface, con.COLOR_PALETTE["shadow"], rect, border_radius=10)
 
         # On/Off head
 
-        color = [COLOR_PALETTE["face"][x] + (COLOR_PALETTE["list item selected"][x]-COLOR_PALETTE["face"][x])*(1-self.spring_slider) for x in range(3)]
-        pygame.draw.rect(surface, COLOR_PALETTE["textinput selected"], self.togl_head, border_radius=20)
+        color = [con.COLOR_PALETTE["face"][x] + (con.COLOR_PALETTE["list item selected"][x]-con.COLOR_PALETTE["face"][x])*(1-self.spring_slider) for x in range(3)]
+        pygame.draw.rect(surface, con.COLOR_PALETTE["textinput selected"], self.togl_head, border_radius=20)
         self.togl_head.inflate_ip(-10, -10)
         pygame.draw.rect(surface, color, self.togl_head, border_radius=15)
         self.togl_head.inflate_ip(10, 10)
 
-        text_surface = basic_font.render("On" if self.state else "Off", True, COLOR_PALETTE["black"])
+        text_surface = con.basic_font.render("On" if self.state else "Off", True, con.COLOR_PALETTE["black"])
         text_rect = text_surface.get_rect(center=(self.togl_head.centerx, self.togl_head.centery))
         surface.blit(text_surface, text_rect)
 
@@ -113,30 +113,30 @@ class Toggle:
         # pygame.draw.rect(surface, (255, 100, 100), rect)   
 
 class Warning:
-    def __init__(self, text, position=(40, HEIGHT-80, WIDTH-80), level="warning", counter=180):
+    def __init__(self, text, position=(40, con.HEIGHT-80, con.WIDTH-80), level="warning", counter=180):
 
         WARNING_COLOR_PALETTE = {
-            "info" : (155, 255, 200),
-            "warning" : (255, 150, 130),
-            "error" : (200, 50 ,50)
+            "info" : con.COLOR_PALETTE["face"],
+            "warning" : con.COLOR_PALETTE["red accent"],
+            "error" : con.COLOR_PALETTE["black"]
         }
 
         self.text = text
         self.dest = position[1]
-        self.y = HEIGHT + 50
+        self.y = con.HEIGHT + 50
         self.level = level
-        self.color = WARNING_COLOR_PALETTE[self.level]
-        self.coloraccent = ((self.color[0] - 80), (self.color[1] - 80),(self.color[2] - 80))
+        self.color = con.COLOR_PALETTE["black"] if self.level != "error" else con.COLOR_PALETTE["red accent"]
+        self.islandcolor = WARNING_COLOR_PALETTE[self.level]
 
-        for i in range(len(self.coloraccent)):
-            if self.coloraccent[i] < 0:
-                self.coloraccent = (self.coloraccent[0] if i != 0 else 0, self.coloraccent[1] if i != 1 else 0, self.coloraccent[2] if i != 2 else 0)
+        for i in range(len(self.islandcolor)):
+            if self.islandcolor[i] < 0:
+                self.islandcolor = (self.islandcolor[0] if i != 0 else 0, self.islandcolor[1] if i != 1 else 0, self.islandcolor[2] if i != 2 else 0)
 
 
         self.counter = counter
         self.death = False
-        self.warning_text = basic_font.render(self.text, True, self.color)
-        self.x = WIDTH/2 - (self.warning_text.get_width() + 15)/2
+        self.warning_text = con.basic_font.render(self.text, True, self.color)
+        self.x = con.WIDTH/2 - (self.warning_text.get_width() + 15)/2
         self.velocity = 0
 
         self.spr_force = 0.2
@@ -160,7 +160,7 @@ class Warning:
     def tick(self, surface):
 
         
-        pygame.draw.rect(surface, self.coloraccent, pygame.Rect(self.x - 20, self.y, (self.warning_text.get_width() + 15) + 40, 52), border_radius=20)
+        pygame.draw.rect(surface, self.islandcolor, pygame.Rect(self.x - 20, self.y, (self.warning_text.get_width() + 15) + 40, 52), border_radius=20)
 
         surface.blit(self.warning_text , (self.x + 30/2 + 10, self.y))
         
@@ -178,7 +178,7 @@ class Warning:
         if self.counter < 20:
             self.spr_damp = 0.4
             self.spr_force = 0.1
-            self.dest = HEIGHT + 50
+            self.dest = con.HEIGHT + 50
             # self.warning_text.set_alpha(255 - i*255/5)
 
         self.counter -= 1
@@ -221,6 +221,6 @@ class Textinput:
                 else:
                     self.focused = False
 
-        text_text = basic_font.render(self.text, True, COLOR_PALETTE["black"])
+        text_text = con.basic_font.render(self.text, True, con.COLOR_PALETTE["black"])
         surface.blit(text_text, (self.x + 5, self.y + 5))
         
