@@ -1,0 +1,1 @@
+pyinstaller --onedir --add-data "assets;assets" --add-data "font;font" bandle.py
