@@ -269,7 +269,7 @@ def main():
         global all_songs_sanitized_sorted
         global all_songs_sanitized_sorted_availability
 
-        all_songs_sanitized_sorted = all_songs_sanitized[:]
+        all_songs_sanitized_sorted = all_songs[:]
         all_songs_sanitized_sorted.sort()
         all_songs_sanitized_sorted_availability = []
         for i in range(len(all_songs_sanitized_sorted)):
@@ -768,7 +768,7 @@ def main():
             text = _ss_textinput.text
             selection = []
             for i in all_songs_sanitized_sorted:
-                if text.lower() in i.lower():
+                if text.lower() in sanitize(i).lower():
                     selection.append(i)
                 elif text.lower() in con.SONGS_JSON_DIR_contents[i]["baked_artists"]:
                     selection.append(i)
@@ -800,7 +800,7 @@ def main():
                 if 725 + _ss_scrollpos + i*38 > 0 and 725 + _ss_scrollpos + i*38 < con.HEIGHT:
                     text_surface = con.small_font.render(selection[i], True, con.COLOR_PALETTE["black"])
                     if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
-                        text_surface = con.small_font.render(selection[i], True, con.COLOR_PALETTE["list item unselected"])
+                        text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["list item unselected"])
                     screen.blit(text_surface, (40,725 + _ss_scrollpos + i*38))
 
 

@@ -1,1 +1,3 @@
 pyinstaller --onedir --add-data "assets;assets" --add-data "font;font" bandle.py
+
+https://open.spotify.com/playlist/3kio9o5rJGew4IfUDuiuBR
