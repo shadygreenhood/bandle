@@ -1,4 +1,4 @@
-import pygame
+import pygame   # type:ignore
 import platform
 import sys
 
@@ -29,6 +29,7 @@ print(f"porject_dir: {PROJECT_DIR} script_dir: {SCRIPT_DIR}")
 INTERPRETER_PATH =      sys.executable
 
 ASSETS_DIR =            SCRIPT_DIR  / "assets"
+FFMPEG_DIR =            SCRIPT_DIR  / "windows" / "ffmpeg"
 STEMS_FOLDER =          PROJECT_DIR / "split" / "htdemucs_6s"
 RAW_TRACK_AUDIO_DIR =   PROJECT_DIR / "raw_track_audio"
 SEPERATED_DIR =         PROJECT_DIR / "split"

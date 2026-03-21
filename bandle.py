@@ -4,6 +4,8 @@ import json
 import yt_dlp           # type: ignore
 from time import sleep
 import hashlib
+from  spotify_scraper import SpotifyClient# type:ignore
+import os
 
 import audio_helper
 
@@ -83,28 +85,11 @@ def santize_string(str, use="", data=""):
 # adding playlist to playlists.json
 if playlist_url != "s" and playlist_url != "":
 
-    # ensuring buffer isnt contaminated
-    with open(BUFFER_DIR, "w") as f:
-        f.write("")
 
     album =  True if "album" in playlist_url else False
-    cmd = [
-        "spotify-scraper",
-        "playlist" if not album else "album",
-        playlist_url,
-        "--output",
-        BUFFER_DIR
-    ]
+    client = SpotifyClient()
 
-    try:
-        subprocess.run(cmd, check=True)
-    except subprocess.CalledProcessError as e:
-        print("Spotify scraper failed, likely non fatal though, continuing...")
-        print("Error: ", e)
-        print("Exit code:", e.returncode)
-
-    with open(BUFFER_DIR, "r", encoding="utf-8") as f:
-        buffer_dir_contents = json.load(f)
+    buffer_dir_contents = client.get_playlist_info(playlist_url)
 
     print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"], use="print"))
 
@@ -211,7 +196,7 @@ if not WEAK_INTERNET:
             folder_end = (title+".%(ext)s")
             ydl_opts = {
             "format": "bestaudio/best",
-                #"ffmpeg_location": r'C:\Users\REMOVED_USERNAME\Appbuffer_dir_contents\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe',
+                "ffmpeg_location": str(FFMPEG_DIR),
                 "outtmpl": str(RAW_TRACK_AUDIO_DIR / folder_end),
                 "quiet": True,
                 "no_warnings": True, 
@@ -295,10 +280,12 @@ if not SKIP_SPLIT:
                             break
                         else:
                             print("invalid input")
-            
+                else:
+                    skip = "c"
             if skip in  ["s", "c"]:
+                os.environ["PATH"] = FFMPEG_DIR / os.environ.get("PATH", "")
                 cmd = [
-                   "python",
+                    INTERPRETER_PATH,
                     "-m",
                     "demucs",
                     RAW_TRACK_AUDIO_DIR / folder_end,
