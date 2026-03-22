@@ -7,6 +7,12 @@ I do not intend to make any money from this, nor do i intend to compete with the
 
 **Important:** This repository must be nested inside a PROJECT_DIRECTORY. The program will write output files here. You can also add fonts, set up a virtual environment, and manage other project-specific files in this directory.
 
+## New! windows package is here and *maybe* works
+
+you can get it here.
+https://github.com/shadygreenhood/bandle/releases/tag/beta
+
+
 ## Configuration
 
 Configurations are set in the format:
