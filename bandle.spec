@@ -7,6 +7,7 @@ datas = [
     ("font", "font"),
     ("ffmpeg", "ffmpeg"),
     (r"C:\Users\shady\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
+    (certifi.where(), "certifi"),
 ]
 
 # 3. Analysis

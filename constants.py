@@ -32,7 +32,9 @@ CONFIG_DIR =            PROJECT_DIR / "config.txt"
 # adding ffmpeg to path for later
 import os
 os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
-
+import certifi
+# Point Python/requests to the bundled certs
+os.environ["SSL_CERT_FILE"] = certifi.where()
 
 
 import pygame   # type:ignore
