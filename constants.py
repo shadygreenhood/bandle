@@ -1,13 +1,5 @@
-import pygame   # type:ignore
-import platform
 import sys
-
 from pathlib import Path
-
-
-
-
-
 # ╭----------------------------------------╮
 # |      ╭==╮  ╭==╮  ╭==╮  ╭  ╮  ╭==╮      |
 # |      ╞==╯  ╞--╡   ||   ╞--╡  ╰--╮      |
@@ -29,15 +21,22 @@ print(f"porject_dir: {PROJECT_DIR} script_dir: {SCRIPT_DIR}")
 INTERPRETER_PATH =      sys.executable
 
 ASSETS_DIR =            SCRIPT_DIR  / "assets"
-FFMPEG_DIR =            SCRIPT_DIR  / "windows" / "ffmpeg"
-STEMS_FOLDER =          PROJECT_DIR / "split" / "htdemucs_6s"
+FFMPEG_DIR =            SCRIPT_DIR  / "ffmpeg"
+STEMS_FOLDER =          PROJECT_DIR / "split"
 RAW_TRACK_AUDIO_DIR =   PROJECT_DIR / "raw_track_audio"
-SEPERATED_DIR =         PROJECT_DIR / "split"
 PLAYLIST_JSON_DIR =     PROJECT_DIR / "playlists.json"
 SONGS_JSON_DIR =        PROJECT_DIR / "songs.json"
-BUFFER_DIR =            PROJECT_DIR / "playlist_info_buffer.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
+
+# adding ffmpeg to path for later
+import os
+os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
+
+
+
+import pygame   # type:ignore
+import platform
 
 
 
@@ -46,8 +45,6 @@ DEFAULT_CONFIG =        "SCALE=0.5\n"\
                         "SKIP_SPLIT=False\n"\
                         "FONT_DIR=\"font/NotoSansJP-Medium.ttf\""
 # creating potentially missing files
-if not Path(BUFFER_DIR).exists():
-    Path(BUFFER_DIR).write_text("{}")
 if not Path(SONGS_JSON_DIR).exists():
     Path(SONGS_JSON_DIR).write_text("{}")
 if not Path(PLAYLIST_JSON_DIR).exists():
@@ -55,8 +52,8 @@ if not Path(PLAYLIST_JSON_DIR).exists():
 if not Path(CONFIG_DIR).exists():
     Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
 
-if not Path(SEPERATED_DIR).exists():
-    Path(SEPERATED_DIR).mkdir(exist_ok=True)
+if not Path(STEMS_FOLDER).exists():
+    Path(STEMS_FOLDER).mkdir(exist_ok=True)
 if not Path(STEMS_FOLDER).exists():
     Path(STEMS_FOLDER).mkdir(exist_ok=True)
 if not Path(RAW_TRACK_AUDIO_DIR).exists():
@@ -155,3 +152,114 @@ TARGET_FPS = 60
 WEAK_INTERNET = False
 SKIP_SPLIT = False
 
+
+#overriding constants with config
+with open(PROJECT_DIR / "config.txt", "r") as f:
+    txt = f.read().splitlines()
+    for i in txt:
+        if "SCALE" in i:
+            if len(i.split("=")) > 0:
+                CF_SCALE = i.split("=")[1]
+            else:
+                help(f"no scale provided in {CONFIG_DIR}")
+        if "CURR_OS" in i:
+            if len(i.split("=")) > 0:
+                CURR_OS = i.split("=")[1]
+            else:
+                help(f"no OS provided in {CONFIG_DIR}")
+        if "WEAK_INTERNET" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    WEAK_INTERNET = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else WEAK_INTERNET
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
+            else:
+                help(f"no OS provided in {CONFIG_DIR}")
+        if "SKIP_SPLIT" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    SKIP_SPLIT = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else SKIP_SPLIT
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
+            else:
+                help(f"no OS provided in {CONFIG_DIR}")
+
+# filtering possible OSes
+if CURR_OS == "Windows":
+    print("running windows script")
+else:
+    if CURR_OS == "Linux":
+        print("running linux script")
+    else:
+        print("os not recognised, defaulting to linux script")
+        CURR_OS = "Linux"
+
+
+# ╭---------------------------------------------------------------------------------╮
+# |      ╭╮╭╮  .  ╭==╮  ╭=-╮  ╭=-  ╭    ╭    ╭==╮  ╭╮ ╮  ╭=-  ╭==╮  ╭  ╮  ╭==╮      |
+# |      |╰╯|  |  ╰--╮  |     ╞-   |    |    ╞--╡  |╰╮|  ╞-   |  |  |  |  ╰--╮      |
+# |      ╰  ╯  ╯  ╰==╯  ╰=-╯  ╰=-  ╰-╯  ╰-╯  ╰  ╯  ╰ ╰╯  ╰=-  ╰==╯  ╰==╯  ╰==╯      |
+# ╰---------------------------------------------------------------------------------╯
+
+# for downloading songs
+class YTDLPLogger:
+        def debug(self, msg):
+            pass
+
+        def warning(self, msg):
+            pass
+
+        def error(self, msg):
+            print(f"[ERROR] {msg}")
+
+def duration_filter(info, *, incomplete):
+    duration = info.get("duration")
+    
+    if duration is None:
+        return None  # allow if unknown
+    
+    if duration > 600:
+        return "Video longer than 10 minutes"
+    
+    return None
+
+# for splitting audio
+class DemucsLogger:
+        def warning(self, msg):
+            print(f"[WARNING] {msg}")
+
+        def error(self, msg):
+            print(f"[ERROR] {msg}")
+
+        def progress(self, msg, txt=""):
+            if "%" in msg: 
+                try:
+                    print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
+                except:
+                    print(msg)
+
+import subprocess
+def run_demucs(cmd, logger, txt):
+    print(txt, end = "", flush=True)
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+    for line in process.stdout:
+        line = line.strip()
+
+        # Basic routing logic
+        if "error" in line.lower():
+            logger.error(line)
+        elif "warning" in line.lower():
+            logger.warning(line)
+        else:
+            logger.progress(line, txt)
+
+    process.wait()
+
+    if process.returncode != 0:
+        logger.error(f"Demucs exited with code {process.returncode}")
+        raise subprocess.CalledProcessError(process.returncode, cmd)

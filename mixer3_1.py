@@ -266,17 +266,17 @@ def main():
         _mb_wiki_bool = True
 
         # preparing data for rest of script
-        global all_songs_sanitized_sorted
-        global all_songs_sanitized_sorted_availability
+        global all_songs_sorted
+        global all_songs_sanitized_availability
 
-        all_songs_sanitized_sorted = all_songs[:]
-        all_songs_sanitized_sorted.sort()
-        all_songs_sanitized_sorted_availability = []
-        for i in range(len(all_songs_sanitized_sorted)):
-            if con.SONGS_JSON_DIR_contents[all_songs_sanitized_sorted[i]]["status"] == "analysed":
-                all_songs_sanitized_sorted_availability.append(True)
+        all_songs_sorted = all_songs[:]
+        all_songs_sorted.sort()
+        all_songs_sanitized_availability = []
+        for i in range(len(all_songs_sorted)):
+            if con.SONGS_JSON_DIR_contents[all_songs_sorted[i]]["status"] == "analysed":
+                all_songs_sanitized_availability.append(True)
             else:
-                all_songs_sanitized_sorted_availability.append(False)
+                all_songs_sanitized_availability.append(False)
 
         # sending to main menu intro
         global submenu
@@ -767,7 +767,7 @@ def main():
             # preparing listed song options
             text = _ss_textinput.text
             selection = []
-            for i in all_songs_sanitized_sorted:
+            for i in all_songs_sorted:
                 if text.lower() in sanitize(i).lower():
                     selection.append(i)
                 elif text.lower() in con.SONGS_JSON_DIR_contents[i]["baked_artists"]:
@@ -788,18 +788,19 @@ def main():
                 if _ss_selected < len(selection):
                     _ss_select_song_button.draw(screen)
                     if _ss_select_song_button.is_clicked(events):
-                        if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[_ss_selected])] == False:
+                        if all_songs_sanitized_availability[all_songs_sorted.index(selection[_ss_selected])] == False:
                             warnings.append( Warning("this song isnt available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
                         else:
-                            print(all_songs[all_songs_sanitized.index(selection[_ss_selected])])
-                            _b_current_song = all_songs[all_songs_sanitized.index(selection[_ss_selected])]
+                            print("selected: ", all_songs[all_songs.index(selection[_ss_selected])])
+                            _b_current_song = all_songs[all_songs.index(selection[_ss_selected])]
+                            print("curr_song: ", _b_current_song)
                             submenu = "loading_bandle"
 
             # render options text
             for i in range(len(selection)):
                 if 725 + _ss_scrollpos + i*38 > 0 and 725 + _ss_scrollpos + i*38 < con.HEIGHT:
-                    text_surface = con.small_font.render(selection[i], True, con.COLOR_PALETTE["black"])
-                    if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(selection[i])] == False:
+                    text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["black"])
+                    if all_songs_sanitized_availability[all_songs_sorted.index(selection[i])] == False:
                         text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["list item unselected"])
                     screen.blit(text_surface, (40,725 + _ss_scrollpos + i*38))
 
@@ -1077,7 +1078,7 @@ def main():
             # removing ones that havent been fully processed yet
             bfr = []
             for i in range(len(_b_queue)):
-                if all_songs_sanitized_sorted_availability[all_songs_sanitized_sorted.index(_b_queue[i])] == False:
+                if all_songs_sanitized_availability[all_songs_sorted.index(_b_queue[i])] == False:
                     bfr.append(i)
             for i in range(len(bfr)):
                 _b_queue.pop(bfr[i] - i)
@@ -1158,7 +1159,7 @@ def main():
             #deal with players
             #MUTED OUTPUT  print("progression would be updated here")
             player.update_pointer()
-            progression = player.pointer * 1000 / player.audio_len
+            progression = player.pointer * 1000 / player.audio_len if player.audio_len != 0 else 0
 
         # ╭----------------------------------------╮
         # |      ╭  ╮ ╭=-  ╭==╮ ╭-.  ╭=- ╭==╮      |

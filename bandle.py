@@ -1,58 +1,22 @@
-import subprocess
-from pathlib import Path
-import json
-import yt_dlp           # type: ignore
-from time import sleep
-import hashlib
-from  spotify_scraper import SpotifyClient# type:ignore
-import os
-
-import audio_helper
-
+# cust scripts
 from constants import *
 from mixer3_1 import main
+import audio_helper
+# basic python libraries
+import subprocess
+from pathlib import Path
+import os
+import json
+import hashlib
+# installed libraries
+from  spotify_scraper import SpotifyClient  # type: ignore
+import yt_dlp                               # type: ignore
+import torch                                # type: ignore
+import torchaudio                           # type: ignore
+from demucs.pretrained import get_model     # type: ignore
+from demucs.apply import apply_model        # type: ignore
+import soundfile as sf                      # type: ignore
 
-
-#overriding constants with config
-with open(PROJECT_DIR / "config.txt", "r") as f:
-    txt = f.read().splitlines()
-    for i in txt:
-        if "SCALE" in i:
-            if len(i.split("=")) > 0:
-                CF_SCALE = i.split("=")[1]
-            else:
-                help(f"no scale provided in {CONFIG_DIR}")
-        if "CURR_OS" in i:
-            if len(i.split("=")) > 0:
-                CURR_OS = i.split("=")[1]
-            else:
-                help(f"no OS provided in {CONFIG_DIR}")
-        if "WEAK_INTERNET" in i:
-            if len(i.split("=")) > 0:
-                try:
-                    WEAK_INTERNET = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else WEAK_INTERNET
-                except:
-                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
-            else:
-                help(f"no OS provided in {CONFIG_DIR}")
-        if "SKIP_SPLIT" in i:
-            if len(i.split("=")) > 0:
-                try:
-                    SKIP_SPLIT = False if i.split("=")[1] == "False" else True if i.split("=")[1] == "True" else SKIP_SPLIT
-                except:
-                    help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
-            else:
-                help(f"no OS provided in {CONFIG_DIR}")
-
-# filtering possible OSes
-if CURR_OS == "Windows":
-    print("running windows script")
-else:
-    if CURR_OS == "Linux":
-        print("running linux script")
-    else:
-        print("os not recognised, defaulting to linux script")
-        CURR_OS = "Linux"
 
 # init vars
 playlist_url = input("paste the spotify url you want to add (s for skip):  ")
@@ -81,46 +45,44 @@ def santize_string(str, use="", data=""):
         print(f"sanitized: {str} to {new_str}")
     return new_str
 
-
 # adding playlist to playlists.json
 if playlist_url != "s" and playlist_url != "":
 
+    url_type =  "album" if "album" in playlist_url else "playlist" if "playlist" in playlist_url else "unknown"
+    if url_type == "unknown":
+        raise Exception("\n    the url provided doesnt seem to be neither a playlist nor an album, aborting\n")
 
-    album =  True if "album" in playlist_url else False
     client = SpotifyClient()
 
-    buffer_dir_contents = client.get_playlist_info(playlist_url)
-
+    if url_type == "playlist":
+        buffer_dir_contents = client.get_playlist_info(playlist_url)
+    elif url_type == "album":
+        buffer_dir_contents = client.get_album_info(playlist_url)
+    
     print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"], use="print"))
 
     tracks = buffer_dir_contents["tracks"]
-
     data = []
     for track in tracks:
-
-        if not album:
+        if url_type == "playlist":
             artists = track["artists"]
-        else:
+        elif url_type == "album":
             artists = buffer_dir_contents["artists"]
 
         split = [artists[0]["name"]]
-        if len(artists) == 1:
+        if len(artists) == 1: # weird issue with spotifyscraper where all artists are concatenated in a string instead of seperate list elements
             if "," in artists[0]["name"]:
                 split = artists[0]["name"].split(",\xa0")
-
-
         artists = [santize_string(i, use="artist") for i in split]
+
         data.append({
             "name": santize_string(track["name"], use="song", data=artists),
             "artists": artists
         })
 
-    try:
-        with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
-            playlists_json_dir_contents = json.load(f)
-    except:
-        playlists_json_dir_contents = {}
 
+    with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
+        playlists_json_dir_contents = json.load(f)
 
     playlists_json_dir_contents[buffer_dir_contents["id"]] = {
         "name": buffer_dir_contents["name"], 
@@ -134,12 +96,8 @@ if playlist_url != "s" and playlist_url != "":
 # ensuring all songs are in songs.json
 with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
     playlists_json_dir_contents = json.load(f)
-
-try:
-    with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
-        SONGS_DIR_contents = json.load(f)
-except:
-    SONGS_DIR_contents = {}
+with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
+    SONGS_DIR_contents = json.load(f)
 
 for i in playlists_json_dir_contents:
     for j in playlists_json_dir_contents[i]:
@@ -159,33 +117,13 @@ with open(SONGS_JSON_DIR, 'w', encoding="utf-8") as f:
 
 #dowloading missing songs
 if not WEAK_INTERNET:
-    class YTDLPLogger:
-        def debug(self, msg):
-            pass
-
-        def warning(self, msg):
-            pass
-
-        def error(self, msg):
-            print(f"[ERROR] {msg}")
-
+    
     songs_to_download = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "new"]
     if songs_to_download != []:
         print(f"downloading {len(songs_to_download)} missing songs")
     else:
         print("lucky you: there's nothing to download!")
 
-
-    def duration_filter(info, *, incomplete):
-        duration = info.get("duration")
-        
-        if duration is None:
-            return None  # allow if unknown
-        
-        if duration > 600:
-            return "Video longer than 10 minutes"
-        
-        return None
     for i in range(len(songs_to_download)):
         
         title = songs_to_download[i]
@@ -216,49 +154,10 @@ if not WEAK_INTERNET:
             with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 else:
-    print("you have enabled the WEAK INTERNET the config, therefore the program wont download anything more.")
+    print("you have enabled the WEAK INTERNET the config, therefore the program won't download anything more.")
 
 #splitting tracks
 if not SKIP_SPLIT:
-    class DemucsLogger:
-        def warning(self, msg):
-            print(f"[WARNING] {msg}")
-
-        def error(self, msg):
-            print(f"[ERROR] {msg}")
-
-        def progress(self, msg, txt=""):
-            if "%" in msg: 
-                try:
-                    print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
-                except:
-                    print(msg)
-
-    def run_demucs(cmd, logger, txt):
-        print(txt, end = "", flush=True)
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
-
-        for line in process.stdout:
-            line = line.strip()
-
-            # Basic routing logic
-            if "error" in line.lower():
-                logger.error(line)
-            elif "warning" in line.lower():
-                logger.warning(line)
-            else:
-                logger.progress(line, txt)
-
-        process.wait()
-
-        if process.returncode != 0:
-            logger.error(f"Demucs exited with code {process.returncode}")
-            raise subprocess.CalledProcessError(process.returncode, cmd)
 
     if CURR_OS == "Windows":
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
@@ -267,12 +166,12 @@ if not SKIP_SPLIT:
             print("lucky you: there's no audio to split!")
         else:
             print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
+        
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
             folder_end = title + ".wav"
-
-            if skip in  ["no", "s", "c"]:
-                if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
+            if skip in  ["no", "s", "c"]:  # for prompting if ovewriting something (no = frist time, s = skip once, c = continue once)
+                if Path(STEMS_FOLDER / title).exists():
                     print("it seems this file already has an output directory, do you still want to process it (if files are overwritten you will be individually warned, dont worry)")
                     while True:
                         skip = input("[s]kip, [c]ontinue anyways, skip [a]ll...")
@@ -282,40 +181,45 @@ if not SKIP_SPLIT:
                             print("invalid input")
                 else:
                     skip = "c"
-            if skip in  ["s", "c"]:
-                os.environ["PATH"] = FFMPEG_DIR / os.environ.get("PATH", "")
-                cmd = [
-                    INTERPRETER_PATH,
-                    "-m",
-                    "demucs",
-                    RAW_TRACK_AUDIO_DIR / folder_end,
-                    "-o",
-                    SEPERATED_DIR,
-                    "-n",
-                    "htdemucs_6s",
-                    "--mp3"
-                ]
 
-                try:
-                    run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
-                except subprocess.CalledProcessError as e:
-                    print("RIP, there was an error")
-                    print("Exit code:", e.returncode)
-                
-
-            elif skip == "a":
+            # skipping
+            if skip in ["a", "s"]:
                 print("skipping: " + title)
                 pass
-            
-            if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
+
+            # not skipping
+            elif skip in  ["c"]:
+
+                #prep
+                model = get_model("htdemucs_6s")
+                model.cpu()
+                input_file = str(RAW_TRACK_AUDIO_DIR / folder_end)
+                wav, sr = torchaudio.load(input_file)
+                if wav.shape[0] == 1:
+                    wav = wav.repeat(2, 1)
+                wav = wav / wav.abs().max()
+                wav = wav.unsqueeze(0)
+                #split
+                with torch.no_grad():
+                    sources = apply_model(model, wav, device="cpu", progress=True)
+                #saving output
+                sources = sources[0]
+                stems = model.sources
+                output_dir = STEMS_FOLDER / title
+                os.makedirs(output_dir, exist_ok=True)
+                for i, stem in enumerate(stems):
+                    output_path = os.path.join(output_dir, f"{stem}.wav")
+                    sf.write(output_path, sources[i].T.cpu().numpy(), sr)
+
+            # checking output and further steps
+            if Path(STEMS_FOLDER / title).exists():
                 print()
                 print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
-                SONGS_DIR_contents[title]["status"] = "split"
                 print("converting back to wavs for easier processing")
 
                 # converting to wavs
                 failure = False
-                for mp3_file in Path(SEPERATED_DIR / "htdemucs_6s" / title).rglob("*.mp3"):
+                for mp3_file in Path(STEMS_FOLDER / title).rglob("*.mp3"):
                     wav_file = mp3_file.with_suffix(".wav")
                     result = subprocess.run(
                         ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
@@ -325,19 +229,18 @@ if not SKIP_SPLIT:
                     else:
                         failure = True
                 
-                if not failure: # check for faliure converting to wavs very unlikely
+                if not failure: # check for faliure converting to wavs (very unlikely)
                     folder_end = title + ".wav"
                     print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
+                    SONGS_DIR_contents[title]["status"] = "split"
                     with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                 else:
                     print("something went wrong")
             else:
                 print("did not split")
-
-
 
 
     if CURR_OS == "Linux":
@@ -355,7 +258,7 @@ if not SKIP_SPLIT:
                     "demucs",
                     RAW_TRACK_AUDIO_DIR / folder_end,
                     "-o",
-                    SEPERATED_DIR,
+                    STEMS_FOLDER,
                     "-n",
                     "htdemucs_6s",
                     "--mp3"
@@ -365,7 +268,7 @@ if not SKIP_SPLIT:
                 except subprocess.CalledProcessError as e:
                     print("RIP, there was an error")
                     print("Exit code:", e.returncode)
-                if Path(SEPERATED_DIR / "htdemucs_6s" / title).exists():
+                if Path(STEMS_FOLDER / "htdemucs_6s" / title).exists():
                     print()
                     print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
                     SONGS_DIR_contents[title]["status"] = "split"
@@ -373,7 +276,7 @@ if not SKIP_SPLIT:
 
                     # converting to wavs
                     failure = False
-                    for mp3_file in Path(SEPERATED_DIR / "htdemucs_6s" /  title).rglob("*.mp3"):
+                    for mp3_file in Path(STEMS_FOLDER / "htdemucs_6s" /  title).rglob("*.mp3"):
                         wav_file = mp3_file.with_suffix(".wav")
                         result = subprocess.run(
                             ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
@@ -397,8 +300,6 @@ if not SKIP_SPLIT:
 
 
 
-
-
 # analysing audio to detect stem presence
 songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
 
@@ -407,7 +308,7 @@ if len(songs_to_analyse) == 0:
 else:
     print(f"analysing {len(songs_to_analyse)} songs...")
 
-    analyser = audio_helper.Player_obj(STEMS, SEPERATED_DIR / "htdemucs_6s", volume=70)
+    analyser = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=70)
 
     for i in songs_to_analyse:
         analyser.load(i)
@@ -418,10 +319,5 @@ else:
         with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
-
-
-# print("done with preparations: opening GUI...")
-# cmd = f"\"{INTERPRETER_PATH}\" \"{SCRIPT_DIR / 'mixer3.1.py'}\" --scale={CF_SCALE}"
-# subprocess.run(cmd, shell=True)
 
 main()

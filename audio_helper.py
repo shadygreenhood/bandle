@@ -10,7 +10,7 @@ if __name__ == "__main__":
     STEMS = ["drums", "bass", "guitar", "piano", "other", "vocals"]
     
     BASE_DIR = Path(__file__).resolve().parent.parent
-    SEPERATED_DIR = Path(BASE_DIR / "split"  / "htdemucs_6s")
+    SEPERATED_DIR = Path(BASE_DIR / "split")
 
 # ╭----------------------------------------╮
 # |      ╭----╮  ╭    ╮ ╭--.  ╭---╮ ╭----╮ |
