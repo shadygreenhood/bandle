@@ -5,3 +5,5 @@ simpleaudio==1.0.4
 yt_dlp==2026.3.13
 spotifyscraper==2.1.5
 demucs==4.0.1
+soundfile==0.13.1
+rich==14.3.3

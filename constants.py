@@ -2,21 +2,10 @@ import sys
 from pathlib import Path
 import os
 import pygame   # type:ignore
-# Logger
 
-def clear():
-    os.system("cls" if os.name == "nt" else "clear")
-from rich.console import Console
-console = Console()
-class logger():
-    def debug(msg):
-        console.print(f"[DEBUG]: {msg}", style="blue")
-    def pretty_text(msg, style):
-        console.print(msg, style=style)
-    def warning(msg):
-        console.print(f"[WARNING]: {msg}", style="yellow")
-    def error(msg):
-        console.print(f"[ERROR]: {msg}", style="bold red")
+
+# Logger
+from init_console import *
 
 clear()
 logger.pretty_text("this should be pretty. . . ", "magenta italic bold")
@@ -56,12 +45,13 @@ SONGS_JSON_DIR =        PROJECT_DIR / "songs.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
 
-logger.debug("Adding bundled ffmpeg to PATH")
-os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
+if getattr(sys, 'frozen', False):
+    logger.debug("Adding bundled ffmpeg to PATH")
+    os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
 
-logger.debug("setting up SSL_CERT_FILE, ")
-import certifi
-os.environ["SSL_CERT_FILE"] = certifi.where()
+    logger.debug("setting up SSL_CERT_FILE, ")
+    import certifi
+    os.environ["SSL_CERT_FILE"] = certifi.where()
 
 
 
@@ -271,40 +261,43 @@ def duration_filter(info, *, incomplete):
 # for splitting audio
 class DemucsLogger:
         def warning(self, msg):
-            print(f"[WARNING] {msg}")
+            logger.warning(f"[DEMUCS] [WARNING] {msg}")
 
         def error(self, msg):
-            print(f"[ERROR] {msg}")
+            logger.error(f"[DEMUCS] [ERROR] {msg}")
 
-        def progress(self, msg, txt=""):
-            if "%" in msg: 
-                try:
-                    print("\r" + txt + "  [" + str(float(msg.split("|")[2][1:].split(" ")[0].split("/")[0]) / float(msg.split("|")[2][1:].split(" ")[0].split("/")[1]) * 100).split(".")[0] + "%" + "]", end="", flush=True)
-                except:
-                    print(msg)
 
 import subprocess
-def run_demucs(cmd, logger, txt):
-    print(txt, end = "", flush=True)
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-    for line in process.stdout:
-        line = line.strip()
+def run_demucs(cmd, local_logger, txt):
+    with Live("", refresh_per_second=10) as live:
 
-        # Basic routing logic
-        if "error" in line.lower():
-            logger.error(line)
-        elif "warning" in line.lower():
-            logger.warning(line)
-        else:
-            logger.progress(line, txt)
+        
 
-    process.wait()
+        logger.pretty_text(txt, "magenta")
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+        for line in process.stdout:
+            line = line.strip()
 
-    if process.returncode != 0:
-        logger.error(f"Demucs exited with code {process.returncode}")
-        raise subprocess.CalledProcessError(process.returncode, cmd)
+            # Basic routing logic
+            if "error" in line.lower():
+                local_logger.error(line)
+            elif "warning" in line.lower():
+                local_logger.warning(line)
+            else:
+                if "%" in line:
+                    a = int(float(line.split("|")[2][1:].split(" ")[0].split("/")[0]))
+                    b = int(float(line.split("|")[2][1:].split(" ")[0].split("/")[1]))
+                    c = 100
+                    live.update(pacman_bar(a, c, b))
+
+        process.wait()
+
+        if process.returncode != 0:
+            local_logger.error(f"Demucs exited with code {process.returncode}")
+            raise subprocess.CalledProcessError(process.returncode, cmd)
+    

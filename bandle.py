@@ -156,19 +156,33 @@ if not WEAK_INTERNET:
             artists = SONGS_DIR_contents[songs_to_download[i]]["artists"]
             query = f"{title.split('_')[:-1]} {' '.join(artists)} audio"
             folder_end = (title+".%(ext)s")
-            ydl_opts = {
-            "format": "bestaudio/best",
-                "ffmpeg_location": str(FFMPEG_DIR),
-                "outtmpl": str(RAW_TRACK_AUDIO_DIR / folder_end),
-                "quiet": True,
-                "no_warnings": True, 
-                "logger": YTDLPLogger(), 
-                "match_filter": duration_filter, # less than 10 minutes
-                "postprocessors": [{
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "wav",
-                }],
-            }
+            if getattr(sys, 'frozen', False):
+                ydl_opts = {
+                "format": "bestaudio/best",
+                    "ffmpeg_location": str(FFMPEG_DIR),
+                    "outtmpl": str(RAW_TRACK_AUDIO_DIR / folder_end),
+                    "quiet": True,
+                    "no_warnings": True, 
+                    "logger": YTDLPLogger(), 
+                    "match_filter": duration_filter, # less than 10 minutes
+                    "postprocessors": [{
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "wav",
+                    }],
+                }
+            else:
+                ydl_opts = {
+                "format": "bestaudio/best",
+                    "outtmpl": str(RAW_TRACK_AUDIO_DIR / folder_end),
+                    "quiet": True,
+                    "no_warnings": True, 
+                    "logger": YTDLPLogger(), 
+                    "match_filter": duration_filter, # less than 10 minutes
+                    "postprocessors": [{
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "wav",
+                    }],
+                }
             logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
@@ -196,7 +210,10 @@ if not SKIP_SPLIT:
             folder_end = title + ".wav"
             if skip in  ["no", "s", "c"]:  # for prompting if ovewriting something (no = frist time, s = skip once, c = continue once)
                 if Path(STEMS_FOLDER / title).exists():
-                    print("it seems this file already has an output directory, do you still want to process it (if files are overwritten you will be individually warned, dont worry)")
+                    logger.pretty_text("it seems this file already has an output \
+                                        directory, do you still want to process it \
+                                        (if files are overwritten you will be \
+                                       individually warned, dont worry)", "magenta bold")
                     while True:
                         skip = input("[s]kip, [c]ontinue anyways, skip [a]ll...")
                         if skip in ["s", "c", "a"]:
