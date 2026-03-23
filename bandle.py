@@ -1,25 +1,43 @@
 # cust scripts
 from constants import *
+logger.debug("loading custom scripts")
 from mixer3_1 import main
 import audio_helper
 # basic python libraries
+logger.debug("loading basic libraries")
 import subprocess
 from pathlib import Path
 import os
 import json
 import hashlib
 # installed libraries
+logger.debug("loading SpotifyClient")
 from  spotify_scraper import SpotifyClient  # type: ignore
+logger.debug("loading yt_dlp")
 import yt_dlp                               # type: ignore
+logger.debug("loading torch")
 import torch                                # type: ignore
+logger.debug("loading torchaudio")
 import torchaudio                           # type: ignore
+logger.debug("loading get_model (demucs)")
 from demucs.pretrained import get_model     # type: ignore
+logger.debug("loading apply_model (demucs)")
 from demucs.apply import apply_model        # type: ignore
+logger.debug("loading soundfile")
 import soundfile as sf                      # type: ignore
+
+clear()
+logger.pretty_text("╭-----------------------------------------------------------------------------------------╮\n"\
+                   "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       ╭=-╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮  ╭    ╭=-      |\n"\
+                   "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-       |\n"\
+                   "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-      |\n"\
+                   "╰-----------------------------------------------------------------------------------------╯", "magenta bold")
 
 
 # init vars
-playlist_url = input("paste the spotify url you want to add (s for skip):  ")
+
+logger.pretty_text("\n    > paste the spotify url you want to add (s for skip):\n", style="magenta")
+playlist_url = input("")
 
 
 def santize_string(str, use="", data=""):
@@ -42,24 +60,28 @@ def santize_string(str, use="", data=""):
         new_str += "_" + temp_hash
     
     if str != new_str:
-        print(f"sanitized: {str} to {new_str}")
+        logger.debug(f"sanitized: \"{str}\" to \"{new_str}\"")
     return new_str
 
 # adding playlist to playlists.json
 if playlist_url != "s" and playlist_url != "":
+    logger.debug(f"adding {playlist_url} to playlists.json")
 
     url_type =  "album" if "album" in playlist_url else "playlist" if "playlist" in playlist_url else "unknown"
     if url_type == "unknown":
+        logger.error("\n    the url provided doesnt seem to be neither a playlist nor an album, aborting\n")
         raise Exception("\n    the url provided doesnt seem to be neither a playlist nor an album, aborting\n")
+    logger.debug(f"detected url to be a {url_type} url")
 
     client = SpotifyClient()
 
+    logger.debug("extracting {}")
     if url_type == "playlist":
         buffer_dir_contents = client.get_playlist_info(playlist_url)
     elif url_type == "album":
         buffer_dir_contents = client.get_album_info(playlist_url)
     
-    print("adding playlist: id: " + buffer_dir_contents["id"] + " name: " + santize_string(buffer_dir_contents["name"], use="print"))
+    logger.debug(f"adding {url_type}: id: \"{buffer_dir_contents['id']}\" name: \"{santize_string(buffer_dir_contents['name'], use='print')}\"")
 
     tracks = buffer_dir_contents["tracks"]
     data = []
@@ -94,6 +116,7 @@ if playlist_url != "s" and playlist_url != "":
 
 
 # ensuring all songs are in songs.json
+logger.debug("updating songs.json accordingly")
 with open(PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
     playlists_json_dir_contents = json.load(f)
 with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
@@ -107,6 +130,7 @@ for i in playlists_json_dir_contents:
                     SONGS_DIR_contents[k["name"]] = {"status": "new", "artists": k["artists"]}
 
 # baking names of artists into a better format for data parsing
+logger.debug("preprocessing artist data")
 for i in SONGS_DIR_contents.keys():
     SONGS_DIR_contents[i]["baked_artists"] = " ".join([x.lower() for x in SONGS_DIR_contents[i]["artists"]])
 
@@ -120,9 +144,9 @@ if not WEAK_INTERNET:
     
     songs_to_download = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "new"]
     if songs_to_download != []:
-        print(f"downloading {len(songs_to_download)} missing songs")
+        logger.pretty_text(f"downloading {len(songs_to_download)} missing songs", "magenta")
     else:
-        print("lucky you: there's nothing to download!")
+        logger.pretty_text("lucky you: there's nothing to download!", "magenta")
 
     for i in range(len(songs_to_download)):
         
@@ -145,7 +169,7 @@ if not WEAK_INTERNET:
                     "preferredcodec": "wav",
                 }],
             }
-            print(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"")
+            logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
             folder_end = title+".wav"
@@ -154,7 +178,7 @@ if not WEAK_INTERNET:
             with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 else:
-    print("you have enabled the WEAK INTERNET the config, therefore the program won't download anything more.")
+    logger.pretty_text("you have enabled the WEAK INTERNET the config, therefore the program won't download anything more.", "magenta")
 
 #splitting tracks
 if not SKIP_SPLIT:
@@ -163,9 +187,9 @@ if not SKIP_SPLIT:
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
         skip = "no"
         if len(songs_to_split) == 0:
-            print("lucky you: there's no audio to split!")
+            logger.pretty_text("lucky you: there's no audio to split!", "magenta")
         else:
-            print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
+            logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta")
         
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
@@ -200,6 +224,7 @@ if not SKIP_SPLIT:
                 wav = wav / wav.abs().max()
                 wav = wav.unsqueeze(0)
                 #split
+                logger.pretty_text(f"splitting {track}", "magenta")
                 with torch.no_grad():
                     sources = apply_model(model, wav, device="cpu", progress=True)
                 #saving output
@@ -213,9 +238,8 @@ if not SKIP_SPLIT:
 
             # checking output and further steps
             if Path(STEMS_FOLDER / title).exists():
-                print()
-                print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
-                print("converting back to wavs for easier processing")
+                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}", "magenta")
+                logger.debug("converting back to wavs for easier processing")
 
                 # converting to wavs
                 failure = False
@@ -231,24 +255,24 @@ if not SKIP_SPLIT:
                 
                 if not failure: # check for faliure converting to wavs (very unlikely)
                     folder_end = title + ".wav"
-                    print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
+                    logger.debug(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
                     SONGS_DIR_contents[title]["status"] = "split"
                     with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                 else:
-                    print("something went wrong")
+                    logger.error("something went wrong with the conversion to .wavs")
             else:
-                print("did not split")
+                logger.error("split failed. the output was not found in expected dir.")
 
 
     if CURR_OS == "Linux":
         songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
         if len(songs_to_split) == 0:
-            print("lucky you: there's no audio to split!")
+            logger.pretty_text("lucky you: there's no audio to split!", "magenta")
         else:
-            print(f"splitting {len(songs_to_split)} tracks, this might take a while...")
+            logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta bold")
             for i in range(len(songs_to_split)):
                 title = songs_to_split[i]
                 folder_end = title + ".wav"
@@ -266,13 +290,11 @@ if not SKIP_SPLIT:
                 try:
                     run_demucs(cmd, DemucsLogger(), f"[{i+1}/{len(songs_to_split)}] seperating track: {title}")
                 except subprocess.CalledProcessError as e:
-                    print("RIP, there was an error")
-                    print("Exit code:", e.returncode)
+                    logger.error(f"RIP, there was an error\n  -> Exit code:{e.returncode}")
                 if Path(STEMS_FOLDER / "htdemucs_6s" / title).exists():
-                    print()
-                    print(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}")
+                    logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}", "magenta")
                     SONGS_DIR_contents[title]["status"] = "split"
-                    print("converting back to wavs for easier processing")
+                    logger.debug("converting back to wavs for easier processing")
 
                     # converting to wavs
                     failure = False
@@ -288,15 +310,15 @@ if not SKIP_SPLIT:
                     
                     if not failure: # check for faliure converting to wavs very unlikely
                         folder_end = title + ".wav"
-                        print(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
+                        logger.debug(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
                         Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                         # recording that
                         with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                     else:
-                        print("something went wrong")
+                        logger.error("something went wrong")
                 else:
-                    print("did not split")
+                    logger.error("did not split")
 
 
 
@@ -304,9 +326,9 @@ if not SKIP_SPLIT:
 songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
 
 if len(songs_to_analyse) == 0:
-    print("lucky you: there are no songs to analyse!")
+    logger.pretty_text("lucky you: there are no songs to analyse!", "magenta")
 else:
-    print(f"analysing {len(songs_to_analyse)} songs...")
+    logger.pretty_text(f"analysing {len(songs_to_analyse)} songs...", "magenta")
 
     analyser = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=70)
 
@@ -319,5 +341,5 @@ else:
         with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
             json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
-
+logger.debug("launching GUI script")
 main()

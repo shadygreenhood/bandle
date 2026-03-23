@@ -1,22 +1,49 @@
 import sys
 from pathlib import Path
+import os
+import pygame   # type:ignore
+# Logger
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+from rich.console import Console
+console = Console()
+class logger():
+    def debug(msg):
+        console.print(f"[DEBUG]: {msg}", style="blue")
+    def pretty_text(msg, style):
+        console.print(msg, style=style)
+    def warning(msg):
+        console.print(f"[WARNING]: {msg}", style="yellow")
+    def error(msg):
+        console.print(f"[ERROR]: {msg}", style="bold red")
+
+clear()
+logger.pretty_text("this should be pretty. . . ", "magenta italic bold")
+
+logger.pretty_text("╭-------------------------------------------------╮\n"\
+                   "|      ╭    ╭==╮  ╭==╮  ╭-.   .   ╭╮ ╮  ╭=-       |\n"\
+                   "|      |    |  |  ╞--╡  |  |  |   |╰╮|  |  ╮      |\n"\
+                   "|      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯   ╰ ╰╯  ╰=-╯      |\n"\
+                   "╰-------------------------------------------------╯", "magenta bold")
+
+
+
 # ╭----------------------------------------╮
 # |      ╭==╮  ╭==╮  ╭==╮  ╭  ╮  ╭==╮      |
 # |      ╞==╯  ╞--╡   ||   ╞--╡  ╰--╮      |
 # |      ╰     ╰  ╯   ╰╯   ╰  ╯  ╰==╯      |
 # ╰----------------------------------------╯
+logger.debug("Defining paths")
+
 if getattr(sys, 'frozen', False):
     # Running as EXE
-    print("running exe")
     PROJECT_DIR = Path(sys.executable).resolve().parent
     SCRIPT_DIR =            Path(sys._MEIPASS)
 else:
     # Running as script
-    print("running as script")
     PROJECT_DIR = Path(__file__).resolve().parent.parent
     SCRIPT_DIR =            PROJECT_DIR / "bandle"
-    
-print(f"porject_dir: {PROJECT_DIR} script_dir: {SCRIPT_DIR}")
 
 INTERPRETER_PATH =      sys.executable
 
@@ -29,16 +56,13 @@ SONGS_JSON_DIR =        PROJECT_DIR / "songs.json"
 BLACKLISTS_DIR =        PROJECT_DIR / "Blacklists.txt"
 CONFIG_DIR =            PROJECT_DIR / "config.txt"
 
-# adding ffmpeg to path for later
-import os
+logger.debug("Adding bundled ffmpeg to PATH")
 os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
+
+logger.debug("setting up SSL_CERT_FILE, ")
 import certifi
-# Point Python/requests to the bundled certs
 os.environ["SSL_CERT_FILE"] = certifi.where()
 
-
-import pygame   # type:ignore
-import platform
 
 
 
@@ -46,19 +70,24 @@ DEFAULT_CONFIG =        "SCALE=0.5\n"\
                         "WEAK_INTERNET=False\n"\
                         "SKIP_SPLIT=False\n"\
                         "FONT_DIR=\"font/NotoSansJP-Medium.ttf\""
-# creating potentially missing files
+
+logger.debug("creating potentially missing files")
 if not Path(SONGS_JSON_DIR).exists():
+    logger.debug(f"creating songs.json: {SONGS_JSON_DIR}")
     Path(SONGS_JSON_DIR).write_text("{}")
 if not Path(PLAYLIST_JSON_DIR).exists():
+    logger.debug(f"creating playlists.json: {PLAYLIST_JSON_DIR}")
     Path(PLAYLIST_JSON_DIR).write_text("{}")
 if not Path(CONFIG_DIR).exists():
+    logger.debug(f"creating config.txt: {CONFIG_DIR}")
     Path(CONFIG_DIR).write_text(DEFAULT_CONFIG)
 
+
 if not Path(STEMS_FOLDER).exists():
-    Path(STEMS_FOLDER).mkdir(exist_ok=True)
-if not Path(STEMS_FOLDER).exists():
+    logger.debug(f"creating STEMS_FOLDER: {STEMS_FOLDER}")
     Path(STEMS_FOLDER).mkdir(exist_ok=True)
 if not Path(RAW_TRACK_AUDIO_DIR).exists():
+    logger.debug(f"creating RAW_TRACK_AUDIO_DIR: {RAW_TRACK_AUDIO_DIR}")
     Path(RAW_TRACK_AUDIO_DIR).mkdir(exist_ok=True)
 
 
@@ -96,10 +125,26 @@ COLOR_PALETTE = {
 # |      ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯   ╰╯   ╰  ╯  ╰ ╰╯   ╰╯   ╰==╯      |
 # ╰-------------------------------------------------------------------------------------------------------------╯
 DISALLOWED_CHARS_IN_SANITIZED_TEXT = "<>:\"/\\|?*\x00-\x1F;" # important that no ";" are allowed
+logger.debug("identifying current OS")
+import platform
 CURR_OS = platform.system()
+logger.debug(f"current OS seems to  be {CURR_OS}")
 
-
-
+# help function for debugging
+def help(error=""):
+    print(f"There was an error while parsing the arguments: {argv[1:]}:")
+    print(str(error))
+    print("\n" \
+    "this script is the GUI for the shadygreenhood bandle project\n" \
+    "\n" \
+    "Usage: mixer2.py [option]=[value] [option2]=[value2] ... \n" \
+    "\n" \
+    "\n" \
+    "Options:\n" \
+    "--scale        final render scale of the window (0 to 1)\n" \
+    "\n" \
+    "\n")
+    raise Exception(str(error))
 
 
 # ╭---------------------------------------╮
@@ -118,16 +163,14 @@ with open(CONFIG_DIR, "r", encoding="utf-8") as f:
                     if not FONT_DIR.is_absolute():
                         FONT_DIR = SCRIPT_DIR / FONT_DIR
                 except:
-                    print(f"failed to extract font path in {CONFIG_DIR}")
+                    logger.error(f"failed to extract font path in {CONFIG_DIR}")
             else:
-                print(f"no path provided after FONT_DIR= in {CONFIG_DIR}")
+                logger.error(f"no path provided after FONT_DIR= in {CONFIG_DIR}")
 
 if not FONT_DIR.exists():
-    print(f"Warning: user-specified font not found at {FONT_DIR}, using internal font")
+    logger.warning(f"Warning: user-specified font not found at {FONT_DIR}, using internal font")
     FONT_DIR = SCRIPT_DIR / "font" / "NotoSansJP-Medium.ttf"
 
-print("font dir: ", FONT_DIR)
-print("font dir exists?: ", FONT_DIR.exists())
 pygame.font.init()
 
 
@@ -136,7 +179,7 @@ try:
     basic_font = pygame.font.Font(FONT_DIR, 30)
     title_font = pygame.font.Font(FONT_DIR, 60)
 except Exception as e:
-    print(f"did not load custom font :(\n{e}")
+    logger.error(f"did not load custom font :(\n{e}")
     small_font = pygame.font.SysFont('Comic Sans MS', 25)
     basic_font = pygame.font.SysFont('Comic Sans MS', 30)
     title_font = pygame.font.SysFont('Comic Sans MS', 80)
@@ -188,12 +231,12 @@ with open(PROJECT_DIR / "config.txt", "r") as f:
 
 # filtering possible OSes
 if CURR_OS == "Windows":
-    print("running windows script")
+    logger.debug("running windows script")
 else:
     if CURR_OS == "Linux":
-        print("running linux script")
+        logger.debug("running linux script")
     else:
-        print("os not recognised, defaulting to linux script")
+        logger.warning("os not recognised, defaulting to linux script")
         CURR_OS = "Linux"
 
 

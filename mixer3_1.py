@@ -1,19 +1,43 @@
 
 
 def main():
+    
+    
+    import constants as con
 
-    import pygame           # type: ignore
-    import math
-    import json
-
-    from random import shuffle
-    from sys import argv
-    from time import sleep, perf_counter
-    from pathlib import Path
+    con.logger.pretty_text("╭-------------------------------------------------╮\n"\
+                           "|      ╭    ╭==╮  ╭==╮  ╭-.   .   ╭╮ ╮  ╭=-       |\n"\
+                           "|      |    |  |  ╞--╡  |  |  |   |╰╮|  |  ╮      |\n"\
+                           "|      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯   ╰ ╰╯  ╰=-╯      |\n"\
+                           "╰-------------------------------------------------╯", "magenta bold")
+    con.logger.debug("loading custom scripts")
 
     import audio_helper as audio_helper
     from modules import Button, Toggle, Textinput, Warning
-    import constants as con
+    
+
+    con.logger.debug("loading pygame")
+    import pygame           # type: ignore
+    con.logger.debug("loading math")
+    import math
+    con.logger.debug("loading json")
+    import json
+
+    con.logger.debug("loading shuffle (random)")
+    from random import shuffle
+    con.logger.debug("loading argv (sys)")
+    from sys import argv
+    from time import sleep, perf_counter
+    con.logger.debug("loading Path (pathlib)")
+    from pathlib import Path
+
+    con.clear()
+    con.logger.pretty_text("╭-----------------------------------------------------------------------------------------╮\n"\
+                           "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       ╭=-╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮  ╭    ╭=-      |\n"\
+                           "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-       |\n"\
+                           "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-      |\n"\
+                           "╰-----------------------------------------------------------------------------------------╯", "magenta bold")
+
 
 
     global curr_blacklist
@@ -27,21 +51,7 @@ def main():
     k_up, k_down = 0, 0
 
 
-    # help function for debugging
-    def help(error=""):
-        print(f"There was an error while parsing the arguments: {argv[1:]}:")
-        print(str(error))
-        print("\n" \
-        "this script is the GUI for the shadygreenhood bandle project\n" \
-        "\n" \
-        "Usage: mixer2.py [option]=[value] [option2]=[value2] ... \n" \
-        "\n" \
-        "\n" \
-        "Options:\n" \
-        "--scale        final render scale of the window (0 to 1)\n" \
-        "\n" \
-        "\n")
-        raise Exception(str(error))
+
 
     # creating potentially missing files
     if not Path(con.BLACKLISTS_DIR).exists():
@@ -59,7 +69,7 @@ def main():
                 blacklists.append([j for j in i.split("=")[1].split(";")])
                 blacklist_names.append(i.split("=")[0])
             except:
-                help(f"failed to extract contents of {i} in Blacklists.txt")
+                con.help(f"failed to extract contents of {i} in Blacklists.txt")
             if blacklists[-1][-1] == "":
                 blacklists[-1].pop(-1)
     if blacklists == []:
@@ -78,9 +88,9 @@ def main():
                     try:
                         con.CF_SCALE = float(i.split("=")[1])
                     except:
-                        help("failed to convert " + str(i.split("=")[1]) + "to a float" )
+                        con.help("failed to convert " + str(i.split("=")[1]) + "to a float" )
                 else:
-                    help(f"no scale provided in {con.CONFIG_DIR} after SCALE=")
+                    con.help(f"no scale provided in {con.CONFIG_DIR} after SCALE=")
             if "TARGET_FPS" in i:
                 if len(i.split("=")) > 0:
                     try:
@@ -88,19 +98,19 @@ def main():
                     except:
                         help(f"failed to convert" + str(i.split("=")[1]) + "to a float")
                 else:
-                    help(f"no target fps provided in {con.CONFIG_DIR} after con.TARGET_FPS=")
+                    con.help(f"no target fps provided in {con.CONFIG_DIR} after con.TARGET_FPS=")
             if "DEFAULT_BLACKLIST" in i:
                 if len(i.split("=")) > 0:
                     curr_blacklist = str(i.split("=")[1])
                     if curr_blacklist in blacklist_names:
                         curr_blacklist = blacklist_names.index(curr_blacklist)
                     else:
-                        help(f"default blacklist is set to an unknown value in {con.CONFIG_DIR}")
+                        con.help(f"default blacklist is set to an unknown value in {con.CONFIG_DIR}")
                 else:
-                    help(f"no blacklist provided after DEFAULT_BLACKLIST= in {con.BLACKLISTS_DIR}")
+                    con.help(f"no blacklist provided after DEFAULT_BLACKLIST= in {con.BLACKLISTS_DIR}")
 
     if curr_blacklist == -1:
-        print("no default blacklist found in config.txt defaulting to the first")
+        con.logger.debug("no default blacklist found in config.txt defaulting to the first")
         curr_blacklist = 0
 
     # deal with flags
@@ -110,9 +120,9 @@ def main():
             if len(i.split("=", 1)) > 0:
                 con.CF_SCALE = float(i.split("=", 1)[1])
             else:
-                help("no scale provided")
+                con.help("no scale provided")
         else:
-            raise help("argument not recognized")
+            con.help("argument not recognized")
         
 
 
@@ -1579,7 +1589,7 @@ def main():
     curr_screen = "setup"
     warnings = []
 
-
+    con.logger.pretty_text("opening Graphical Interface, a window should pop up right about now...", "magenta")
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
