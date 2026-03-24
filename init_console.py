@@ -3,6 +3,23 @@ from rich.live import Live
 from rich.console import Console
 from rich.text import Text
 
+from sys import argv
+# help function for debugging
+def help(error=""):
+    print(f"There was an error while parsing the arguments: {argv[1:]}:")
+    print(str(error))
+    print("\n" \
+    "this script is the GUI for the shadygreenhood bandle project\n" \
+    "\n" \
+    "Usage: mixer2.py [option]=[value] [option2]=[value2] ... \n" \
+    "\n" \
+    "\n" \
+    "Options:\n" \
+    "--scale        final render scale of the window (0 to 1)\n" \
+    "\n" \
+    "\n")
+    raise Exception(str(error))
+
 
 def clear():
     os.system("cls" if os.name == "nt" else "clear")

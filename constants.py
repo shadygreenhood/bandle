@@ -54,8 +54,6 @@ if getattr(sys, 'frozen', False):
     os.environ["SSL_CERT_FILE"] = certifi.where()
 
 
-
-
 DEFAULT_CONFIG =        "SCALE=0.5\n"\
                         "WEAK_INTERNET=False\n"\
                         "SKIP_SPLIT=False\n"\
@@ -119,22 +117,6 @@ logger.debug("identifying current OS")
 import platform
 CURR_OS = platform.system()
 logger.debug(f"current OS seems to  be {CURR_OS}")
-
-# help function for debugging
-def help(error=""):
-    print(f"There was an error while parsing the arguments: {argv[1:]}:")
-    print(str(error))
-    print("\n" \
-    "this script is the GUI for the shadygreenhood bandle project\n" \
-    "\n" \
-    "Usage: mixer2.py [option]=[value] [option2]=[value2] ... \n" \
-    "\n" \
-    "\n" \
-    "Options:\n" \
-    "--scale        final render scale of the window (0 to 1)\n" \
-    "\n" \
-    "\n")
-    raise Exception(str(error))
 
 
 # ╭---------------------------------------╮
@@ -300,4 +282,23 @@ def run_demucs(cmd, local_logger, txt):
         if process.returncode != 0:
             local_logger.error(f"Demucs exited with code {process.returncode}")
             raise subprocess.CalledProcessError(process.returncode, cmd)
-    
+
+from io import StringIO
+import re
+progress_pattern = re.compile(r"(\d+)%")  # capture percentage from tqdm-like output
+
+class ProgressCapture(StringIO):
+                    """Capture stderr and extract progress percentage"""
+                    def __init__(self, live):
+                        super().__init__()
+                        self.last_percent = 0
+                        self.live = live
+                    def write(self, s):
+                        super().write(s)
+                        match = progress_pattern.search(s)
+                        if match:
+                            percent = int(match.group(1))
+                            if percent != self.last_percent:
+                                # print your custom bar
+                                self.live.update(pacman_bar(percent, 50, 100))
+                                self.last_percent = percent
