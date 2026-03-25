@@ -5,7 +5,7 @@ import pygame   # type:ignore
 
 
 # Logger
-from init_console import *
+from loggers_init import *
 
 clear()
 logger.pretty_text("this should be pretty. . . ", "magenta italic bold")
@@ -210,95 +210,3 @@ else:
     else:
         logger.warning("os not recognised, defaulting to linux script")
         CURR_OS = "Linux"
-
-
-# ╭---------------------------------------------------------------------------------╮
-# |      ╭╮╭╮  .  ╭==╮  ╭=-╮  ╭=-  ╭    ╭    ╭==╮  ╭╮ ╮  ╭=-  ╭==╮  ╭  ╮  ╭==╮      |
-# |      |╰╯|  |  ╰--╮  |     ╞-   |    |    ╞--╡  |╰╮|  ╞-   |  |  |  |  ╰--╮      |
-# |      ╰  ╯  ╯  ╰==╯  ╰=-╯  ╰=-  ╰-╯  ╰-╯  ╰  ╯  ╰ ╰╯  ╰=-  ╰==╯  ╰==╯  ╰==╯      |
-# ╰---------------------------------------------------------------------------------╯
-
-# for downloading songs
-class YTDLPLogger:
-        def debug(self, msg):
-            pass
-
-        def warning(self, msg):
-            pass
-
-        def error(self, msg):
-            print(f"[ERROR] {msg}")
-
-def duration_filter(info, *, incomplete):
-    duration = info.get("duration")
-    
-    if duration is None:
-        return None  # allow if unknown
-    
-    if duration > 600:
-        return "Video longer than 10 minutes"
-    
-    return None
-
-# for splitting audio
-class DemucsLogger:
-        def warning(self, msg):
-            logger.warning(f"[DEMUCS] [WARNING] {msg}")
-
-        def error(self, msg):
-            logger.error(f"[DEMUCS] [ERROR] {msg}")
-
-
-import subprocess
-def run_demucs(cmd, local_logger, txt):
-    with Live("", refresh_per_second=10) as live:
-
-        
-
-        logger.pretty_text(txt, "magenta")
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
-        for line in process.stdout:
-            line = line.strip()
-
-            # Basic routing logic
-            if "error" in line.lower():
-                local_logger.error(line)
-            elif "warning" in line.lower():
-                local_logger.warning(line)
-            else:
-                if "%" in line:
-                    a = int(float(line.split("|")[2][1:].split(" ")[0].split("/")[0]))
-                    b = int(float(line.split("|")[2][1:].split(" ")[0].split("/")[1]))
-                    c = 100
-                    live.update(pacman_bar(a, c, b))
-
-        process.wait()
-
-        if process.returncode != 0:
-            local_logger.error(f"Demucs exited with code {process.returncode}")
-            raise subprocess.CalledProcessError(process.returncode, cmd)
-
-from io import StringIO
-import re
-progress_pattern = re.compile(r"(\d+)%")  # capture percentage from tqdm-like output
-
-class ProgressCapture(StringIO):
-                    """Capture stderr and extract progress percentage"""
-                    def __init__(self, live):
-                        super().__init__()
-                        self.last_percent = 0
-                        self.live = live
-                    def write(self, s):
-                        super().write(s)
-                        match = progress_pattern.search(s)
-                        if match:
-                            percent = int(match.group(1))
-                            if percent != self.last_percent:
-                                # print your custom bar
-                                self.live.update(pacman_bar(percent, 50, 100))
-                                self.last_percent = percent

@@ -6,7 +6,10 @@ from pathlib import Path
 
 COMMANDS = [
     "help",
-    "playlist-cli"
+    "add_playlist",
+    "download_songs",
+    "split_songs",
+    "analyse_songs"
 ]
 
 def help(args):

@@ -1,10 +1,12 @@
 from constants import *
 
+
 import audio_helper
 
 import json
 import hashlib
 import os
+import requests
 
 import subprocess
 from pathlib import Path
@@ -22,6 +24,12 @@ from  spotify_scraper import SpotifyClient  # type: ignore
 logger.debug("loading torch")
 import torch                                # type: ignore
 
+
+# ╭-----------------------------------------------------------------------------------------╮
+# |      ╭==╮  ╭==╮  ╭╮ ╮  .  ╭==╮  .  ╭==╮  ╭=-       ╭==╮  ╭==╮  ╭==╮  .  ╭╮ ╮  ╭==╮      |
+# |      ╰--╮  ╞--╡  |╰╮|  |   ||   |   .'   ╞-        ╰--╮   ||   ╞=:╯  |  |╰╮|  |  ╮      |
+# |      ╰==╯  ╰  ╯  ╰ ╰╯  ╯   ╰╯   ╯  ╰==╯  ╰=-       ╰==╯   ╰╯   ╰  ╰  ╯  ╰ ╰╯  ╰==╯      |
+# ╰-----------------------------------------------------------------------------------------╯
 def santize_string(str, use="", data=""):
     new_str = ""
     for i in str:
@@ -46,12 +54,34 @@ def santize_string(str, use="", data=""):
     return new_str
 
 
-
-
+# ╭---------------------------------------------------------------------------╮
+# |      ╭==╮  ╭-.   ╭-.        ╭==╮  ╭    ╭==╮  ╮ ╭  ╭    .  ╭==╮  ╭==╮      |
+# |      ╞--╡  |  |  |  |       ╞==╯  |    ╞--╡  ╰╮╯  |    |  ╰--╮   ||       |
+# |      ╰  ╯  ╰='   ╰='        ╰     ╰-╯  ╰  ╯   ╯   ╰-╯  ╯  ╰==╯   ╰╯       |
+# ╰---------------------------------------------------------------------------╯
 def add_playlist():
-
     logger.pretty_text("\n    > paste the spotify url you want to add (s for skip):\n", style="magenta")
     playlist_url = input("")
+
+    if "?" in playlist_url:
+        playlist_url = playlist_url.split("?")[0]
+
+
+    # check if link works.
+    try:
+        # Use HEAD for efficiency or GET if content validation is needed
+        response = requests.head(playlist_url, timeout=5, allow_redirects=True)
+        
+        # Status codes < 400 generally indicate success
+        if response.status_code < 400:
+            logger.debug("playlist seems to be available")
+        else:
+            logger.error("playlist seems to be unavailable, are you sure this is a public playlist?")
+            return "error"
+    except requests.exceptions.RequestException as e:
+        logger.error(f"playlist seems to be unavailable, and failed with this error code: \n{e}\n\n Are you sure you made the playlist public?")
+        return "error"
+
 
     # adding playlist to playlists.json
     if playlist_url != "s" and playlist_url != "":
@@ -128,8 +158,14 @@ def add_playlist():
         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
 
 
-def download_songs():
+# ╭--------------------------------------------------------------------------------------------╮
+# |      ╭-.   ╭==╮  ╭  ╮  ╭╮ ╮  ╭    ╭==╮  ╭==╮  ╭-.        ╭==╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮      |
+# |      |  |  |  |  |╭╮|  |╰╮|  |    |  |  ╞--╡  |  |       ╰--╮  |  |  |╰╮|  |  ╮  ╰--╮      |
+# |      ╰='   ╰==╯  ╰╯╰╯  ╰ ╰╯  ╰-╯  ╰==╯  ╰  ╯  ╰='        ╰==╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯      |
+# ╰--------------------------------------------------------------------------------------------╯
 
+
+def download_songs():
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
 
@@ -185,8 +221,12 @@ def download_songs():
 
 
 
-
-#splitting tracks
+# ╭-----------------------------------------------------------------------------╮
+# |      ╭==╮  ╭==╮  ╭    .  ╭==╮       ╭==╮  ╭==╮  ╭==╮  ╭=-╮  ╭  ╭  ╭==╮      |
+# |      ╰--╮  ╞==╯  |    |   ||         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
+# |      ╰==╯  ╰     ╰-╯  ╯   ╰╯         ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
+# ╰-----------------------------------------------------------------------------╯
+from rich.live import Live
 def split_tracks():
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
@@ -257,6 +297,11 @@ def split_tracks():
             else:
                 logger.error("did not split")
 
+# ╭------------------------------------------------------------------------------------------╮
+# |      ╭==╮  ╭╮ ╮  ╭==╮  ╭    ╮ ╭  ╭==╮  ╭=-       ╭==╮  ╭==╮  ╭==╮  ╭=-╮  ╭  ╭  ╭==╮      |
+# |      ╞--╡  |╰╮|  ╞--╡  |    ╰╮╯  ╰--╮  ╞-         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
+# |      ╰  ╯  ╰ ╰╯  ╰  ╯  ╰-╯   ╯   ╰==╯  ╰=-        ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
+# ╰------------------------------------------------------------------------------------------╯
 def analyse_tracks():
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
             SONGS_DIR_contents = json.load(f)
