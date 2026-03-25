@@ -197,65 +197,46 @@ else:
 #splitting tracks
 if not SKIP_SPLIT:
 
-    if CURR_OS == "Windows":
-        songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
-        skip = "no"
-        if len(songs_to_split) == 0:
-            logger.pretty_text("lucky you: there's no audio to split!", "magenta")
-        else:
-            logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta")
-        
+    songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
+    if len(songs_to_split) == 0:
+        logger.pretty_text("lucky you: there's no audio to split!", "magenta")
+    else:
+        logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta bold")
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
             folder_end = title + ".wav"
-            if skip in  ["no", "s", "c"]:  # for prompting if ovewriting something (no = frist time, s = skip once, c = continue once)
-                if Path(STEMS_FOLDER / title).exists():
-                    logger.pretty_text("it seems this file already has an output \
-                                        directory, do you still want to process it \
-                                        (if files are overwritten you will be \
-                                       individually warned, dont worry)", "magenta bold")
-                    while True:
-                        skip = input("[s]kip, [c]ontinue anyways, skip [a]ll...")
-                        if skip in ["s", "c", "a"]:
-                            break
-                        else:
-                            print("invalid input")
-                else:
-                    skip = "c"
+            logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] splitting track: \"{title[:-9]}\"", "magenta")
 
-            # skipping
-            if skip in ["a", "s"]:
-                print("skipping: " + title)
-                pass
+            # loading song and model
+            wav, sr = sf.read(RAW_TRACK_AUDIO_DIR / folder_end)
+            wav = torch.tensor(wav, dtype=torch.float32).T
+            if wav.shape[0] == 1:
+                wav = wav.repeat(2, 1)
+            wav = wav / wav.abs().max()
+            wav = wav.unsqueeze(0)
+            model = get_model("htdemucs_6s")
+            model.cpu()
 
-            # not skipping
-            elif skip in  ["c"]:
-
-                #prep
-                model = get_model("htdemucs_6s")
-                model.cpu()
-                input_file = str(RAW_TRACK_AUDIO_DIR / folder_end)
-                wav, sr = torchaudio.load(input_file)
-                if wav.shape[0] == 1:
-                    wav = wav.repeat(2, 1)
-                wav = wav / wav.abs().max()
-                wav = wav.unsqueeze(0)
-                #split
-                logger.pretty_text(f"splitting {title}", "magenta")
+            # run seperation with process hook
+            with Live("", refresh_per_second=10) as live:
+                progress_capture = ProgressCapture(live)
                 with torch.no_grad():
-                    sources = apply_model(model, wav, device="cpu", progress=True)
-                #saving output
-                sources = sources[0]
-                stems = model.sources
-                output_dir = STEMS_FOLDER / title
-                os.makedirs(output_dir, exist_ok=True)
-                for i, stem in enumerate(stems):
-                    output_path = os.path.join(output_dir, f"{stem}.wav")
-                    sf.write(output_path, sources[i].T.cpu().numpy(), sr)
+                    # redirect Demucs tqdm output (stderr) to our capture
+                    import contextlib
+                    with contextlib.redirect_stderr(progress_capture):
+                        sources = apply_model(model, wav, device="cpu", progress=True)
+            sources = sources[0]
 
-            # checking output and further steps
+            # save output
+            os.makedirs(STEMS_FOLDER / title, exist_ok=True)
+            for j, stem in enumerate(model.sources):
+                out_path = os.path.join(STEMS_FOLDER / title, f"{stem}.wav")
+                sf.write(out_path, sources[j].T.numpy(), sr)
+
+            # check if files are actually here before proceding
             if Path(STEMS_FOLDER / title).exists():
-                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title}", "magenta")
+                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title[:-9]}", "magenta")
+                SONGS_DIR_contents[title]["status"] = "split"
                 logger.debug("converting back to wavs for easier processing")
 
                 # converting to wavs
@@ -270,86 +251,17 @@ if not SKIP_SPLIT:
                     else:
                         failure = True
                 
-                if not failure: # check for faliure converting to wavs (very unlikely)
+                if not failure: # check for faliure converting to wavs very unlikely
                     folder_end = title + ".wav"
-                    logger.debug(f"removing now useless audio: {RAW_TRACK_AUDIO_DIR / folder_end}")
+                    logger.debug(f"removing now useless audio: \"{RAW_TRACK_AUDIO_DIR / folder_end}\"")
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
-                    SONGS_DIR_contents[title]["status"] = "split"
                     with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
                 else:
-                    logger.error("something went wrong with the conversion to .wavs")
+                    logger.error("something went wrong")
             else:
-                logger.error("split failed. the output was not found in expected dir.")
-
-
-    if CURR_OS == "Linux":
-        songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
-        if len(songs_to_split) == 0:
-            logger.pretty_text("lucky you: there's no audio to split!", "magenta")
-        else:
-            logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta bold")
-            for i in range(len(songs_to_split)):
-                title = songs_to_split[i]
-                folder_end = title + ".wav"
-                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] splitting track: \"{title[:-9]}\"", "magenta")
-
-                # loading song and model
-                wav, sr = sf.read(RAW_TRACK_AUDIO_DIR / folder_end)
-                wav = torch.tensor(wav, dtype=torch.float32).T
-                if wav.shape[0] == 1:
-                    wav = wav.repeat(2, 1)
-                wav = wav / wav.abs().max()
-                wav = wav.unsqueeze(0)
-                model = get_model("htdemucs_6s")
-                model.cpu()
-
-                # run seperation with process hook
-                with Live("", refresh_per_second=10) as live:
-                    progress_capture = ProgressCapture(live)
-                    with torch.no_grad():
-                        # redirect Demucs tqdm output (stderr) to our capture
-                        import contextlib
-                        with contextlib.redirect_stderr(progress_capture):
-                            sources = apply_model(model, wav, device="cpu", progress=True)
-                sources = sources[0]
-
-                # save output
-                os.makedirs(STEMS_FOLDER / title, exist_ok=True)
-                for j, stem in enumerate(model.sources):
-                    out_path = os.path.join(STEMS_FOLDER / title, f"{stem}.wav")
-                    sf.write(out_path, sources[j].T.numpy(), sr)
-
-                # check if files are actually here before proceding
-                if Path(STEMS_FOLDER / title).exists():
-                    logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title[:-9]}", "magenta")
-                    SONGS_DIR_contents[title]["status"] = "split"
-                    logger.debug("converting back to wavs for easier processing")
-
-                    # converting to wavs
-                    failure = False
-                    for mp3_file in Path(STEMS_FOLDER / title).rglob("*.mp3"):
-                        wav_file = mp3_file.with_suffix(".wav")
-                        result = subprocess.run(
-                            ["ffmpeg", "-loglevel", "error", "-i", str(mp3_file), str(wav_file)]
-                        )
-                        if result.returncode == 0:
-                            mp3_file.unlink()  # delete original
-                        else:
-                            failure = True
-                    
-                    if not failure: # check for faliure converting to wavs very unlikely
-                        folder_end = title + ".wav"
-                        logger.debug(f"removing now useless audio: \"{RAW_TRACK_AUDIO_DIR / folder_end}\"")
-                        Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
-                        # recording that
-                        with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
-                            json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
-                    else:
-                        logger.error("something went wrong")
-                else:
-                    logger.error("did not split")
+                logger.error("did not split")
 
 
 
