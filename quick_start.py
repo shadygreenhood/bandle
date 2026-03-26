@@ -17,25 +17,24 @@ logger.pretty_text("╭---------------------------------------------------------
 
 if not scr.add_playlist() == "error":
 
-
-    #dowloading missing songs
-    if not WEAK_INTERNET:
-        with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
+    with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
             SONGS_DIR_contents = json.load(f)
-        songs_to_download = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "new"]
-        
-        scr.download_songs(songs_to_download)
-    else:
-        logger.pretty_text("you have enabled WEAK INTERNET in the config, therefore the program won't download anything more.", "magenta")
+
+    for song in list(SONGS_DIR_contents.keys()):
+        logger.pretty_text(f"dealing with [bold]{song[:-9]}[/bold]", "magenta")
+        if SONGS_DIR_contents[song]["status"] == "new" and not WEAK_INTERNET:
+            logger.pretty_text(f"downloading {song[:-9]}", "green italic")
+            scr.download_songs([song], True)
+        if SONGS_DIR_contents[song]["status"] == "downloaded" and not SKIP_SPLIT:
+            logger.pretty_text(f"splitting {song[:-9]}", "green italic")
+            scr.split_tracks([song], True)
+        if SONGS_DIR_contents[song]["status"] == "split":
+            logger.pretty_text(f"analysing {song[:-9]}", "green italic")
+            scr.analyse_tracks([song], True)
 
 
-    if not SKIP_SPLIT:
-        scr.split_tracks()
-    else:
-        logger.pretty_text("you have enabled the SKIP_SPLIT in the config, therefore the program won't split tracks.", "magenta")
 
 
-    scr.analyse_tracks()
 
 
     logger.debug("launching GUI script")

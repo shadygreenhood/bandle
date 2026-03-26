@@ -170,15 +170,17 @@ def add_playlist():
 # ╰--------------------------------------------------------------------------------------------╯
 
 
-def download_songs(songs_to_download):
+def download_songs(songs_to_download, silent=False):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
 
     
     if songs_to_download != []:
-        logger.pretty_text(f"downloading {len(songs_to_download)} missing songs", "magenta")
+        if not silent:
+            logger.pretty_text(f"downloading {len(songs_to_download)} missing songs", "magenta")
     else:
-        logger.pretty_text("lucky you: there's nothing to download!", "magenta")
+        if not silent:
+            logger.pretty_text("lucky you: there's nothing to download!", "magenta")
 
     for i in range(len(songs_to_download)):
         
@@ -215,7 +217,10 @@ def download_songs(songs_to_download):
                         "preferredcodec": "wav",
                     }],
                 }
-            logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
+            if not silent: 
+                logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
+            else:
+                logger.pretty_text(f"dowloading from query: \"{query}\"", "magenta")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f"ytsearch1:{query}"])
             folder_end = title+".wav"
@@ -232,19 +237,21 @@ def download_songs(songs_to_download):
 # |      ╰==╯  ╰     ╰-╯  ╯   ╰╯         ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
 # ╰-----------------------------------------------------------------------------╯
 from rich.live import Live
-def split_tracks():
+def split_tracks(songs_to_split, silent=False):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
-
-    songs_to_split = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "downloaded"]
+ 
     if len(songs_to_split) == 0:
-        logger.pretty_text("lucky you: there's no audio to split!", "magenta")
+        if not silent:
+            logger.pretty_text("lucky you: there's no audio to split!", "magenta")
     else:
-        logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta bold")
+        if not silent:
+            logger.pretty_text(f"splitting {len(songs_to_split)} tracks, this might take a while...", "magenta bold")
         for i in range(len(songs_to_split)):
             title = songs_to_split[i]
             folder_end = title + ".wav"
-            logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] splitting track: \"{title[:-9]}\"", "magenta")
+            if not silent:
+                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] splitting track: \"{title[:-9]}\"", "magenta")
 
             # loading song and model
             wav, sr = sf.read(RAW_TRACK_AUDIO_DIR / folder_end)
@@ -274,7 +281,10 @@ def split_tracks():
 
             # check if files are actually here before proceding
             if Path(STEMS_FOLDER / title).exists():
-                logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title[:-9]}", "magenta")
+                if not silent:
+                    logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title[:-9]}", "magenta")
+                else:
+                    logger.debug(f"successfully split the track: {title[:-9]}")
                 SONGS_DIR_contents[title]["status"] = "split"
                 logger.debug("converting back to wavs for easier processing")
 
@@ -307,17 +317,16 @@ def split_tracks():
 # |      ╞--╡  |╰╮|  ╞--╡  |    ╰╮╯  ╰--╮  ╞-         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
 # |      ╰  ╯  ╰ ╰╯  ╰  ╯  ╰-╯   ╯   ╰==╯  ╰=-        ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
 # ╰------------------------------------------------------------------------------------------╯
-def analyse_tracks():
+def analyse_tracks(songs_to_analyse, silent=False):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
             SONGS_DIR_contents = json.load(f)
 
-    # analysing audio to detect stem presence
-    songs_to_analyse = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] in ["split"]]
-
     if len(songs_to_analyse) == 0:
-        logger.pretty_text("lucky you: there are no songs to analyse!", "magenta")
+        if not silent:
+            logger.pretty_text("lucky you: there are no songs to analyse!", "magenta")
     else:
-        logger.pretty_text(f"analysing {len(songs_to_analyse)} songs...", "magenta")
+        if not silent:
+            logger.pretty_text(f"analysing {len(songs_to_analyse)} songs...", "magenta")
 
         analyser = audio_helper.Player_obj(STEMS, STEMS_FOLDER, volume=70)
 
@@ -326,6 +335,7 @@ def analyse_tracks():
             compressed_diag = analyser.analysing_pipeline()
             SONGS_DIR_contents[i]["baked_diagnosis"] = compressed_diag
             SONGS_DIR_contents[i]["status"] = "analysed"
-            print(f"[{songs_to_analyse.index(i)}/{len(songs_to_analyse)}] analysed {i}")
+            if not silent:
+                logger.pretty_text(f"[{songs_to_analyse.index(i) + 1}/{len(songs_to_analyse)}] analysed {i}", "magenta")
             with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
