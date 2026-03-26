@@ -65,28 +65,31 @@ def add_playlist():
     logger.pretty_text("\n    > paste the spotify url you want to add (s for skip):\n", style="magenta")
     playlist_url = input("")
 
-    if "?" in playlist_url:
-        playlist_url = playlist_url.split("?")[0]
-
-
-    # check if link works.
-    try:
-        # Use HEAD for efficiency or GET if content validation is needed
-        response = requests.head(playlist_url, timeout=5, allow_redirects=True)
-        
-        # Status codes < 400 generally indicate success
-        if response.status_code < 400:
-            logger.debug("playlist seems to be available")
-        else:
-            logger.error("playlist seems to be unavailable, are you sure this is a public playlist?")
-            return "error"
-    except requests.exceptions.RequestException as e:
-        logger.error(f"playlist seems to be unavailable, and failed with this error code: \n{e}\n\n Are you sure you made the playlist public?")
-        return "error"
-
 
     # adding playlist to playlists.json
     if playlist_url != "s" and playlist_url != "":
+
+
+
+        if "?" in playlist_url:
+            playlist_url = playlist_url.split("?")[0]
+
+        # check if link works.
+        try:
+            # Use HEAD for efficiency or GET if content validation is needed
+            response = requests.head(playlist_url, timeout=5, allow_redirects=True)
+            
+            # Status codes < 400 generally indicate success
+            if response.status_code < 400:
+                logger.debug("playlist seems to be available")
+            else:
+                logger.error("playlist seems to be unavailable, are you sure this is a public playlist?")
+                return "error"
+        except requests.exceptions.RequestException as e:
+            logger.error(f"playlist seems to be unavailable, and failed with this error code: \n{e}\n\n Are you sure you made the playlist public?")
+            return "error"
+
+
         logger.debug(f"adding {playlist_url} to playlists.json")
 
         url_type =  "album" if "album" in playlist_url else "playlist" if "playlist" in playlist_url else "unknown"
