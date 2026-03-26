@@ -6,11 +6,13 @@ import audio_helper
 import json
 import hashlib
 import os
-import requests
+            
 
 import subprocess
 from pathlib import Path
 
+logger.debug("loading requests")
+import requests                             # type: ignore
 logger.debug("loading get_model (demucs)")
 from demucs.pretrained import get_model     # type: ignore
 logger.debug("loading apply_model (demucs)")
@@ -165,11 +167,11 @@ def add_playlist():
 # ╰--------------------------------------------------------------------------------------------╯
 
 
-def download_songs():
+def download_songs(songs_to_download):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
 
-    songs_to_download = [i for i in SONGS_DIR_contents.keys() if SONGS_DIR_contents[i]["status"] == "new"]
+    
     if songs_to_download != []:
         logger.pretty_text(f"downloading {len(songs_to_download)} missing songs", "magenta")
     else:
