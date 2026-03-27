@@ -10,7 +10,7 @@ from rich.text import Text
 # |      ╰  ╯  ╰=-  ╰-╯  ╰          |
 # ╰---------------------------------╯
 def help(error=""):
-    print(f"There was an error while parsing the arguments: {argv[1:]}:")
+    print(f"")
     print(str(error))
     print("\n" \
     "this script is the GUI for the shadygreenhood bandle project\n" \

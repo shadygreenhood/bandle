@@ -2,9 +2,7 @@ import pygame
 import math
 
 from pathlib import Path
-
 import constants as con
-
 
 class Button:
     def __init__(self, x, y, w, h, color, text, radius=-1, click_counter=0, info=""):

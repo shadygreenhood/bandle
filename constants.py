@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 import os
 import pygame   # type:ignore
-
+import certifi
 
 # Logger
 from loggers_init import *
@@ -10,11 +10,11 @@ from loggers_init import *
 clear()
 logger.pretty_text("this should be pretty. . . ", "magenta italic bold")
 
-logger.pretty_text("╭-------------------------------------------------╮\n"\
-                   "|      ╭    ╭==╮  ╭==╮  ╭-.   .   ╭╮ ╮  ╭=-       |\n"\
-                   "|      |    |  |  ╞--╡  |  |  |   |╰╮|  |  ╮      |\n"\
-                   "|      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯   ╰ ╰╯  ╰=-╯      |\n"\
-                   "╰-------------------------------------------------╯", "magenta bold")
+logger.pretty_text("╭--------------------------------------------------------------------------------╮\n" \
+                   "|      ╭    ╭==╮  ╭==╮  ╭-.   .   ╭╮ ╮  ╭=-       c  o  n  s  t  a  n  t  s      |\n" \
+                   "|      |    |  |  ╞--╡  |  |  |   |╰╮|  |  ╮      c  o  n  s  t  a  n  t  s      |\n" \
+                   "|      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯   ╰ ╰╯  ╰=-╯      c  o  n  s  t  a  n  t  s      |\n" \
+                   "╰--------------------------------------------------------------------------------╯", "magenta bold")
 
 
 
@@ -50,7 +50,7 @@ if getattr(sys, 'frozen', False):
     os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ["PATH"]
 
     logger.debug("setting up SSL_CERT_FILE, ")
-    import certifi
+
     os.environ["SSL_CERT_FILE"] = certifi.where()
 
 
@@ -145,7 +145,6 @@ if not FONT_DIR.exists():
 
 pygame.font.init()
 
-
 try:
     small_font = pygame.font.Font(FONT_DIR, 25)
     basic_font = pygame.font.Font(FONT_DIR, 30)
@@ -168,6 +167,33 @@ GLOBAL_SUGGESTIONS = True
 TARGET_FPS = 60
 WEAK_INTERNET = False
 SKIP_SPLIT = False
+curr_blacklist = -1
+
+# creating potentially missing files
+if not Path(BLACKLISTS_DIR).exists():
+    Path(BLACKLISTS_DIR).write_text("")
+
+# read Blacklists.txt
+global BLACKLISTS_NAMES
+BLACKLISTS_NAMES = []
+with open(BLACKLISTS_DIR, "r", encoding="utf-8") as f:
+    txt = f.read().splitlines()
+    BLACKLISTS = []
+    for i in txt:
+        try:
+            BLACKLISTS.append([j for j in i.split("=")[1].split(";")])
+            BLACKLISTS_NAMES.append(i.split("=")[0])
+        except:
+            help(f"failed to extract contents of {i} in Blacklists.txt")
+        if BLACKLISTS[-1][-1] == "":
+            BLACKLISTS[-1].pop(-1)
+if BLACKLISTS == []:
+    print("no blacklists found in Blacklist.txt, creating a new one")
+    with open(BLACKLISTS_DIR, "w", encoding="utf-8") as f:
+        f.write("DEFAULT=")
+    BLACKLISTS = [[""]]
+    BLACKLISTS_NAMES = ["DEFAULT"]
+
 
 
 #overriding constants with config
@@ -176,7 +202,7 @@ with open(PROJECT_DIR / "config.txt", "r") as f:
     for i in txt:
         if "SCALE" in i:
             if len(i.split("=")) > 0:
-                CF_SCALE = i.split("=")[1]
+                CF_SCALE = float(i.split("=")[1])
             else:
                 help(f"no scale provided in {CONFIG_DIR}")
         if "CURR_OS" in i:
@@ -200,6 +226,27 @@ with open(PROJECT_DIR / "config.txt", "r") as f:
                     help(f"failed to convert" + str(i.split("=")[1]) + "to a bool")
             else:
                 help(f"no OS provided in {CONFIG_DIR}")
+        if "TARGET_FPS" in i:
+            if len(i.split("=")) > 0:
+                try:
+                    TARGET_FPS = float(i.split("=")[1]) if float(i.split("=")[1]) > 0 else TARGET_FPS
+                except:
+                    help(f"failed to convert" + str(i.split("=")[1]) + "to a float")
+            else:
+                help(f"no target fps provided in {CONFIG_DIR} after con.TARGET_FPS=")
+        if "DEFAULT_BLACKLIST" in i:
+            if len(i.split("=")) > 0:
+                curr_blacklist = str(i.split("=")[1])
+                if curr_blacklist in BLACKLISTS_NAMES:
+                    curr_blacklist = BLACKLISTS_NAMES.index(curr_blacklist)
+                else:
+                    help(f"default blacklist is set to an unknown value in {CONFIG_DIR}")
+            else:
+                help(f"no blacklist provided after DEFAULT_BLACKLIST= in {BLACKLISTS_DIR}")
+
+if curr_blacklist == -1:
+    logger.debug("no default blacklist found in config.txt defaulting to the first")
+    curr_blacklist = 0
 
 # filtering possible OSes
 if CURR_OS == "Windows":

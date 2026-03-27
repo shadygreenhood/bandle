@@ -2,17 +2,19 @@
 # Auto-converted from your CLI command
 
 # 1. Data files (from --add-data)
+import certifi
 datas = [
     ("assets", "assets"),
     ("font", "font"),
     ("ffmpeg", "ffmpeg"),
-    (r"C:\Users\shady\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
+    (r"C:\Users\user\Documents\github projects\bandle clone\venv\lib\site-packages\demucs\remote", "demucs/remote"),
+    #(r"C:\Users\user\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
     (certifi.where(), "certifi"),
 ]
 
 # 3. Analysis
 a = Analysis(
-    ['bandle.py'],      # your main script
+    ['quick_start.py'],      # your main script
     pathex=[],           # optionally add extra search paths
     binaries=[],
     datas=datas,

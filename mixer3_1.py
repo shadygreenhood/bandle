@@ -1,47 +1,28 @@
 
 
 def main():
-    
-
     import constants as con
-
-    con.logger.pretty_text("╭-------------------------------------------------╮\n"\
-                           "|      ╭    ╭==╮  ╭==╮  ╭-.   .   ╭╮ ╮  ╭=-       |\n"\
-                           "|      |    |  |  ╞--╡  |  |  |   |╰╮|  |  ╮      |\n"\
-                           "|      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯   ╰ ╰╯  ╰=-╯      |\n"\
-                           "╰-------------------------------------------------╯", "magenta bold")
-    con.logger.debug("loading custom scripts")
 
     import audio_helper as audio_helper
     from modules import Button, Toggle, Textinput, Warning
     
-
-    con.logger.debug("loading pygame")
     import pygame           # type: ignore
-    con.logger.debug("loading math")
     import math
-    con.logger.debug("loading json")
     import json
 
-    con.logger.debug("loading shuffle (random)")
     from random import shuffle
-    con.logger.debug("loading argv (sys)")
-    from sys import argv
-    from time import sleep, perf_counter
-    con.logger.debug("loading Path (pathlib)")
     from pathlib import Path
 
     con.clear()
-    con.logger.pretty_text("╭-----------------------------------------------------------------------------------------╮\n"\
-                           "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       ╭=-╮  ╭==╮  ╭╮ ╮  ╭==╮  ╭==╮  ╭    ╭=-      |\n"\
-                           "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        |     |  |  |╰╮|  ╰--╮  |  |  |    ╞-       |\n"\
-                           "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       ╰=-╯  ╰==╯  ╰ ╰╯  ╰==╯  ╰==╯  ╰-╯  ╰=-      |\n"\
-                           "╰-----------------------------------------------------------------------------------------╯", "magenta bold")
+    con.logger.pretty_text("╭----------------------------------------------------------╮\n"\
+                           "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       g  u  i      |\n"\
+                           "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        g  u  i      |\n"\
+                           "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       g  u  i      |\n"\
+                           "╰----------------------------------------------------------╯", "magenta bold")
 
 
 
-    global curr_blacklist
-    curr_blacklist = -1
+    
     global mouse_scroll
     global mouse_x
     global mouse_y
@@ -57,76 +38,8 @@ def main():
     if not Path(con.BLACKLISTS_DIR).exists():
         Path(con.BLACKLISTS_DIR).write_text("")
 
-    # read Blacklists.txt
-    global blacklists
-    global blacklist_names
-    blacklist_names = []
-    with open(con.BLACKLISTS_DIR, "r", encoding="utf-8") as f:
-        txt = f.read().splitlines()
-        blacklists = []
-        for i in txt:
-            try:
-                blacklists.append([j for j in i.split("=")[1].split(";")])
-                blacklist_names.append(i.split("=")[0])
-            except:
-                con.help(f"failed to extract contents of {i} in Blacklists.txt")
-            if blacklists[-1][-1] == "":
-                blacklists[-1].pop(-1)
-    if blacklists == []:
-        print("no blacklists found in Blacklist.txt, creating a new one")
-        with open(con.BLACKLISTS_DIR, "w", encoding="utf-8") as f:
-            f.write("DEFAULT=")
-        blacklists = [[""]]
-        blacklist_names = ["DEFAULT"]
-
-    # read config
-    with open(con.CONFIG_DIR, "r", encoding="utf-8") as f:
-        txt = f.read().splitlines()
-        for i in txt:
-            if "SCALE" in i:
-                if len(i.split("=")) > 0:
-                    try:
-                        con.CF_SCALE = float(i.split("=")[1])
-                    except:
-                        con.help("failed to convert " + str(i.split("=")[1]) + "to a float" )
-                else:
-                    con.help(f"no scale provided in {con.CONFIG_DIR} after SCALE=")
-            if "TARGET_FPS" in i:
-                if len(i.split("=")) > 0:
-                    try:
-                        con.TARGET_FPS = float(i.split("=")[1]) if float(i.split("=")[1]) > 0 else con.TARGET_FPS
-                    except:
-                        help(f"failed to convert" + str(i.split("=")[1]) + "to a float")
-                else:
-                    con.help(f"no target fps provided in {con.CONFIG_DIR} after con.TARGET_FPS=")
-            if "DEFAULT_BLACKLIST" in i:
-                if len(i.split("=")) > 0:
-                    curr_blacklist = str(i.split("=")[1])
-                    if curr_blacklist in blacklist_names:
-                        curr_blacklist = blacklist_names.index(curr_blacklist)
-                    else:
-                        con.help(f"default blacklist is set to an unknown value in {con.CONFIG_DIR}")
-                else:
-                    con.help(f"no blacklist provided after DEFAULT_BLACKLIST= in {con.BLACKLISTS_DIR}")
-
-    if curr_blacklist == -1:
-        con.logger.debug("no default blacklist found in config.txt defaulting to the first")
-        curr_blacklist = 0
-
-    # deal with flags
-    args = argv[1:]
-    for i in args:
-        if i.startswith('--scale='):
-            if len(i.split("=", 1)) > 0:
-                con.CF_SCALE = float(i.split("=", 1)[1])
-            else:
-                con.help("no scale provided")
-        else:
-            con.help("argument not recognized")
-        
-
-
-
+    global curr_blacklist
+    curr_blacklist = con.curr_blacklist
 
     with open(con.PLAYLIST_JSON_DIR, "r", encoding="utf-8") as f:
         global playlists_json_dir_contents
@@ -236,7 +149,7 @@ def main():
                         buffer += txts[i] + "\n"
                 with open(con.BLACKLISTS_DIR, "w", encoding="utf-8") as f:
                     f.write(buffer)
-                blacklists[curr_blacklist].append(_b_current_song)
+                con.BLACKLISTS[curr_blacklist].append(_b_current_song)
                     
                 
                 if not silent:
@@ -523,8 +436,8 @@ def main():
 
             
             _mb_blacklist_buttons = []
-            for i in range(len(blacklist_names)):
-                _mb_blacklist_buttons.append(Button(71, 536 + i*61, 358, 51, con.COLOR_PALETTE["list item unselected"], blacklist_names[i], 15))
+            for i in range(len(con.BLACKLISTS_NAMES)):
+                _mb_blacklist_buttons.append(Button(71, 536 + i*61, 358, 51, con.COLOR_PALETTE["list item unselected"], con.BLACKLISTS_NAMES[i], 15))
 
             _mb_wiki = []
             _mb_wiki.append("The selected blacklist will")
@@ -605,13 +518,13 @@ def main():
 
             # Textinput
             if _mb_name_edit.focused == False:
-                _mb_name_edit.text = blacklist_names[curr_blacklist]
+                _mb_name_edit.text = con.BLACKLISTS_NAMES[curr_blacklist]
             else:
                 for event in  events:
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                         # editing blacklist name
-                        if not _mb_name_edit.text in blacklist_names and _mb_name_edit.text != "":
-                            blacklist_names[curr_blacklist] = _mb_name_edit.text
+                        if not _mb_name_edit.text in con.BLACKLISTS_NAMES and _mb_name_edit.text != "":
+                            con.BLACKLISTS_NAMES[curr_blacklist] = _mb_name_edit.text
                             _mb_blacklist_buttons[curr_blacklist].text = _mb_name_edit.text
 
                             with open(con.BLACKLISTS_DIR, "r") as f:
@@ -652,7 +565,7 @@ def main():
 
                 i = 0
                 while True:
-                    if not "new_blacklist_" + str(i) in blacklist_names:
+                    if not "new_blacklist_" + str(i) in con.BLACKLISTS_NAMES:
                         break
                     i += 1
                 n = f"new_blacklist_{i}"
@@ -661,12 +574,12 @@ def main():
                 with open(con.BLACKLISTS_DIR, "w") as f:
                     f.write(b)
 
-                _mb_blacklist_buttons.append(Button(71, 536 + len(blacklist_names)*61, con.WIDTH-140, 60, con.COLOR_PALETTE["list item unselected"], n, 15))
-                blacklist_names.append(n)
-                blacklists.append([])
+                _mb_blacklist_buttons.append(Button(71, 536 + len(con.BLACKLISTS_NAMES)*61, con.WIDTH-140, 60, con.COLOR_PALETTE["list item unselected"], n, 15))
+                con.BLACKLISTS_NAMES.append(n)
+                con.BLACKLISTS.append([])
 
             if _mb_delete_button.is_clicked(events):
-                if not len(blacklists) < 2:
+                if not len(con.BLACKLISTS) < 2:
 
                     # writing changes to Blacklists.txt
                     with open(con.BLACKLISTS_DIR, "r") as f:
@@ -688,9 +601,9 @@ def main():
                         f.write(b)
 
                     _mb_blacklist_buttons.pop(curr_blacklist)
-                    blacklist_names.pop(curr_blacklist)
-                    blacklists.pop(curr_blacklist)
-                    if curr_blacklist > len(blacklist_names)-1:
+                    con.BLACKLISTS_NAMES.pop(curr_blacklist)
+                    con.BLACKLISTS.pop(curr_blacklist)
+                    if curr_blacklist > len(con.BLACKLISTS_NAMES)-1:
                         curr_blacklist -= 1 
 
 
@@ -1095,7 +1008,7 @@ def main():
             # removing ones encountered in active blacklist
             bfr = []
             for i in range(len(_b_queue)):
-                if _b_queue[i] in blacklists[curr_blacklist]:
+                if _b_queue[i] in con.BLACKLISTS[curr_blacklist]:
                     bfr.append(i)
             for i in range(len(bfr)):
                 _b_queue.pop(bfr[i] - i)
