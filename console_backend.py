@@ -170,7 +170,7 @@ def add_playlist():
 # ╰--------------------------------------------------------------------------------------------╯
 
 
-def download_songs(songs_to_download, silent=False):
+def download_songs(songs_to_download, silent=False, give_status=False, url=""):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
 
@@ -217,27 +217,68 @@ def download_songs(songs_to_download, silent=False):
                         "preferredcodec": "wav",
                     }],
                 }
-            if not silent: 
-                logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
+            if not url == "":
+                folder_end = (title+".wav")
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download(url)
+                if not Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
+                    logger.debug(f'checked path: {str(Path(PROJECT_DIR / "raw_track_audio" /  folder_end))}')
+                    logger.error("there was an error while downloading the audio")
+                    return "error"
+                else:
+                    logger.pretty_text("audio downloaded successfully!", "magenta bold")
             else:
-                logger.pretty_text(f"dowloading from query: \"{query}\"", "magenta")
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([f"ytsearch1:{query}"])
-            folder_end = title+".wav"
-            if Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
-                SONGS_DIR_contents[title]["status"] = "downloaded"
-            with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
-                json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
-
-
-
+                if not silent: 
+                    logger.pretty_text(f"[{i+1}/{len(songs_to_download)}] dowloading from query: \"{query}\"", "magenta")
+                else:
+                    logger.pretty_text(f"dowloading from query: \"{query}\"", "magenta")
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([f"ytsearch1:{query}"])
+                folder_end = title+".wav"
+                if not Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
+                    while True:
+                        logger.error("yt-dlp had issues downloading your track\n" \
+                                    "this may be due to several things:\n" \
+                                    "  - bad internet, or a firewall or some sorts\n" \
+                                    "  - yt-dlp did not find relevant results while\n" \
+                                    "    looking up the displayed query\n" \
+                                    "\n" \
+                                    "for further troubleshooting, please look up your\n" \
+                                    "song's youtube video and paste its url here")
+                        yt_url = input(">")
+                        if yt_url == "q":
+                            return "error"
+                        logger.debug("temporarily disabling pretty printing for more practical logs")
+                        debug_ydl_opts = ydl_opts
+                        debug_ydl_opts["quiet"] = False
+                        debug_ydl_opts["no_warinings"] = False
+                        debug_ydl_opts["logger"] = None
+                        with yt_dlp.YoutubeDL(debug_ydl_opts) as ydl:
+                            ydl.download(yt_url)
+                        if Path(PROJECT_DIR / "raw_track_audio" /  folder_end).exists():
+                            logger.pretty_text("Yippe! This worked!", "magenta bold")
+                            SONGS_DIR_contents[title]["status"] = "downloaded"
+                            with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
+                                json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+                            break
+                        else:
+                            logger.error("This didnt solve the issue...\n   try again? \[y/n]")
+                            if not input() == "y":
+                                break
+                
+                else:
+                    SONGS_DIR_contents[title]["status"] = "downloaded"
+                    with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
+                        json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+    if give_status:
+        return SONGS_DIR_contents[title]["status"]
 # ╭-----------------------------------------------------------------------------╮
 # |      ╭==╮  ╭==╮  ╭    .  ╭==╮       ╭==╮  ╭==╮  ╭==╮  ╭=-╮  ╭  ╭  ╭==╮      |
 # |      ╰--╮  ╞==╯  |    |   ||         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
 # |      ╰==╯  ╰     ╰-╯  ╯   ╰╯         ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
 # ╰-----------------------------------------------------------------------------╯
 from rich.live import Live
-def split_tracks(songs_to_split, silent=False):
+def split_tracks(songs_to_split, silent=False, give_status=False):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
         SONGS_DIR_contents = json.load(f)
  
@@ -285,7 +326,6 @@ def split_tracks(songs_to_split, silent=False):
                     logger.pretty_text(f"[{i+1}/{len(songs_to_split)}] successfully split the track: {title[:-9]}", "magenta")
                 else:
                     logger.debug(f"successfully split the track: {title[:-9]}")
-                SONGS_DIR_contents[title]["status"] = "split"
                 logger.debug("converting back to wavs for easier processing")
 
                 # converting to wavs
@@ -303,21 +343,25 @@ def split_tracks(songs_to_split, silent=False):
                 if not failure: # check for faliure converting to wavs very unlikely
                     folder_end = title + ".wav"
                     logger.debug(f"removing now useless audio: \"{RAW_TRACK_AUDIO_DIR / folder_end}\"")
+                    SONGS_DIR_contents[title]["status"] = "split"
                     Path(RAW_TRACK_AUDIO_DIR / folder_end).unlink()
                     # recording that
                     with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                         json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+                    
                 else:
                     logger.error("something went wrong")
             else:
                 logger.error("did not split")
+    if give_status:
+        return SONGS_DIR_contents[title]["status"]
 
 # ╭------------------------------------------------------------------------------------------╮
 # |      ╭==╮  ╭╮ ╮  ╭==╮  ╭    ╮ ╭  ╭==╮  ╭=-       ╭==╮  ╭==╮  ╭==╮  ╭=-╮  ╭  ╭  ╭==╮      |
 # |      ╞--╡  |╰╮|  ╞--╡  |    ╰╮╯  ╰--╮  ╞-         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
 # |      ╰  ╯  ╰ ╰╯  ╰  ╯  ╰-╯   ╯   ╰==╯  ╰=-        ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
 # ╰------------------------------------------------------------------------------------------╯
-def analyse_tracks(songs_to_analyse, silent=False):
+def analyse_tracks(songs_to_analyse, silent=False, give_status=False):
     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
             SONGS_DIR_contents = json.load(f)
 
@@ -336,6 +380,45 @@ def analyse_tracks(songs_to_analyse, silent=False):
             SONGS_DIR_contents[i]["baked_diagnosis"] = compressed_diag
             SONGS_DIR_contents[i]["status"] = "analysed"
             if not silent:
-                logger.pretty_text(f"[{songs_to_analyse.index(i) + 1}/{len(songs_to_analyse)}] analysed {i}", "magenta")
+                logger.pretty_text(f"[{songs_to_analyse.index(i) + 1}/{len(songs_to_analyse)}] analysed {i[:-9]}", "magenta")
             with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
                 json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+    if give_status:
+        return SONGS_DIR_contents[i]["status"]
+
+# ╭-------------------------------------------------------------------------------╮
+# |      ╭==╮  ╭=-  ╭==╮  ╭=-  ╭==╮       ╭==╮  ╭==╮  ╭==╮  ╭=-╮  ╭  ╭  ╭==╮      |
+# |      ╞=:╯  ╞-   ╰--╮  ╞-    ||         ||   ╞=:╯  ╞--╡  |     ╞=:   ╰--╮      |
+# |      ╰  ╰  ╰=-  ╰==╯  ╰=-   ╰╯         ╰╯   ╰  ╰  ╰  ╯  ╰=-╯  ╰  ╰  ╰==╯      |
+# ╰-------------------------------------------------------------------------------╯
+
+def reset_tracks(songs_to_analyse, silent=False, give_status=False):
+    with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
+            SONGS_DIR_contents = json.load(f)
+
+    if len(songs_to_analyse) == 0:
+        if not silent:
+            logger.pretty_text("lucky you: there are no songs to reset!", "magenta") # unused
+    else:
+        if not silent:
+            logger.pretty_text(f"resetting {len(songs_to_analyse)} songs...", "magenta")
+
+        for i in songs_to_analyse:
+
+            if "baked_didagnosis" in SONGS_DIR_contents.keys():
+                SONGS_DIR_contents[i].pop("baked_diagnosis")
+            SONGS_DIR_contents[i]["status"] = "new"
+            if Path(RAW_TRACK_AUDIO_DIR / (i+".wav")).exists():
+                Path(RAW_TRACK_AUDIO_DIR / (i+".wav")).unlink()
+            if Path(STEMS_FOLDER / (i)).exists():
+                for file in Path(STEMS_FOLDER / (i)).iterdir():
+                    file.unlink()
+                Path(STEMS_FOLDER / (i)).rmdir()
+
+            if not silent:
+                logger.pretty_text(f"[{songs_to_analyse.index(i) + 1}/{len(songs_to_analyse)}] reset {i[:-9]}", "magenta")
+            with open(SONGS_JSON_DIR, "w", encoding="utf-8") as f:
+                json.dump(SONGS_DIR_contents, f, indent=4, ensure_ascii=False)
+    if give_status:
+        return SONGS_DIR_contents[i]["status"]
+    

@@ -64,13 +64,13 @@ class logger():
 # ╰----------------------------------------------------------------------------------╯
 class YTDLPLogger:
         def debug(self, msg):
-            pass
+            logger.debug(f"[DEBUG] {msg}")
 
         def warning(self, msg):
-            pass
+            logger.warning(f"[WARNING] {msg}")
 
         def error(self, msg):
-            print(f"[ERROR] {msg}")
+            logger.error(f"[ERROR] {msg}")
 
 def duration_filter(info, *, incomplete):
     duration = info.get("duration")

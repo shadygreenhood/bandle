@@ -167,6 +167,9 @@ def main():
                         _b_current_song = _b_queue[_b_song_counter - 1]
                         if Path(con.STEMS_FOLDER / _b_current_song).is_dir():
                             player.load(_b_current_song)
+                            player.play(_b_step)
+                            player.seek(player.audio_len/5)
+                            player.toggle()
                             a = False
                         else:
                             warnings.append(Warning(f"couldnt find song folder", (40, con.HEIGHT-80, con.WIDTH-80), "warning"))
@@ -946,6 +949,8 @@ def main():
         global selected
         global offset
         global seeking
+        global _b_popup_offset
+        global _b_popup_vel
 
         global _b_skip_button
         global _b_play_button
@@ -966,6 +971,8 @@ def main():
         selected = -1
         offset = 0
         seeking = False
+        _b_popup_offset = 0
+        _b_popup_vel = 0
 
         # setting buttons
         _b_play_button  = Button(213 , 750, 75 , 65 , con.COLOR_PALETTE["list item selected"], ">"      , radius=15, click_counter=20)
@@ -981,7 +988,7 @@ def main():
         _b_rewind_img = pygame.image.load(con.ASSETS_DIR / "rewind.png").convert_alpha()
         _b_rewind_img = pygame.transform.smoothscale(_b_rewind_img, (60, 60))
 
-        textinput = Textinput(25, con.HEIGHT, con.WIDTH-50, 60, 20, con.COLOR_PALETTE["textinput unselected"])
+        textinput = Textinput(60, con.HEIGHT, 380, 49, 10, con.COLOR_PALETTE["textinput unselected"])
 
 
 
@@ -1042,6 +1049,8 @@ def main():
         global _b_song_counter
         global _b_current_song
         global _b_bandle_guessing_counter
+        global _b_popup_offset
+        global _b_popup_vel
         global offset
         global selected
 
@@ -1281,6 +1290,7 @@ def main():
             if submenu != "bandle_guessing":
                 if _b_skip_button.is_clicked(events) == 1:
                     if _b_single_song_bool and _b_step == 6: # when in test single song mode, instead of skipping, you simply go back to select_song
+                        player.stop_all()
                         _b_loading_status = "out_loading_song"
                     else:
                         # here, bandle_stare is the only mode that should both be silent (no warnings) and simple_update (no going back to the start of the song)
@@ -1311,16 +1321,6 @@ def main():
                 if _b_play_button.is_clicked(events) == 1:
                     player.curr_step = _b_step    
                     player.toggle()
-                    # if not players[0].is_playing():
-                    #     if players[0].get_time() >= players[0].get_length():
-                    #         print("set_position(0)")
-                    #         print("play_step()")
-                    #     else:
-                    #         print("play_step()")
-                    # else:
-                    #     print("pause()")
-                    
-            #MUTED OUTPUT  print("set_volume(_b_step)")
 
         # ╭----------------------------------------------------------------------------╮
         # |      ╭==╮ ╭  ╮ ╭=- ╭==╮ ╭==╮  .  ╭╮ ╮ ╭==╮   ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮      |
@@ -1329,21 +1329,22 @@ def main():
         # ╰----------------------------------------------------------------------------╯
             # bandle guessing screen popup
             if submenu == "bandle_guessing":
-                    
-                # slight shade
-                s = pygame.Surface((1000,1000))  
-                s.set_alpha(_b_bandle_guessing_counter * 128)             
-                s.fill(con.COLOR_PALETTE["background"])           
-                screen.blit(s, (0,0))  
+                
+                _b_popup_vel += (1 - _b_popup_offset) * 0.05 - (_b_popup_vel*0.3)
+                _b_popup_offset += _b_popup_vel
 
                 #popup
-                pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0, con.HEIGHT - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else con.HEIGHT - 500, con.WIDTH, 600), border_radius=20)
-                
-                textinput.y = con.HEIGHT + 30 - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else con.HEIGHT + 30 - 500
+                pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, con.HEIGHT-(con.HEIGHT-460)*_b_popup_offset, con.WIDTH, 600), border_radius=20)
+                pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(5, con.HEIGHT-(con.HEIGHT-465)*_b_popup_offset, con.WIDTH-10, 600), border_radius=15)
+                text_surf = con.basic_font.render("Have an idea?", True, con.COLOR_PALETTE["black"])
+                screen.blit(text_surf, (150, con.HEIGHT - (con.HEIGHT - 491)*_b_popup_offset))
+
+                textinput.y = con.HEIGHT - (con.HEIGHT-543)*_b_popup_offset
+                pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(55, con.HEIGHT-(con.HEIGHT-538)*_b_popup_offset, 390, 59), border_radius=15)
                 textinput.draw(screen, events)
                 
 
-                limit = 10
+                limit = 9
                 text = textinput.text
                 suggestions = []
                 actual_suggestions = []
@@ -1352,7 +1353,7 @@ def main():
                         if all_songs_sanitized[i] not in suggestions:
                             suggestions.append(all_songs_sanitized[i])
                             actual_suggestions.append(all_songs[i])
-                    elif text.lower() in con.SONGS_JSON_DIR_contents[all_songs_sanitized[i]]["baked_artists"]:
+                    elif text.lower() in con.SONGS_JSON_DIR_contents[all_songs[i]]["baked_artists"]:
                         if all_songs_sanitized[i] not in suggestions:
                             suggestions.append(all_songs_sanitized[i])
                             actual_suggestions.append(all_songs[i])
@@ -1409,15 +1410,18 @@ def main():
                 
 
                 if selected != -1:
-                    pygame.draw.rect(screen, con.COLOR_PALETTE["list item selected"], pygame.Rect(10, 560 + (selected-offset)*40, con.WIDTH-20, 30), border_radius=5)
+                    pygame.draw.rect(screen, con.COLOR_PALETTE["list item selected"], pygame.Rect(20, 617 + (selected-offset)*40, con.WIDTH-20, 30), border_radius=5)
 
                 for i in suggestions:
                     suggestion_surf = con.basic_font.render(i, True, con.COLOR_PALETTE["black"])
-                    screen.blit(suggestion_surf, (50, con.HEIGHT + 100 + suggestions.index(i)*40 - (500/0.5)*_b_bandle_guessing_counter if _b_bandle_guessing_counter < 0.5 else con.HEIGHT + 100 + suggestions.index(i)*40 - 500))
+                    screen.blit(suggestion_surf, (70, con.HEIGHT + suggestions.index(i)*40 -  (con.HEIGHT - 608)*_b_popup_offset))
 
                 _b_bandle_guessing_counter += 1/30
                 if _b_bandle_guessing_counter > 1:
                     _b_bandle_guessing_counter = 1
+
+            else:
+                _b_popup_offset += (0 - _b_popup_offset) * 0.1
 
         # ╭-----------------------------------------------------------------------╮
         # |      ╭   ╮  .  ╭=-╮ ╭=╮ ╭==╮ ╭==╮ ╮ ╭    ╭==╮ ╭==╮ ╭==╮ ╭  ╮ ╭==╮     |

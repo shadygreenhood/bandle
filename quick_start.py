@@ -18,23 +18,34 @@ while True:
 
         with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                 SONGS_DIR_contents = json.load(f)
-        for song in list(SONGS_DIR_contents.keys()):
+        total = 0
+        for i in range(len(SONGS_DIR_contents)):
+            if not SONGS_DIR_contents[list(SONGS_DIR_contents.keys())[i]]["status"] == "analysed":
+                total += 1
+        
+        counter = 0
+        for i in range(len(SONGS_DIR_contents)):
+            
+            song = list(SONGS_DIR_contents.keys())[i]
             with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                 SONGS_DIR_contents = json.load(f)
-            logger.pretty_text(f"dealing with [bold]{song[:-9]}[/bold]", "magenta")
-            if SONGS_DIR_contents[song]["status"] == "new" and not WEAK_INTERNET:
-                logger.pretty_text(f"downloading {song[:-9]}", "green italic")
-                scr.download_songs([song], True)
-            with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
-                SONGS_DIR_contents = json.load(f)
-            if SONGS_DIR_contents[song]["status"] == "downloaded" and not SKIP_SPLIT:
-                logger.pretty_text(f"splitting {song[:-9]}", "green italic")
-                scr.split_tracks([song], True)
-            with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
-                SONGS_DIR_contents = json.load(f)
-            if SONGS_DIR_contents[song]["status"] == "split":
-                logger.pretty_text(f"analysing {song[:-9]}", "green italic")
-                scr.analyse_tracks([song], True)
+            song_status = SONGS_DIR_contents[song]["status"]
+            if not song_status == "analysed":
+                counter += 1
+                logger.pretty_text(f"\[{counter}/{total}]dealing with [bold]{song[:-9]}[/bold]", "magenta")
+                logger.debug(f"song_status: {song_status}")
+                if song_status == "new" and not WEAK_INTERNET:
+                    logger.pretty_text(f"downloading {song[:-9]}", "green italic")
+                    song_status = scr.download_songs([song], True, True)
+                logger.debug(f"song_status: {song_status}")
+                if song_status == "downloaded" and not SKIP_SPLIT:
+                    logger.pretty_text(f"splitting {song[:-9]}", "green italic")
+                    song_status = scr.split_tracks([song], True, True)
+                logger.debug(f"song_status: {song_status}")
+                if song_status == "split":
+                    logger.pretty_text(f"analysing {song[:-9]}", "green italic")
+                    song_status = scr.analyse_tracks([song], True, True)
+                
 
 
         logger.debug("launching GUI script")
