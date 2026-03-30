@@ -7,8 +7,8 @@ datas = [
     ("assets", "assets"),
     ("font", "font"),
     ("ffmpeg", "ffmpeg"),
-    (r"C:\Users\user\Documents\github projects\bandle clone\venv\lib\site-packages\demucs\remote", "demucs/remote"),
-    #(r"C:\Users\user\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
+    (r"C:\Users\User\Documents\github projects\bandle clone\venv\lib\site-packages\demucs\remote", "demucs/remote"),
+    #(r"C:\Users\User\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
     (certifi.where(), "certifi"),
 ]
 

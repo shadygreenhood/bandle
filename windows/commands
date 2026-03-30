@@ -1,3 +1,1 @@
 pyinstaller bandle.spec --distpath "..\dist" --workpath "..\build"
-
-idk
