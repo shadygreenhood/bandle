@@ -5,15 +5,12 @@ This repository contains the scripts and assets for the Bandle clone i made.
 **notice** This is NOT an original idea, and was *borrowed* from the Bandle app (here is their website: https://bandle.app/menu)
 I do not intend to make any money from this, nor do i intend to compete with the original project: this was simply a fun project of mine, that i only made public for the sake of it.
 
-
-
-**Important:** If you just want to download it, and dont care about technical details, just follow instructions at:
+**Important:** If you just want to download it, and dont care about technical details, just follow instructions at: https://github.com/shadygreenhood/bandle/releases/tag/beta
 
 This repository must be nested inside a PROJECT_DIRECTORY. The program will write output files here. You can also add fonts, set up a virtual environment, and manage other project-specific files in this directory.
 
-
-
 ## Installation Details
+For reasons, this NEEDS python 3.10 specifically.
 
 The script expects the following folder structure:
 ```
