@@ -7,7 +7,7 @@ import certifi
 # Logger
 from loggers_init import *
 
-clear()
+# clear()
 logger.pretty_text("this should be pretty. . . ", "magenta italic bold")
 
 logger.pretty_text("╭--------------------------------------------------------------------------------╮\n" \
@@ -146,11 +146,13 @@ if not FONT_DIR.exists():
 pygame.font.init()
 
 try:
+    terminal_font = pygame.font.Font(FONT_DIR, 18)
     small_font = pygame.font.Font(FONT_DIR, 25)
     basic_font = pygame.font.Font(FONT_DIR, 30)
     title_font = pygame.font.Font(FONT_DIR, 60)
 except Exception as e:
     logger.error(f"did not load custom font :(\n{e}")
+    terminal_font = pygame.font.Font(FONT_DIR, 18)
     small_font = pygame.font.SysFont('Comic Sans MS', 25)
     basic_font = pygame.font.SysFont('Comic Sans MS', 30)
     title_font = pygame.font.SysFont('Comic Sans MS', 80)

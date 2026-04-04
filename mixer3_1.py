@@ -5,6 +5,8 @@ def main():
 
     import audio_helper as audio_helper
     from modules import Button, Toggle, Textinput, Warning
+    from multiprocessing import Process, freeze_support, Queue
+    from console import main_console
     
     import pygame           # type: ignore
     import math
@@ -12,6 +14,7 @@ def main():
 
     from random import shuffle
     from pathlib import Path
+
 
     con.clear()
     con.logger.pretty_text("╭----------------------------------------------------------╮\n"\
@@ -364,7 +367,7 @@ def main():
                 submenu = "loading_blacklists"
             if _mm_open_console_button.is_clicked(events):
                 loading_anim_slider = 0
-                # submenu = "loading_blacklists"  # need to add console
+                submenu = "loading_terminal"  # need to add console
             if _mm_search_button.is_clicked(events):
                 loading_anim_slider = 0
                 submenu = "loading_search"
@@ -381,7 +384,7 @@ def main():
                     loading_anim_slider = 0
             
 
-        if submenu in ["loading_library", "loading_blacklists", "loading_search"]:
+        if submenu in ["loading_library", "loading_blacklists", "loading_search", "loading_terminal"]:
             loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
             pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
             text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
@@ -393,6 +396,9 @@ def main():
                 if submenu == "loading_search":
                     submenu = "setup"
                     curr_screen = "select_song_setup"
+                if submenu == "loading_terminal":
+                    submenu = "setup"
+                    curr_screen = "terminal_setup"
                 elif submenu == "loading_blacklists":
                     curr_screen = "manage_blacklist_setup"
                 elif submenu == "loading_library":
@@ -642,6 +648,148 @@ def main():
                         loading_anim_slider = 0
                         submenu = "loading_main_menu"
                         curr_screen = "main_menu"
+
+
+    def terminal_setup():
+        global submenu
+        global curr_screen
+        submenu = "setup"
+        curr_screen = "terminal"
+
+    def terminal():
+        global curr_screen
+        global submenu
+        global go_back_button
+        global loading_anim_slider
+        
+        global _t_p
+        global _t_q_in
+        global _t_q_out
+        global _t_inputs
+        global _t_logs
+        global _t_textinput
+
+        global _t_add_logs
+
+        if submenu == "setup":
+            
+            _t_textinput = Textinput(20, con.HEIGHT - 50, con.WIDTH-20, 50, -1, con.COLOR_PALETTE["textinput unselected"])
+            
+
+            def _t_add_logs(str, style):
+                global _t_logs
+
+                lines = str.split("\n")
+                for i in lines:
+                    _t_logs.append([style, i])
+
+            _t_logs = []
+            _t_inputs = []
+
+            _t_q_in = Queue()
+            _t_q_out = Queue()
+            _t_p = Process(target=main_console, args=(_t_q_out, _t_q_in,))
+            _t_p.start()
+
+            loading_anim_slider = 0
+            submenu = "loading_main"
+
+            
+
+
+        if submenu in ["main", "loading_main", "out_loading_main_menu", "loading_bandle"]:
+
+            
+            if not _t_q_out.empty():
+                message = _t_q_out.get()
+                if message[0][0] == "input":
+                    _t_inputs.append(message[0][1])
+                    _t_add_logs(message[0][1], "black")
+                else:
+                    if message[0][0] == "debug":
+                        _t_add_logs(message[0][1], "blue")
+                    if message[0][0] == "warning":
+                        _t_add_logs(message[0][1], "yellow")
+                    if message[0][0] == "error":
+                        _t_add_logs(message[0][1], "red")
+                    if message[0][0] == "pretty":
+                        _t_add_logs(message[0][1], message[0][2])
+
+
+            _t_textinput.draw(screen, events)
+            pygame.draw.rect(screen, con.COLOR_PALETTE["textinput selected"], pygame.Rect(0, con.HEIGHT-50, 20, 50))
+            
+            for event in  events:
+                if len(_t_inputs) > 0:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                        _t_q_in.put(_t_textinput.text)
+                        _t_add_logs(_t_textinput.text, "black")
+                        _t_inputs.pop(0)
+                        _t_textinput.text = ""
+
+            indent = 1
+            for i in range(len(_t_logs)):
+                text = _t_logs[-1-i][1]
+                color = con.COLOR_PALETTE["black"]
+
+                if "magenta" in _t_logs[-1-i][0]:
+                    color = (200, 50, 150)
+                elif "red" in _t_logs[-1-i][0]:
+                    color = (200, 10, 10)
+                elif "blue" in _t_logs[-1-i][0]:
+                    color = (10, 10, 200)
+                elif "yellow" in _t_logs[-1-i][0]:
+                    color = (10, 200, 200)
+
+                # need to interpret [those] kinds of [/colors]
+
+                if i == 0 and text == ">":
+                    text_surface = con.basic_font.render(text, True, color)
+                    screen.blit(text_surface, (0, con.HEIGHT - 50))
+                    indent = 0
+                else:
+                    text_surface = con.terminal_font.render(text, True, color)
+                    screen.blit(text_surface, (0, con.HEIGHT - (50 + (i+indent)*30)))
+
+
+            # header
+            pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, -50, con.WIDTH, 145))
+            text_surface = con.small_font.render("Terminal", True, con.COLOR_PALETTE["black"])
+            screen.blit(text_surface, (con.WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
+            go_back_button.draw(screen)
+            if go_back_button.is_clicked(events) == 1:
+                _t_p.terminate()
+                submenu = "out_loading_main_menu"
+
+            
+    # ╭---------------------------------------------------------------------------------------------╮
+    # |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
+    # |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
+    # |      ╰-╯  ╰==╯  ╰  ╯  ╰='   ╯  ╰ ╰╯  ╰==╯       ╰==╯  ╰=-╯  ╰  ╰  ╰=-  ╰=-  ╰ ╰╯  ╰==╯      |
+    # ╰---------------------------------------------------------------------------------------------╯
+            if submenu == "loading_main":
+                loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+                pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
+                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
+                screen.blit(text_surface, text_rect)
+
+                if abs((1-loading_anim_slider) * 100) < 1:
+                    submenu = "main"
+                    loading_anim_slider = 0
+
+            if submenu in ["out_loading_main_menu"]:
+                loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
+                pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
+                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
+                screen.blit(text_surface, text_rect)
+
+                if submenu == "out_loading_main_menu":
+                    if abs((1-loading_anim_slider) * 100) < 1:
+                        submenu = "loading_main_menu"
+                        curr_screen = "main_menu"
+                        loading_anim_slider = 0
 
 
     def select_song_setup():
@@ -1316,18 +1464,24 @@ def main():
                 textinput.draw(screen, events)
                 
 
-                limit = 9
+                limit = 8
                 text = textinput.text
                 suggestions = []
                 actual_suggestions = []
-                for i in range(len(all_songs_sanitized)):
-                    if text.lower() in all_songs_sanitized[i].lower():
-                        if all_songs_sanitized[i] not in suggestions:
-                            suggestions.append(all_songs_sanitized[i])
+                
+                if con.GLOBAL_SUGGESTIONS or _b_single_song_bool:
+                    options = all_songs_sanitized
+                else:
+                    options = [playlists_json_dir_contents[selected_playlist]["data"][i]["name"][:-9] for i in range(len(playlists_json_dir_contents[selected_playlist]["data"]))]
+
+                for i in range(len(options)):
+                    if text.lower() in options[i].lower():
+                        if options[i] not in suggestions:
+                            suggestions.append(options[i])
                             actual_suggestions.append(all_songs[i])
                     elif text.lower() in con.SONGS_JSON_DIR_contents[all_songs[i]]["baked_artists"]:
-                        if all_songs_sanitized[i] not in suggestions:
-                            suggestions.append(all_songs_sanitized[i])
+                        if options[i] not in suggestions:
+                            suggestions.append(options[i])
                             actual_suggestions.append(all_songs[i])
 
                 go_down = True if (k_down-20 > 0 and counter%4 == 0) or k_down == 1 else False
@@ -1618,6 +1772,10 @@ def main():
             manage_blacklist_setup()
         elif curr_screen == "manage_blacklist":
             manage_blacklist()
+        elif curr_screen == "terminal_setup":
+            terminal_setup()
+        elif curr_screen == "terminal":
+            terminal()
         elif curr_screen == "select_song_setup":
             select_song_setup()
         elif curr_screen == "select_song":
@@ -1644,12 +1802,11 @@ def main():
 
         window.blit(scaled, (0, 0))
         pygame.display.flip()
-        pygame.event.clear()  # clear event _b_queue
         counter += 1
 
         # managing fps
         clock.tick(con.TARGET_FPS)
-        
+
     pygame.quit()
 
 

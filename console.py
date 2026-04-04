@@ -1,12 +1,35 @@
 
-def main():
-    from constants import clear, logger, SONGS_JSON_DIR, RAW_TRACK_AUDIO_DIR, STEMS_FOLDER, DISALLOWED_CHARS_IN_SANITIZED_TEXT, PLAYLIST_JSON_DIR
+def main_console(q_out=None, q_in=None):
+    from constants import clear, SONGS_JSON_DIR, RAW_TRACK_AUDIO_DIR, STEMS_FOLDER, DISALLOWED_CHARS_IN_SANITIZED_TEXT, PLAYLIST_JSON_DIR
     from console_backend import add_playlist, download_songs, split_tracks, analyse_tracks, reset_tracks
+    from loggers_init import logger
     import json
     from pathlib import Path
+    from time import sleep
 
-    clear()
+    if __name__ == "__main__":
+        terminal_logger = logger
+        def get_input(str):
+            return input(str)
+        clear()
+    else:
+        class terminal_logger():
+            def debug(msg):
+                q_out.put([["debug", msg]])
+            def pretty_text(msg, style):
+                q_out.put([["pretty", msg, style]])
+            def warning(msg):
+                q_out.put([["warning", msg]])
+            def error(msg):
+                q_out.put([["error", msg]])
+        def get_input(str):
+            q_out.put([["input", str]])
+            while True:
+                if not q_in.empty():
+                    return q_in.get()
 
+
+  
     COMMANDS = [
         "help",
         "add_playlist",
@@ -33,9 +56,9 @@ def main():
             return "none"
         else:
             if not only_one:
-                logger.pretty_text("whatcha wanna do?", "magenta")
-                logger.pretty_text(f"1: {action} all songs\n2: {action} specific song", "blue")
-                opt1_input = input(">")
+                terminal_logger.pretty_text("whatcha wanna do?", "magenta")
+                terminal_logger.pretty_text(f"1: {action} all songs\n2: {action} specific song", "blue")
+                opt1_input = get_input(">")
             else:
                 opt1_input = "2"
             if opt1_input in ["1", "2"]:
@@ -44,19 +67,19 @@ def main():
                     if not action == "reset":
                         return available_songs
                     else:
-                        logger.warning("are you SURE?, there is no coming back \[y/n]")
-                        opt1_input = input(">")
+                        terminal_logger.warning("are you SURE?, there is no coming back \[y/n]")
+                        opt1_input = get_input(">")
                         if opt1_input == "y":
                             return available_songs
                         else:
                             return []
                 if opt1_input == "2":  
                     while True:
-                        logger.pretty_text("here are your options:", "magenta")
+                        terminal_logger.pretty_text("here are your options:", "magenta")
                         for x in range(len(available_songs)):
-                            logger.pretty_text(f"{x}: [blue]{available_songs[x][:-9]}[/blue]", "magenta")
-                        logger.pretty_text("input song name or number", "magenta")
-                        selected_song = input(">")
+                            terminal_logger.pretty_text(f"{x}: [blue]{available_songs[x][:-9]}[/blue]", "magenta")
+                        terminal_logger.pretty_text("get_input song name or number", "magenta")
+                        selected_song = get_input(">")
                         if selected_song == "q":
                             return "error"
                         try:
@@ -68,24 +91,24 @@ def main():
                                     options.append(i)
                         if options != []:
                             if len(options) > 1:
-                                logger.pretty_text("    your text matched multiple options, please enter the correct one's number\n", "magenta")
+                                terminal_logger.pretty_text("    your text matched multiple options, please enter the correct one's number\n", "magenta")
                                 for x in range(len(options)):
                                     option_text = f"{x}: [blue]{options[x][:-9]}[/blue]  from  [green]{', '.join(SONGS_DIR_contents[options[x]]['artists'])}[/green]"
-                                    logger.pretty_text(option_text, "magenta")
-                                opt2_input = input(">")
+                                    terminal_logger.pretty_text(option_text, "magenta")
+                                opt2_input = get_input(">")
                                 try:
                                     if not options[int(opt2_input)] in output_selection:
                                         output_selection.append(options[int(opt2_input)])
                                 except Exception as e:
-                                    logger.error(f"there was an error interpreting your input: \n\n    {e}")
+                                    terminal_logger.error(f"there was an error interpreting your get_input: \n\n    {e}")
                             else:
-                                logger.pretty_text(f"selected: {options[0][:-9]}", "magenta")
+                                terminal_logger.pretty_text(f"selected: {options[0][:-9]}", "magenta")
                                 output_selection = options[:]
                         else:
-                            logger.warning("no matching songs")
+                            terminal_logger.warning("no matching songs")
                         if not only_one:
-                            logger.pretty_text(f"continue selecting? \[y/n]    (selected: {', '.join([x[:-9] for x in output_selection])})", "magenta")
-                            opt3_input = input(">")
+                            terminal_logger.pretty_text(f"continue selecting? \[y/n]    (selected: {', '.join([x[:-9] for x in output_selection])})", "magenta")
+                            opt3_input = get_input(">")
                             if selected_song == "q":
                                 return "error"
                             if not opt3_input.lower() == "y":
@@ -94,11 +117,11 @@ def main():
                             return output_selection
             else:
                 if opt1_input != "q":
-                    logger.error("unexpected user string: " + opt1_input)
+                    terminal_logger.error("unexpected user string: " + opt1_input)
                 return "error"
 
     def console_help():
-        logger.pretty_text("" \
+        terminal_logger.pretty_text("" \
         "this is a simple interface for custom preprocessing backend scripts.\n" \
         "basically, if you want more control over which songs to download, \n" \
         "split, analyse, or have some playlists to add, you've come to the \n" \
@@ -133,7 +156,7 @@ def main():
 
 
     # WELCOME
-    logger.pretty_text("╭----------------------------------------------------------------------╮\n" \
+    terminal_logger.pretty_text("╭----------------------------------------------------------------------╮\n" \
                     "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       c  o  n  s  o  l  e      |\n" \
                     "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        c  o  n  s  o  l  e      |\n" \
                     "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       c  o  n  s  o  l  e      |\n" \
@@ -145,7 +168,7 @@ def main():
 
     while True:
 
-        user_input = input(">")
+        user_input = get_input(">")
         command = user_input.split(" ")[0]
         if command in COMMANDS:
 
@@ -158,35 +181,35 @@ def main():
 
                 choice = choose_songs(target_status=["new"], action="download")
                 if choice == "none":    
-                    logger.pretty_text("nothing to download!", "magenta")
+                    terminal_logger.pretty_text("nothing to download!", "magenta")
                 elif choice != "error":
                     download_songs(choice)
 
             if command == "split_songs":
                 choice = choose_songs(target_status=["downloaded"], action="split")
                 if choice == "none":    
-                    logger.pretty_text("nothing to split!", "magenta")
+                    terminal_logger.pretty_text("nothing to split!", "magenta")
                 elif choice != "error":
                     split_tracks(choice)
 
             if command == "analyse_songs":
                 choice = choose_songs(target_status=["split"], action="analyse")
                 if choice == "none":    
-                    logger.pretty_text("nothing to analyse!", "magenta")
+                    terminal_logger.pretty_text("nothing to analyse!", "magenta")
                 elif choice != "error":
                     analyse_tracks(choice)
             
             if command == "reset_songs":
                 choice = choose_songs(target_status=["split", "downloaded", "new", "analysed"], action="reset")
                 if choice == "none":    
-                    logger.pretty_text("nothing to reset! did you import any playlists?", "magenta")
+                    terminal_logger.pretty_text("nothing to reset! did you import any playlists?", "magenta")
                 elif choice != "error":
                     reset_tracks(choice)
             
             if command == "prepare_songs":
                 choice = choose_songs(target_status=["split", "downloaded", "new"], action="prepare")
                 if choice == "none":    
-                    logger.pretty_text("nothing to prepare!", "magenta")
+                    terminal_logger.pretty_text("nothing to prepare!", "magenta")
                 elif choice != "error":
                     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                         SONGS_DIR_contents = json.load(f)
@@ -204,24 +227,24 @@ def main():
             if command == "edit_songs":
                 choice = choose_songs(target_status=["split", "downloaded", "new", "analysed"], action="edit", only_one=True)
                 if choice == "none":    
-                    logger.pretty_text("nothing to edit! did you import any playlists?", "magenta")
+                    terminal_logger.pretty_text("nothing to edit! did you import any playlists?", "magenta")
                 elif choice != "error":
-                    logger.pretty_text("whatcha wanna do?\n" \
+                    terminal_logger.pretty_text("whatcha wanna do?\n" \
                     "1: rename this song\n" \
                     "2: replace audio for this song", "magenta")
-                    opt1 = input(">")
+                    opt1 = get_input(">")
 
                     if not opt1 in ["1", "2"]:
                         pass
                     else:
                         if opt1 == "1":
-                            logger.pretty_text(f"enter new name for {choice[0][:-9]}", "magenta")
-                            new_name = input(">")
+                            terminal_logger.pretty_text(f"enter new name for {choice[0][:-9]}", "magenta")
+                            new_name = get_input(">")
                             if new_name == "":
-                                logger.error(f"cannot rename to empty string")
+                                terminal_logger.error(f"cannot rename to empty string")
                             for char in new_name:
                                 if char in DISALLOWED_CHARS_IN_SANITIZED_TEXT:
-                                    logger.error(f"character {char} is not allowed")
+                                    terminal_logger.error(f"character {char} is not allowed")
                             
 
                             # renaming in playlists.json
@@ -250,28 +273,28 @@ def main():
                             if Path(STEMS_FOLDER / choice[0]).exists():
                                 Path(STEMS_FOLDER / choice[0]).rename(STEMS_FOLDER / (new_name+choice[0][-9:]))
 
-                            logger.pretty_text("Done!", "magenta")
+                            terminal_logger.pretty_text("Done!", "magenta")
                         if opt1 == "2":
                             with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                                 SONGS_DIR_contents = json.load(f)
-                            logger.warning(f" RESETTING \"{choice[0][:-9]}\" BY \"{', '.join(SONGS_DIR_contents[choice[0]]['artists'])}\"\n" \
+                            terminal_logger.warning(f" RESETTING \"{choice[0][:-9]}\" BY \"{', '.join(SONGS_DIR_contents[choice[0]]['artists'])}\"\n" \
                                         "this is going to remove all current audio from this song, \n" \
                                         "are you sure you want to continue? \[y/n]")
-                            opt2 = input(">")
+                            opt2 = get_input(">")
                             if opt2 == "y":
                                 reset_tracks(choice)
-                                logger.pretty_text("enter a url for the replacement audio. (youtube link)", "magenta")
-                                audio_url = input(">")
+                                terminal_logger.pretty_text("enter a url for the replacement audio. (youtube link)", "magenta")
+                                audio_url = get_input(">")
                                 if download_songs(choice, url=audio_url) != "error":
-                                    logger.pretty_text("do you want to process that track completely? \[y/n]", "magenta")
-                                    opt3 = input(">")
+                                    terminal_logger.pretty_text("do you want to process that track completely? \[y/n]", "magenta")
+                                    opt3 = get_input(">")
                                     if opt3 == "y":
                                         if split_tracks(choice, give_status=True) == "split":
                                             analyse_tracks(choice)
 
                             
         else:
-            logger.error(f"command not found: {command}")
+            terminal_logger.error(f"command not found: {command}")
 
 
 
