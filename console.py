@@ -87,11 +87,11 @@ def main_console(q_out=None, q_in=None):
                         except:
                             options = []
                             for i in available_songs:
-                                if selected_song.lower() in i.lower():
+                                if selected_song.lower() in i[:-9].lower():
                                     options.append(i)
                         if options != []:
                             if len(options) > 1:
-                                terminal_logger.pretty_text("    your text matched multiple options, please enter the correct one's number\n", "magenta")
+                                terminal_logger.pretty_text("your text matched multiple options, \nplease enter the correct one's number\n", "magenta")
                                 for x in range(len(options)):
                                     option_text = f"{x}: [blue]{options[x][:-9]}[/blue]  from  [green]{', '.join(SONGS_DIR_contents[options[x]]['artists'])}[/green]"
                                     terminal_logger.pretty_text(option_text, "magenta")
@@ -103,11 +103,13 @@ def main_console(q_out=None, q_in=None):
                                     terminal_logger.error(f"there was an error interpreting your get_input: \n\n    {e}")
                             else:
                                 terminal_logger.pretty_text(f"selected: {options[0][:-9]}", "magenta")
-                                output_selection = options[:]
+                                if not options[0] in output_selection:
+                                    output_selection.append(options[0])
                         else:
                             terminal_logger.warning("no matching songs")
                         if not only_one:
-                            terminal_logger.pretty_text(f"continue selecting? \[y/n]    (selected: {', '.join([x[:-9] for x in output_selection])})", "magenta")
+                            terminal_logger.pretty_text("you have selected:\n - " + "\n - ".join([x[:-9] for x in output_selection]), "magenta")
+                            terminal_logger.pretty_text(f"continue selecting? \[y/n]", "magenta")
                             opt3_input = get_input(">")
                             if selected_song == "q":
                                 return "error"
@@ -122,45 +124,54 @@ def main_console(q_out=None, q_in=None):
 
     def console_help():
         terminal_logger.pretty_text("" \
-        "this is a simple interface for custom preprocessing backend scripts.\n" \
-        "basically, if you want more control over which songs to download, \n" \
-        "split, analyse, or have some playlists to add, you've come to the \n" \
-        "right place!\n" \
-        "\n" \
+        ".----------------------------------------------------.\n" \
+        "this is a simple interface for custom preprocessing   \n "\
+        "backend scripts. basically, if you want more control  \n" \
+        "over which songs to download, split, analyse, or have \n" \
+        "some playlists to add, you've come to the right place!\n" \
+        "                                                      \n" \
         "this console gives you access to a bunch of functions:\n" \
-        "   - add_playlist   : allows you to enter a url, to add\n" \
-        "                      its songs to bandle as a new playlist\n" \
-        "   - download_songs : (first preprocessing step) allows you\n" \
-        "                      to download a selection of songs from \n" \
-        "                      your playlists\n" \
-        "   - split_songs    : (second preprocessing step) allows you\n" \
-        "                      to split desired songs using demucs\n" \
-        "   - anaylse_songs  : (last processing step) allows you to \n" \
-        "                      analyse songs (used for the waveform \n" \
-        "                      visualizer)\n" \
-        "   - prepare_songs  : fully processes selected tracks\n" \
-        "   - reset_songs    : IRREVERSIBLE: deletes all processed \n" \
-        "                      info on a track\n" \
-        "   - edit_songs     : allows you to rename, or change the audio\n" \
-        "                      for a song if the generated ones arent \n" \
-        "                      good\n" \
-        "   - help           : displays this message.\n" \
-        "\n" \
-        "\n" \
-        "since this cannot capture keyboardinterrupts, you can cancel \n" \
-        "a prompt by typing q in the terminal.\n" \
-        "this unfortunately doesnt allow you to stop in the middle of \n" \
-        "an action (like splitting or downloading),\n" \
-        "so be careful not to launch too many actions at once."
-        "\n", "magenta")
+        " - add_playlist   : allows you to enter a url, to add \n" \
+        "                    its songs to bandle as a new      \n" \
+        "                    playlist                          \n" \
+        " - download_songs : (first preprocessing step) allows \n" \
+        "                    you to download a selection of    \n" \
+        "                    songs from your playlists         \n" \
+        " - split_songs    : (second preprocessing step) allows\n" \
+        "                    you to split desired songs using  \n" \
+        "                    demucs                            \n" \
+        " - anaylse_songs  : (last processing step) allows you \n" \
+        "                    to analyse songs (used for the    \n" \
+        "                    waveform visualizer)              \n" \
+        " - prepare_songs  : fully processes selected tracks   \n" \
+        " - reset_songs    : IRREVERSIBLE: deletes all         \n" \
+        "                    processed info on a track         \n" \
+        " - edit_songs     : allows you to rename, or change   \n" \
+        "                    the audio for a song if the       \n" \
+        "                    generated ones arent good         \n" \
+        " - help           : displays this message.            \n" \
+        "                                                      \n" \
+        "                                                      \n" \
+        "since this cannot capture keyboardinterrupts, you can \n" \
+        "cancel a prompt by typing q in the terminal.          \n" \
+        "this unfortunately doesnt allow you to stop in the    \n" \
+        "middle of an action (like splitting or downloading),  \n" \
+        "so be careful not to launch too many actions at once. \n" \
+        "'----------------------------------------------------'\n", "magenta")
 
 
-    # WELCOME
-    terminal_logger.pretty_text("╭----------------------------------------------------------------------╮\n" \
-                    "|      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       c  o  n  s  o  l  e      |\n" \
-                    "|      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        c  o  n  s  o  l  e      |\n" \
-                    "|      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       c  o  n  s  o  l  e      |\n" \
-                    "╰----------------------------------------------------------------------╯\n", "magenta bold")
+    # WELCOME                
+    terminal_logger.pretty_text("   ╭---------------------------------------------╮    \n" \
+                                "   |      ╭=-.  ╭==╮  ╭╮ ╮  ╭-.   ╭    ╭=-       |    \n" \
+                                "   |      ╞-:╯  ╞--╡  |╰╮|  |  |  |    ╞-        |    \n" \
+                                "   |      ╰=-╯  ╰  ╯  ╰ ╰╯  ╰='   ╰-╯  ╰=-       |    \n" \
+                                "   ╰----╮----------------------------------╭-----╯    \n" \
+                                "        |                                  |          \n" \
+                                "        |        c  o  n  s  o  l  e       |          \n" \
+                                "        |                                  |          \n" \
+                                "        ╰----------------------------------╯          \n", "magenta bold")
+    
+    
     console_help()
 
 
@@ -190,7 +201,7 @@ def main_console(q_out=None, q_in=None):
                 if choice == "none":    
                     terminal_logger.pretty_text("nothing to split!", "magenta")
                 elif choice != "error":
-                    split_tracks(choice)
+                    split_tracks(choice, log=terminal_logger, wrapped=False if __name__ == "__main__" else True)
 
             if command == "analyse_songs":
                 choice = choose_songs(target_status=["split"], action="analyse")
@@ -201,13 +212,14 @@ def main_console(q_out=None, q_in=None):
             
             if command == "reset_songs":
                 choice = choose_songs(target_status=["split", "downloaded", "new", "analysed"], action="reset")
-                if choice == "none":    
+                if choice == "none":            
                     terminal_logger.pretty_text("nothing to reset! did you import any playlists?", "magenta")
                 elif choice != "error":
                     reset_tracks(choice)
             
             if command == "prepare_songs":
                 choice = choose_songs(target_status=["split", "downloaded", "new"], action="prepare")
+                print(choice)
                 if choice == "none":    
                     terminal_logger.pretty_text("nothing to prepare!", "magenta")
                 elif choice != "error":
@@ -218,7 +230,7 @@ def main_console(q_out=None, q_in=None):
                     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                         SONGS_DIR_contents = json.load(f)
                     relevant_choice = [i for i in choice if SONGS_DIR_contents[i]["status"] == "downloaded"]
-                    split_tracks(relevant_choice)
+                    split_tracks(relevant_choice, log=terminal_logger, wrapped=False if __name__ == "__main__" else True)
                     with open(SONGS_JSON_DIR, "r", encoding="utf-8") as f:
                         SONGS_DIR_contents = json.load(f)
                     relevant_choice = [i for i in choice if SONGS_DIR_contents[i]["status"] == "split"]
@@ -289,14 +301,14 @@ def main_console(q_out=None, q_in=None):
                                     terminal_logger.pretty_text("do you want to process that track completely? \[y/n]", "magenta")
                                     opt3 = get_input(">")
                                     if opt3 == "y":
-                                        if split_tracks(choice, give_status=True) == "split":
+                                        if split_tracks(choice, give_status=True, log=terminal_logger, wrapped=False if __name__ == "__main__" else True) == "split":
                                             analyse_tracks(choice)
 
-                            
+
         else:
             terminal_logger.error(f"command not found: {command}")
 
 
 
 if __name__ == "__main__":
-    main()
+    main_console()

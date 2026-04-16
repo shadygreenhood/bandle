@@ -119,6 +119,46 @@ def main():
     # |      ╰----╯  ╰    ╯ ╰    ╯ ╰----     ╰---╯ ╰----╯ ╰----╯ ╰          |
     # ╰---------------------------------------------------------------------╯
 
+    def everything_black(is_black):
+        if is_black:
+            con.COLOR_PALETTE = {
+                "background"            : (255-255, 255-255, 255-255),
+                "face"                  : (255-217, 255-217, 255-217),
+                "shadow"                : (255-127, 255-127, 255-127),
+                "textinput unselected"  : (255-244, 255-244, 255-244),
+                "textinput selected"    : (255-200, 255-200, 255-200),
+                "list item unselected"  : (255-183, 255-183, 255-183),
+                "list item selected"    : (255-145, 255-145, 255-145),
+                "black"                 : (255-0  , 255-0,   255-0  ),
+                "red accent"            : (195, 63 , 63 ),
+                "guessing background"   : (255-242, 255-242, 255-242),
+                "stems selected"        : (255-80 , 255-80 , 255-80 ),
+                "rich magenta"          : (50 , 250, 50 ), # yes, magenta is green in dark mode, ik, makes perfect sense
+                "rich blue"             : (50 , 60 , 200),
+                "rich green"            : (200, 50 , 150), #
+                "rich yellow"           : (238, 250, 15 ),
+                "rich red"              : (200, 10 , 10 )
+            }
+        else:
+            con.COLOR_PALETTE = {
+                "background"            : (255, 255, 255),
+                "face"                  : (217, 217, 217),
+                "shadow"                : (127, 127, 127),
+                "textinput unselected"  : (244, 244, 244),
+                "textinput selected"    : (200, 200, 200),
+                "list item unselected"  : (183, 183, 183),
+                "list item selected"    : (145, 145, 145),
+                "black"                 : (0  , 0,   0  ),
+                "red accent"            : (195, 63 , 63 ),
+                "guessing background"   : (242, 242, 242),
+                "stems selected"        : (80 , 80 , 80 ),
+                "rich magenta"          : (200, 50 , 150),
+                "rich blue"             : (50 , 60 , 200),
+                "rich green"            : (50 , 250, 50 ),
+                "rich yellow"           : (238, 250, 15 ),
+                "rich red"              : (200, 10 , 10 )
+            }
+
     def skip(silent=False, skip_song=False, simple_update=False):
             global _b_step
             global _b_song_counter
@@ -158,7 +198,7 @@ def main():
                 if not silent:
                     warnings.append(Warning(f"song was {sanitize(_b_current_song)}", (40, con.HEIGHT-80, con.WIDTH-80), "info"))
                 a = True
-                while a:    
+                while a:
                     _b_song_counter += 1
                     if _b_song_counter > len(_b_queue):
                         warnings.append(Warning(f"you finished the playlist!", (40, con.HEIGHT-80, con.WIDTH-80), "info"))
@@ -179,8 +219,6 @@ def main():
                         else:
                             warnings.append(Warning(f"couldnt find song folder", (40, con.HEIGHT-80, con.WIDTH-80), "warning"))
                             a = False
-                            # print(f'{con.STEMS_FOLDER + "/" +  _b_current_song} is not a folder, it is possible the script failed to prepare mp3s yet')
-
 
     def setup():
         
@@ -192,7 +230,7 @@ def main():
         global loading_anim_slider
         loading_anim_slider = 0
         global go_back_button
-        go_back_button = Button(19, 23, 101, 48, con.COLOR_PALETTE["red accent"], "Back", radius=15)
+        go_back_button = Button(19, 23, 101, 48, "red accent", "Back", radius=15)
         global _mb_wiki_bool
         _mb_wiki_bool = True
 
@@ -236,6 +274,7 @@ def main():
 
         global _mm_CHEAT_MODE_toggle
         global _mm_global_suggestions_toggle
+        global _mm_dark_mode_toggle
 
         global _mm_ANIM_SPEED
         _mm_ANIM_SPEED = 1/5
@@ -246,14 +285,15 @@ def main():
             # prep for main menu + settings screen
 
             # sprites (mostly x=0 cuz its overwritten anyways)
-            _mm_settings_button             = Button(0, 41 , 69, 50, con.COLOR_PALETTE["background"], "", radius=20)
-            _mm_search_button               = Button(0, 360, 329, 115,  con.COLOR_PALETTE["face"], "Search", radius=20)
-            _mm_library_button              = Button(0, 530 , 329, 115, con.COLOR_PALETTE["face"], "Library", radius=20)
-            _mm_manage_blacklist_button     = Button(0, 508, 229, 82,  con.COLOR_PALETTE["face"], "Select\nblacklist", radius=20)
-            _mm_open_console_button         = Button(0, 782, 229, 82,  con.COLOR_PALETTE["face"], "Open\nConsole", radius=20)
+            _mm_settings_button             = Button(0, 41 , 69, 50, "background", "", radius=20)
+            _mm_search_button               = Button(0, 360, 329, 115,  "face", "Search", radius=20)
+            _mm_library_button              = Button(0, 530 , 329, 115, "face", "Library", radius=20)
+            _mm_manage_blacklist_button     = Button(0, 508, 229, 82,  "face", "Select\nblacklist", radius=20)
+            _mm_open_console_button         = Button(0, 782, 229, 82,  "face", "Open\nConsole", radius=20)
 
             _mm_CHEAT_MODE_toggle =         Toggle(0, 262)
-            _mm_global_suggestions_toggle = Toggle(0, 384, default=True)
+            _mm_global_suggestions_toggle = Toggle(0, 262+70, default=True)
+            _mm_dark_mode_toggle =          Toggle(0, 262+140, default=True)
 
             # internal vars
             _mm_y_spring_slider_anim = False
@@ -289,7 +329,6 @@ def main():
             _mm_settings_button.x = 35 + _mm_x_spring_slider*360
             _mm_settings_button.y = 41 - (1-_mm_y_spring_slider)*100
 
-
             _mm_settings_button.draw(screen)
             if _mm_settings_button.is_clicked(events) == 1 and submenu != "intro":
                 _mm_x_spring_slider_anim = True
@@ -320,10 +359,14 @@ def main():
             screen.blit(text_surface, text_rect)
             #Toggle text (Global Suggestions)
             text_surface = con.basic_font.render("Global", True, con.COLOR_PALETTE["black"])
-            text_rect = text_surface.get_rect(center=(-180 + con.WIDTH*_mm_x_spring_slider, 380))
+            text_rect = text_surface.get_rect(center=(-180 + con.WIDTH*_mm_x_spring_slider, 330))
             screen.blit(text_surface, text_rect)
             text_surface = con.basic_font.render("Suggestions", True, con.COLOR_PALETTE["black"])
-            text_rect = text_surface.get_rect(center=(-180 + con.WIDTH*_mm_x_spring_slider, 410))
+            text_rect = text_surface.get_rect(center=(-180 + con.WIDTH*_mm_x_spring_slider, 350))
+            screen.blit(text_surface, text_rect)
+            #Toggle text (Dark Mode)
+            text_surface = con.basic_font.render("Dark Mode", True, con.COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(-180 + con.WIDTH*_mm_x_spring_slider, 420))
             screen.blit(text_surface, text_rect)
 
 
@@ -335,6 +378,7 @@ def main():
 
             _mm_CHEAT_MODE_toggle.x       = -448  + con.WIDTH*_mm_x_spring_slider
             _mm_global_suggestions_toggle.x = -448  + con.WIDTH*_mm_x_spring_slider
+            _mm_dark_mode_toggle.x          = -448  + con.WIDTH*_mm_x_spring_slider
 
             # all shadows
             pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(_mm_search_button.x + SHADOW_OFFSET           , _mm_search_button.y + SHADOW_OFFSET + (1-_mm_y_spring_slider)*con.HEIGHT, _mm_search_button.w, _mm_search_button.h), border_radius=20)
@@ -358,6 +402,11 @@ def main():
 
             _mm_global_suggestions_toggle.draw(screen, events)
             con.GLOBAL_SUGGESTIONS =_mm_global_suggestions_toggle.state
+
+            _mm_dark_mode_toggle.draw(screen, events)
+            if con.DARK_MODE != _mm_dark_mode_toggle.state:
+                con.DARK_MODE = _mm_dark_mode_toggle.state
+                everything_black(con.DARK_MODE)
 
             if _mm_library_button.is_clicked(events):
                 loading_anim_slider = 0
@@ -440,15 +489,15 @@ def main():
         if submenu == "setup":
             
             
-            _mb_close_button  = Button(388, 232, 50, 50, con.COLOR_PALETTE["list item unselected"], "ok", 15)
-            _mb_modify_button = Button(85, 790, 204, 52, con.COLOR_PALETTE["list item unselected"], "Modify", 15)
-            _mb_add_button    = Button(300, 790, 52, 52, con.COLOR_PALETTE["list item unselected"], "+", 15)
-            _mb_delete_button = Button(363, 790, 52, 52, con.COLOR_PALETTE["list item unselected"], "d", 15)
+            _mb_close_button  = Button(388, 232, 50, 50, "list item unselected", "ok", 15)
+            _mb_modify_button = Button(85, 790, 204, 52, "list item unselected", "Modify", 15)
+            _mb_add_button    = Button(300, 790, 52, 52, "list item unselected", "+", 15)
+            _mb_delete_button = Button(363, 790, 52, 52, "list item unselected", "d", 15)
 
             
             _mb_blacklist_buttons = []
             for i in range(len(con.BLACKLISTS_NAMES)):
-                _mb_blacklist_buttons.append(Button(71, 536 + i*61, 358, 51, con.COLOR_PALETTE["list item unselected"], con.BLACKLISTS_NAMES[i], 15))
+                _mb_blacklist_buttons.append(Button(71, 536 + i*61, 358, 51, "list item unselected", con.BLACKLISTS_NAMES[i], 15))
 
             _mb_wiki = []
             _mb_wiki.append("The selected blacklist will")
@@ -585,7 +634,7 @@ def main():
                 with open(con.BLACKLISTS_DIR, "w") as f:
                     f.write(b)
 
-                _mb_blacklist_buttons.append(Button(71, 536 + len(con.BLACKLISTS_NAMES)*61, con.WIDTH-140, 60, con.COLOR_PALETTE["list item unselected"], n, 15))
+                _mb_blacklist_buttons.append(Button(71, 536 + len(con.BLACKLISTS_NAMES)*61, con.WIDTH-140, 60, "list item unselected", n, 15))
                 con.BLACKLISTS_NAMES.append(n)
                 con.BLACKLISTS.append([])
 
@@ -626,7 +675,7 @@ def main():
             if submenu == "loading_manage_blacklists":
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -638,7 +687,7 @@ def main():
             if submenu in ["loading_main_menu"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -668,6 +717,8 @@ def main():
         global _t_inputs
         global _t_logs
         global _t_textinput
+        global _t_scrollpos
+        global _t_scrollvel
 
         global _t_add_logs
 
@@ -680,11 +731,18 @@ def main():
                 global _t_logs
 
                 lines = str.split("\n")
+
                 for i in lines:
                     _t_logs.append([style, i])
-
+                    # if new messages were progress bar updates, squish them
+                    if len(_t_logs) > 0:
+                        if _t_logs[-1][1][:14] == "[PROGRESS BAR]" and _t_logs[-2][1][:14] == "[PROGRESS BAR]":
+                            _t_logs.pop(-2)
             _t_logs = []
             _t_inputs = []
+            _t_scrollpos = 0
+            _t_scrollvel = 0
+            
 
             _t_q_in = Queue()
             _t_q_out = Queue()
@@ -699,7 +757,7 @@ def main():
 
         if submenu in ["main", "loading_main", "out_loading_main_menu", "loading_bandle"]:
 
-            
+            _t_textinput.focused = True
             if not _t_q_out.empty():
                 message = _t_q_out.get()
                 if message[0][0] == "input":
@@ -707,11 +765,11 @@ def main():
                     _t_add_logs(message[0][1], "black")
                 else:
                     if message[0][0] == "debug":
-                        _t_add_logs(message[0][1], "blue")
+                        _t_add_logs("[DEBUG]: "+message[0][1], "blue")
                     if message[0][0] == "warning":
-                        _t_add_logs(message[0][1], "yellow")
+                        _t_add_logs("[WARNING]: "+message[0][1], "yellow")
                     if message[0][0] == "error":
-                        _t_add_logs(message[0][1], "red")
+                        _t_add_logs("[ERROR]: "+message[0][1], "red")
                     if message[0][0] == "pretty":
                         _t_add_logs(message[0][1], message[0][2])
 
@@ -719,38 +777,106 @@ def main():
             _t_textinput.draw(screen, events)
             pygame.draw.rect(screen, con.COLOR_PALETTE["textinput selected"], pygame.Rect(0, con.HEIGHT-50, 20, 50))
             
+            max_lines = 28
             for event in  events:
                 if len(_t_inputs) > 0:
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                        _t_scrollpos = 0
                         _t_q_in.put(_t_textinput.text)
                         _t_add_logs(_t_textinput.text, "black")
                         _t_inputs.pop(0)
                         _t_textinput.text = ""
 
             indent = 1
-            for i in range(len(_t_logs)):
+
+            _t_scrollvel = (_t_scrollvel + (mouse_scroll)/17)/2
+            _t_scrollpos = (_t_scrollpos + _t_scrollvel*10)
+            if _t_scrollpos > len(_t_logs)-max_lines:
+                _t_scrollpos = len(_t_logs)-max_lines
+            if _t_scrollpos < 0:
+                _t_scrollpos = 0
+            for i in range(len(_t_logs) if len(_t_logs) < max_lines else max_lines):
+                
                 text = _t_logs[-1-i][1]
-                color = con.COLOR_PALETTE["black"]
-
-                if "magenta" in _t_logs[-1-i][0]:
-                    color = (200, 50, 150)
-                elif "red" in _t_logs[-1-i][0]:
-                    color = (200, 10, 10)
-                elif "blue" in _t_logs[-1-i][0]:
-                    color = (10, 10, 200)
-                elif "yellow" in _t_logs[-1-i][0]:
-                    color = (10, 200, 200)
-
-                # need to interpret [those] kinds of [/colors]
-
+                
+                
+                
                 if i == 0 and text == ">":
-                    text_surface = con.basic_font.render(text, True, color)
+                    text_surface = con.basic_font.render(text, True, con.COLOR_PALETTE["black"])
                     screen.blit(text_surface, (0, con.HEIGHT - 50))
                     indent = 0
                 else:
-                    text_surface = con.terminal_font.render(text, True, color)
-                    screen.blit(text_surface, (0, con.HEIGHT - (50 + (i+indent)*30)))
 
+                    
+
+                    ofs_idx = i+round(_t_scrollpos)
+                    text = _t_logs[-1-ofs_idx][1]
+                    
+
+                    if text[:14] == "[PROGRESS BAR]":
+                        text = text[14:]
+                
+                    # need to interpret [those] kinds of [/colors]
+                    # if "[blue]" in text:
+                    #     fragments = text.replace("[/blue]", "[blue]").split("[blue]")
+                    #     print(fragments)
+                        
+
+                    line_color = con.COLOR_PALETTE["black"]
+                    accidental_color = "none"
+
+                    if "magenta" in _t_logs[-1-ofs_idx][0]:
+                        # con.COLOR_PALETTE["rich magenta"]
+                        line_color = con.COLOR_PALETTE["rich magenta"]
+                    elif "red" in _t_logs[-1-ofs_idx][0]:
+                        line_color = con.COLOR_PALETTE["rich red"]
+                    elif "blue" in _t_logs[-1-ofs_idx][0]:
+                        line_color = con.COLOR_PALETTE["rich blue"]
+                    elif "yellow" in _t_logs[-1-ofs_idx][0]:
+                        line_color = con.COLOR_PALETTE["rich yellow"]
+                    skip_counter = 0
+                    skip_total_offset = 0
+                    for letter in range(len(text)):
+
+
+                        # interpret accidental colors (support for blue, cyan, black, green
+                        four_ltr_colors = ["blue", "cyan"]
+                        five_ltr_colors = ["black", "green"]
+                        
+                        if text[letter] == "[":
+                            
+                            if text[letter+1] == "/":
+                                slash = True
+                            else:
+                                slash = False
+
+                            # if its one of the four lettered colours...
+                            if text[letter+1+(1 if slash else 0): letter + 5 + (1 if slash else 0)] in four_ltr_colors:
+                                color_len = 4
+                            # if its one of the five lettered colours...
+                            elif text[letter+1+(1 if slash else 0): letter + 6 + (1 if slash else 0)] in five_ltr_colors:
+                                color_len = 5
+                                
+                            if slash == True:
+                                accidental_color = "none"
+                                skip_counter = color_len + 3
+                                skip_total_offset += color_len + 3
+                            else:
+                                if color_len == 4:
+                                    for j in four_ltr_colors:
+                                        if text[letter+1: letter + 5] == j:
+                                            accidental_color = con.COLOR_PALETTE["rich "+j]
+                                elif color_len == 5:
+                                    for j in five_ltr_colors:
+                                        if text[letter+1: letter + 6] == j:
+                                            accidental_color = con.COLOR_PALETTE["rich "+j]
+                                skip_counter = color_len + 2
+                                skip_total_offset += color_len + 2
+
+                        if skip_counter == 0:    
+                            text_surface = con.terminal_font.render(text[letter], True, line_color if accidental_color == "none" else accidental_color)
+                            screen.blit(text_surface, (5+(letter - skip_total_offset)*9, con.HEIGHT - (50 + (i+indent)*30)))
+                        skip_counter -= 1 if skip_counter > 0 else 0
 
             # header
             pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, -50, con.WIDTH, 145))
@@ -758,7 +884,20 @@ def main():
             screen.blit(text_surface, (con.WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
             go_back_button.draw(screen)
             if go_back_button.is_clicked(events) == 1:
+                # killing console process
                 _t_p.terminate()
+                # reevaluating song accessibility
+                global all_songs_sorted
+                global all_songs_sanitized_availability
+                all_songs_sorted = all_songs[:]
+                all_songs_sorted.sort()
+                all_songs_sanitized_availability = []
+                for i in range(len(all_songs_sorted)):
+                    if con.SONGS_JSON_DIR_contents[all_songs_sorted[i]]["status"] == "analysed":
+                        all_songs_sanitized_availability.append(True)
+                    else:
+                        all_songs_sanitized_availability.append(False)
+
                 submenu = "out_loading_main_menu"
 
             
@@ -770,7 +909,7 @@ def main():
             if submenu == "loading_main":
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -781,7 +920,7 @@ def main():
             if submenu in ["out_loading_main_menu"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -824,14 +963,14 @@ def main():
             _ss_scrollpos = 0
             _ss_scrollvel = 0
 
-            _ss_library_button =            Button(0, con.HEIGHT-100, con.WIDTH/2, 100, con.COLOR_PALETTE["list item unselected"], "")
-            _ss_global_search_button =      Button(con.WIDTH/2, con.HEIGHT-100, con.WIDTH/2, 100, con.COLOR_PALETTE["face"], "")
-            _ss_select_song_button =        Button(20,700, con.WIDTH, 35, con.COLOR_PALETTE["face"], "", radius=10)
-            _ss_textinput =                 Textinput(50, 160, con.WIDTH - 100, 50, 5, con.COLOR_PALETTE["textinput unselected"])
+            _ss_library_button =            Button(0, con.HEIGHT-100, con.WIDTH/2, 100, "list item unselected", "")
+            _ss_global_search_button =      Button(con.WIDTH/2, con.HEIGHT-100, con.WIDTH/2, 100, "face", "")
+            _ss_select_song_button =        Button(20,700, con.WIDTH, 35, "face", "", radius=10)
+            _ss_textinput =                 Textinput(50, 160, con.WIDTH - 100, 50, 5, "textinput unselected")
 
             _ss_categories = []
             for i in range(len(con.CATEGORIES)):
-                _ss_categories.append(Button(81 + (i%2)*(178), 389 + math.floor(i/2)*87, 160, 70, con.COLOR_PALETTE["list item selected"], con.CATEGORIES[i], radius=15))
+                _ss_categories.append(Button(81 + (i%2)*(178), 389 + math.floor(i/2)*87, 160, 70, "list item selected", con.CATEGORIES[i], radius=15))
 
             _ss_pixelpositions = [i.y for i in _ss_categories]
             loading_anim_slider = 0
@@ -850,52 +989,39 @@ def main():
                     selection.append(i)
             
             # updating scroll      
+            o = 350
             _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
             _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
-            if _ss_scrollpos < len(selection) * -38 + 106:
-                _ss_scrollpos = len(selection) * -38 + 106
+            if _ss_scrollpos < len(selection) * -38 + 106+725-o:
+                _ss_scrollpos = len(selection) * -38 + 106+725-o
             if _ss_scrollpos > 0:
                 _ss_scrollpos = 0
 
             # placing a button under the cursor if hovering on the options
-            if mouse_y > 725 + _ss_scrollpos and mouse_y < con.HEIGHT-106:
-                _ss_selected = math.floor((mouse_y-725-_ss_scrollpos)/38)
-                _ss_select_song_button.y = math.floor((mouse_y-725-_ss_scrollpos)/38) * 38 + 725 + _ss_scrollpos
+            if mouse_y > o + _ss_scrollpos and mouse_y < con.HEIGHT-106 and mouse_y > 200:
+                _ss_selected = math.floor((mouse_y-o-_ss_scrollpos)/38)
+                _ss_select_song_button.y = math.floor((mouse_y-o-_ss_scrollpos)/38) * 38 + o + _ss_scrollpos
                 if _ss_selected < len(selection):
                     _ss_select_song_button.draw(screen)
                     if _ss_select_song_button.is_clicked(events):
                         if all_songs_sanitized_availability[all_songs_sorted.index(selection[_ss_selected])] == False:
                             warnings.append( Warning("this song isnt available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
                         else:
-                            print("selected: ", all_songs[all_songs.index(selection[_ss_selected])])
                             _b_current_song = all_songs[all_songs.index(selection[_ss_selected])]
-                            print("curr_song: ", _b_current_song)
                             submenu = "loading_bandle"
 
             # render options text
             for i in range(len(selection)):
-                if 725 + _ss_scrollpos + i*38 > 0 and 725 + _ss_scrollpos + i*38 < con.HEIGHT:
+                if o + _ss_scrollpos + i*38 > 0 and o + _ss_scrollpos + i*38 < con.HEIGHT:
                     text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["black"])
                     if all_songs_sanitized_availability[all_songs_sorted.index(selection[i])] == False:
                         text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["list item unselected"])
-                    screen.blit(text_surface, (40,725 + _ss_scrollpos + i*38))
+                    screen.blit(text_surface, (40,o + _ss_scrollpos + i*38))
 
 
-            _ss_categories[0].y =        _ss_pixelpositions[0] + _ss_scrollpos
-            _ss_categories[1].y =        _ss_pixelpositions[1] + _ss_scrollpos
-            _ss_categories[2].y =        _ss_pixelpositions[2] + _ss_scrollpos
-            _ss_categories[3].y =        _ss_pixelpositions[3] + _ss_scrollpos
-            _ss_textinput.y = 176 + _ss_scrollpos if _ss_scrollpos > -43 else 133
-
-            for i in _ss_categories:
-                i.draw(screen)
-            
-            # Categories header
-            text_surface = con.title_font.render("Categories", True, con.COLOR_PALETTE["black"])
-            screen.blit(text_surface, (81,271 + _ss_scrollpos))
             # Songs header
             text_surface = con.title_font.render("Songs", True, con.COLOR_PALETTE["black"])
-            screen.blit(text_surface, (81,600 + _ss_scrollpos))
+            screen.blit(text_surface, (81,230 + _ss_scrollpos))
             
             # Library and Search buttons
             _ss_library_button.draw(screen)
@@ -920,7 +1046,7 @@ def main():
             if submenu == "loading_search":
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -932,7 +1058,7 @@ def main():
             if submenu in ["loading_main_menu", "loading_bandle"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -974,11 +1100,11 @@ def main():
             _ps_playlist_buttons = []
             selected_playlist = ""
             
-            _ps_start_button = Button(135, 774, 229, 92, con.COLOR_PALETTE["face"], "Start", radius=20, click_counter=20)
+            _ps_start_button = Button(135, 774, 229, 92, "face", "Start", radius=20, click_counter=20)
 
 
             for i in range(len(list(playlists_json_dir_contents.keys()))):
-                _ps_playlist_buttons.append(Button(86, 247 + i*62, 328, 52, con.COLOR_PALETTE["list item unselected"], playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
+                _ps_playlist_buttons.append(Button(86, 247 + i*62, 328, 52, "list item unselected", playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[i]]["name"], radius=15, info=list(playlists_json_dir_contents.keys())[i]))
             
             loading_anim_slider = 0
             submenu = "loading_main"
@@ -1010,9 +1136,9 @@ def main():
             # draw buttons
             for i in range(len(_ps_playlist_buttons)):
                 if i == _ps_selected_playlist_idx:
-                    _ps_playlist_buttons[i].color = con.COLOR_PALETTE["list item selected"]
+                    _ps_playlist_buttons[i].color = "list item selected"
                 else:
-                    _ps_playlist_buttons[i].color = con.COLOR_PALETTE["list item unselected"]
+                    _ps_playlist_buttons[i].color = "list item unselected"
                 _ps_playlist_buttons[i].x, _ps_playlist_buttons[i].y = (86, 247 + i*62 + _ps_scrollpos*10)
                 _ps_playlist_buttons[i].draw(screen)
 
@@ -1054,7 +1180,7 @@ def main():
             if submenu == "loading_main":
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -1065,7 +1191,7 @@ def main():
             if submenu in ["out_loading_main_menu", "loading_bandle"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -1131,12 +1257,12 @@ def main():
         _b_popup_win_vel = 0
 
         # setting buttons
-        _b_play_button  = Button(213 , 750, 75 , 65 , con.COLOR_PALETTE["list item selected"], ""      , radius=15, click_counter=20)
-        _b_skip_button  = Button(388, 741, 95 , 83 , con.COLOR_PALETTE["list item selected"], "Skip"      , radius=15, click_counter=20)
-        _b_guess_button = Button(16 , 741, 95 , 83 , con.COLOR_PALETTE["list item selected"], "Guess", radius=15, click_counter=20)
+        _b_play_button  = Button(213 , 750, 75 , 65 , "list item selected", ""      , radius=15, click_counter=20)
+        _b_skip_button  = Button(388, 741, 95 , 83 , "list item selected", "Skip"      , radius=15, click_counter=20)
+        _b_guess_button = Button(16 , 741, 95 , 83 , "list item selected", "Guess", radius=15, click_counter=20)
 
-        _b_rewind =     Button(con.WIDTH/2 - 45 -90  , con.HEIGHT -210, 90 , 85 , con.COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
-        _b_skip_ahead = Button(con.WIDTH/2 + 45      , con.HEIGHT -210, 90 , 85 , con.COLOR_PALETTE["background"], ""      , radius=20, click_counter=20)
+        _b_rewind =     Button(con.WIDTH/2 - 45 -90  , con.HEIGHT -210, 90 , 85 , "background", ""      , radius=20, click_counter=20)
+        _b_skip_ahead = Button(con.WIDTH/2 + 45      , con.HEIGHT -210, 90 , 85 , "background", ""      , radius=20, click_counter=20)
         
         _b_skip_ahead_img = pygame.image.load(con.ASSETS_DIR / "skip_ahead.png").convert_alpha()
         _b_skip_ahead_img = pygame.transform.smoothscale(_b_skip_ahead_img, (60, 60))
@@ -1255,7 +1381,6 @@ def main():
 
         if submenu in ["bandle", "bandle_guessing", "bandle_win", "bandle_stare"]:
             #deal with players
-            #MUTED OUTPUT  print("progression would be updated here")
             player.update_pointer()
             progression = player.pointer * 1000 / player.audio_len if player.audio_len != 0 else 0
 
@@ -1284,14 +1409,14 @@ def main():
                 
                 if submenu == "bandle_stare":
                     
-                    b = Button(71, 246 + i*74, 361, 60, con.COLOR_PALETTE["black"], f"{con.STEMS[i]}", 15)
+                    b = Button(71, 246 + i*74, 361, 60, "black", f"{con.STEMS[i]}", 15)
                     
                     b.draw(screen)
                     if b.is_clicked(events):
                         _b_step = i
                         skip(True, simple_update=True)
                     # pygame.draw.rect(screen, (200, 200, 200) if i < _b_step else (150, 150, 150), pygame.Rect(50, 250 + i*80, con.WIDTH - 100, 60), border_radius=15)
-                    # stem_text = con.basic_font.render(f"{con.STEMS[i]}", True, (10, 10 ,10))
+                    # stem_text = con.basic_font.render(f"{con.STEMS[i]}", True, con.COLOR_PALETTE["black"])
                     # screen.blit(stem_text, (con.WIDTH/2 - stem_text.get_width()/2, 254 + i*80))
 
 
@@ -1429,7 +1554,6 @@ def main():
         # ╰--------------------------------------------------------------------------------------╯
             # play/pause button
             # make the button change depending on state
-            #MUTED OUTPUT  print("check if playing to change play button appearance")
             _b_play_button.draw(screen)
             if  player.status != "Playing":
                 screen.blit(_b_play_img, (237 ,  765))
@@ -1506,7 +1630,6 @@ def main():
                     if enter:
                         #guess
                         guess = actual_suggestions[selected]
-                        # print(f"you guessed: {guess}, correct would be {_b_current_song}")
                         if guess == _b_current_song:
                             submenu = "bandle_win"
                         else: 
@@ -1606,19 +1729,19 @@ def main():
 
                 if not _b_single_song_bool:
                     pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(85 + SHADOW_OFFSET, -200+(200+360)*_b_popup_win_offset + SHADOW_OFFSET, 329, 115), border_radius=20)
-                    butt = Button(85, -200+(200+360)*_b_popup_win_offset, 329, 115, con.COLOR_PALETTE["face"], "go back and\nadmire", 20)
+                    butt = Button(85, -200+(200+360)*_b_popup_win_offset, 329, 115, "face", "go back and\nadmire", 20)
                     butt.draw(screen)
                     if butt.is_clicked(events):
                         submenu = "bandle_stare"
                     pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(85 + SHADOW_OFFSET, -200+(200+530)*_b_popup_win_offset + SHADOW_OFFSET, 329, 115), border_radius=20)                    
-                    next = Button(85, -200+(200+530)*_b_popup_win_offset, 329, 115, con.COLOR_PALETTE["face"], "go next", 20)
+                    next = Button(85, -200+(200+530)*_b_popup_win_offset, 329, 115, "face", "go next", 20)
                     next.draw(screen)
                     if next.is_clicked(events):
                         skip(True, True)
                         submenu = "bandle"
                 else:
                     pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(85 + SHADOW_OFFSET, -200+(200+360)*_b_popup_win_offset + SHADOW_OFFSET, 329, 115), border_radius=20)
-                    next = Button(85, -200+(200+360)*_b_popup_win_offset, 329, 115, con.COLOR_PALETTE["face"], "Return to selection", 20)
+                    next = Button(85, -200+(200+360)*_b_popup_win_offset, 329, 115, "face", "Return to selection", 20)
                     next.draw(screen)
                     if next.is_clicked(events):
                         player.stop_all()
@@ -1654,7 +1777,6 @@ def main():
 
             for i in range(len(words)):
                 for j in range(len(words)):
-                    # print(f"j: {j}, len of {str(words[:len(words) - j])} is {sum(len(words[i]) for i in range(len(words) - j))}")
                     if sum(len(words[i]) for i in range(len(words) - j)) < 25 or j == len(words) - 1:
 
                         selected_playlist_text = "".join((words[i] + " ") for i in (range(len(words) - j)))
@@ -1664,7 +1786,6 @@ def main():
                         for i in range(len(words[:len(words) - j])):
                             words.pop(0)
                         break
-                # print(f"i: {i}, words: {words}")
                 if words == []:
                     break
             
@@ -1696,7 +1817,7 @@ def main():
             if _b_loading_status == "loading_in":
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(0 -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*1/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -1708,7 +1829,7 @@ def main():
             if _b_loading_status in ["out_loading_playlist", "out_loading_song"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
-                text_surface = con.title_font.render("Loading", True, (10, 10 ,10))
+                text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
                 text_rect = text_surface.get_rect(center=(con.WIDTH*3/2 - loading_anim_slider*con.WIDTH, con.HEIGHT/2))
                 screen.blit(text_surface, text_rect)
 
@@ -1744,7 +1865,6 @@ def main():
         keys = pygame.key.get_pressed()
 
         mouse_scroll = 0
-        key_scroll = 0
         for event in events:
             if event.type == pygame.QUIT:
                 running = False

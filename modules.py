@@ -21,7 +21,7 @@ class Button:
     def draw(self, surface, color=-1):
 
         if color == -1:
-            display_color = self.color
+            display_color = con.COLOR_PALETTE[self.color]
         else:
             display_color = color
 
@@ -200,9 +200,9 @@ class Textinput:
         
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if not self.focused:    
-            pygame.draw.rect(surface, (self.color[0] , self.color[1], self.color[2]), self.rect, border_radius=self.radius)
+            pygame.draw.rect(surface, con.COLOR_PALETTE["textinput selected"], self.rect, border_radius=self.radius)
         else:
-            pygame.draw.rect(surface, (self.color[0] - 50 if (self.color[0] - 50) > 0 else 0, self.color[1] - 50 if (self.color[0] - 50) > 0 else 0, self.color[2] - 50 if (self.color[0] - 50) > 0 else 0), self.rect, border_radius=self.radius)
+            pygame.draw.rect(surface, con.COLOR_PALETTE["textinput unselected"], self.rect, border_radius=self.radius)
         
         for event in events:   
             if self.focused: 

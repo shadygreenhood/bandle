@@ -102,7 +102,12 @@ COLOR_PALETTE = {
     "black"                 : (0  , 0,   0  ),
     "red accent"            : (195, 63 , 63 ),
     "guessing background"   : (242, 242, 242),
-    "stems selected"        : (80 , 80 , 80 )
+    "stems selected"        : (80 , 80 , 80 ),
+    "rich magenta"          : (200, 50 , 150),
+    "rich blue"             : (50 , 60 , 200),
+    "rich green"            : (50 , 250, 50 ),
+    "rich yellow"           : (238, 250, 15 ),
+    "rich red"              : (200, 10 , 10 )
 }
 
 
@@ -169,6 +174,7 @@ GLOBAL_SUGGESTIONS = True
 TARGET_FPS = 60
 WEAK_INTERNET = False
 SKIP_SPLIT = False
+DARK_MODE = False
 curr_blacklist = -1
 
 # creating potentially missing files

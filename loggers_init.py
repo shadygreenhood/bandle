@@ -103,10 +103,11 @@ progress_pattern = re.compile(r"(\d+)%")  # capture percentage from tqdm-like ou
 
 class ProgressCapture(StringIO):
                     """Capture stderr and extract progress percentage"""
-                    def __init__(self, live):
+                    def __init__(self, mode, out_vector):
+                        self.mode = mode
                         super().__init__()
-                        self.last_percent = 0
-                        self.live = live
+                        self.last_percent = 0 
+                        self.out_vector = out_vector
                     def write(self, s):
                         super().write(s)
                         match = progress_pattern.search(s)
@@ -114,7 +115,10 @@ class ProgressCapture(StringIO):
                             percent = int(match.group(1))
                             if percent != self.last_percent:
                                 # print your custom bar
-                                self.live.update(pacman_bar(percent, 50, 100))
+                                if self.mode == "live":
+                                    self.out_vector.update(pacman_bar(percent, 50, 100))
+                                elif self.mode == "wrapped":
+                                    self.out_vector.pretty_text("[PROGRESS BAR]"+str(pacman_bar(percent, 45, 100), wrapped=True), "magenta")
                                 self.last_percent = percent
 
 
@@ -124,24 +128,32 @@ class ProgressCapture(StringIO):
 # |      ╞==╯  ╞=:╯  |  |  |  ╮  ╞=:╯  ╞-   ╰--╮  ╰--╮       ╞-:╯  ╞--╡  ╞=:╯      |
 # |      ╰     ╰  ╰  ╰==╯  ╰==╯  ╰  ╰  ╰=-  ╰==╯  ╰==╯       ╰=-╯  ╰  ╯  ╰  ╰      |
 # ╰--------------------------------------------------------------------------------╯
-def pacman_bar(step, width, maxsteps):
+def pacman_bar(step, width, maxsteps, wrapped=False):
 
     progress = step / maxsteps
     pos = int((width - 2) * progress)
     frame = int(2 * (width - 2) * progress) % 2
     text = Text()
     # opening bracket
+
     text.append("[", style="magenta")
     if pos >= (width - 2):
         text.append("-" * (width - 2), style="magenta")
         text.append("]", style="magenta")
-        text.append(f" 100%", style="cyan italic dim")
+        if wrapped:
+            text.append(f"[cyan] 100%[/cyan]", style="magenta")
+        else:
+            text.append(f" 100%", style="cyan italic dim")
+        print(text)
         return text
     # eaten part
     text.append("-" * pos, style="magenta")
     # pacman
     pac = "c" if frame == 0 else "C"
-    text.append(pac, style="bold pink")
+    if wrapped:
+        text.append("[black]"+pac+"[/black]", style="magenta")
+    else:
+        text.append(pac, style="bold pink")
     # remaining pattern
     remaining = (width - 2) - pos - 1
     for i in range(int(remaining)):
@@ -153,6 +165,9 @@ def pacman_bar(step, width, maxsteps):
     text.append("]", style="magenta")
     # percentage
     percent = progress * 100
-    text.append(f" {percent:.1f}%", style="cyan italic dim")
+    if wrapped:
+        text.append(f"[cyan] {percent:.1f}%[/cyan]", style="magenta")
+    else: 
+        text.append(f" {percent:.1f}%", style="cyan italic dim")
 
     return text
