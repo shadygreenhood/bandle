@@ -51,6 +51,9 @@ class Button:
                 return 0
             self.click_counter = 0
             return 0
+        if events == []:
+            self.click_counter = 0
+            return 0
     ### TODO prevent it from incrementing clickcounter more than once per frame
 
 class Toggle:

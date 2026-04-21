@@ -11,6 +11,7 @@ def main():
     import pygame           # type: ignore
     import math
     import json
+    import sys
 
     from random import shuffle
     from pathlib import Path
@@ -286,8 +287,8 @@ def main():
 
             # sprites (mostly x=0 cuz its overwritten anyways)
             _mm_settings_button             = Button(0, 41 , 69, 50, "background", "", radius=20)
-            _mm_search_button               = Button(0, 360, 329, 115,  "face", "Search", radius=20)
-            _mm_library_button              = Button(0, 530 , 329, 115, "face", "Library", radius=20)
+            _mm_search_button               = Button(0, 360, 329, 115,  "face", "Test", radius=20)
+            _mm_library_button              = Button(0, 530 , 329, 115, "face", "Play", radius=20)
             _mm_manage_blacklist_button     = Button(0, 508, 229, 82,  "face", "Select\nblacklist", radius=20)
             _mm_open_console_button         = Button(0, 782, 229, 82,  "face", "Open\nConsole", radius=20)
 
@@ -415,8 +416,11 @@ def main():
                 loading_anim_slider = 0
                 submenu = "loading_blacklists"
             if _mm_open_console_button.is_clicked(events):
-                loading_anim_slider = 0
-                submenu = "loading_terminal"  # need to add console
+                if getattr(sys, 'frozen', False):
+                    warnings.append( Warning("not available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
+                else:
+                    loading_anim_slider = 0
+                    submenu = "loading_terminal"  # need to add console
             if _mm_search_button.is_clicked(events):
                 loading_anim_slider = 0
                 submenu = "loading_search"
@@ -475,6 +479,7 @@ def main():
         global _mb_wiki
         global _mb_wiki_bool
         global _mb_wiki_slider
+        global _mb_modify_slider
         global _mb_ANIM_SPEED
         _mb_ANIM_SPEED = 1/5
 
@@ -485,49 +490,50 @@ def main():
         global _mb_modify_button
         global _mb_add_button
         global _mb_delete_button
+        global _mb_mobile_del_button
 
         if submenu == "setup":
             
             
-            _mb_close_button  = Button(388, 232, 50, 50, "list item unselected", "ok", 15)
-            _mb_modify_button = Button(85, 790, 204, 52, "list item unselected", "Modify", 15)
-            _mb_add_button    = Button(300, 790, 52, 52, "list item unselected", "+", 15)
-            _mb_delete_button = Button(363, 790, 52, 52, "list item unselected", "d", 15)
-
+            _mb_close_button        = Button(388, 232, 50, 50, "list item unselected", "ok", 15)
+            _mb_modify_button       = Button(85, 790, 204, 52, "list item unselected", "Modify", 15)
+            _mb_add_button          = Button(300, 790, 52, 52, "list item unselected", "+", 15)
+            _mb_delete_button       = Button(363, 790, 52, 52, "list item unselected", "d", 15)
+            _mb_mobile_del_button   = Button(395, 345 + 70, 50, 50, "list item selected", "del", radius=10)
             
             _mb_blacklist_buttons = []
             for i in range(len(con.BLACKLISTS_NAMES)):
                 _mb_blacklist_buttons.append(Button(71, 536 + i*61, 358, 51, "list item unselected", con.BLACKLISTS_NAMES[i], 15))
 
-            _mb_wiki = []
+            _mb_wiki = [""]
             _mb_wiki.append("The selected blacklist will")
             _mb_wiki.append("remember the songs you")
             _mb_wiki.append("played so you dont get them")
             _mb_wiki.append("twice.")
             _mb_wiki.append("Manage them as you wish!")
-            _mb_wiki.append("you can also directly edit")
-            _mb_wiki.append("\"Blacklists.txt\" for more control")
+            _mb_wiki.append("  - More info on Github")
 
             if _mb_wiki_bool:
                 _mb_wiki_slider = 1
             else:
                 _mb_wiki_slider = 0
+            _mb_modify_slider = 0
 
             _mb_name_edit = Textinput(86, con.HEIGHT, 330, 53, 15, con.COLOR_PALETTE["textinput unselected"])
 
             loading_anim_slider = 0
             submenu = "loading_manage_blacklists"
         
-        if submenu in ["manage_blacklists", "loading_manage_blacklists", "loading_main_menu"]:
-
-            # banner
-            pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, -50, con.WIDTH, 145))
-
-            #Title text (Bandle)
-            text_surface = con.title_font.render("Select Blacklist", True, con.COLOR_PALETTE["black"])
-            text_rect = text_surface.get_rect(center=(con.WIDTH/2, 155))
-            screen.blit(text_surface, text_rect)
-
+        if submenu in ["manage_blacklists", "loading_manage_blacklists", "loading_main_menu", "modify_blacklist"]:
+            azerty = 750
+            # handling sliders
+            if not _mb_wiki_bool:    
+                _mb_wiki_slider -= _mb_wiki_slider*_mb_ANIM_SPEED
+            if submenu == "modify_blacklist":
+                _mb_modify_slider += (1-_mb_modify_slider)*_mb_ANIM_SPEED
+            else:
+                _mb_modify_slider += (0-_mb_modify_slider)*_mb_ANIM_SPEED
+                
             # wiki
             if _mb_wiki_bool:
                 pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 227 + SHADOW_OFFSET, 387, 265), border_radius=20)
@@ -540,41 +546,84 @@ def main():
                 if _mb_close_button.is_clicked(events):
                     _mb_wiki_bool = False
 
-            # handling sliders
-            if not _mb_wiki_bool:
-                _mb_wiki_slider -= _mb_wiki_slider*_mb_ANIM_SPEED
-            pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, (_mb_wiki_slider * 293) + 227 + SHADOW_OFFSET   , 387, 346), border_radius=20)
-            pygame.draw.rect(screen, con.COLOR_PALETTE["face"]  , pygame.Rect(56                , (_mb_wiki_slider * 293) + 227                   , 387, 346), border_radius=20)
+            # modify zone
+            pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(40 + SHADOW_OFFSET, - azerty + ((_mb_modify_slider) * azerty) + 320 + SHADOW_OFFSET   , 420, 500+(_mb_modify_slider * 300)), border_radius=20)
+            pygame.draw.rect(screen, con.COLOR_PALETTE["face"]  , pygame.Rect(40                , - azerty + ((_mb_modify_slider) * azerty) + 320                   , 420, 500+(_mb_modify_slider * 300)), border_radius=20)
+
+            if submenu == "modify_blacklist":
+                # banned songs
+                with open(con.BLACKLISTS_DIR, "r") as f:
+                    lines = f.read().splitlines()
+                songs = lines[curr_blacklist].split("=")[1].split(";")[:-1]
+                if songs != []:
+                    for song in range(len(songs)):
+                        pygame.draw.rect(screen, con.COLOR_PALETTE["list item unselected"], pygame.Rect(50, - azerty + ((_mb_modify_slider) * azerty) + 340 + 70*song  , 400, 60), border_radius=15)
+                        text_surface = con.basic_font.render(songs[song][:-9], True, con.COLOR_PALETTE["black"])
+                        screen.blit(text_surface, (60, - azerty + ((_mb_modify_slider) * azerty) + 340 + 70*song +5))
+                    # del button
+                    if mouse_y > 340 and mouse_y < 340 + 70*(len(songs)-1) + 60:
+                        _mb_mobile_del_button.y = - azerty + ((_mb_modify_slider) * azerty) + 345 + 70*((mouse_y-340)//70)  
+                        _mb_mobile_del_button.draw(screen)
+                        if _mb_mobile_del_button.is_clicked(events) == 1:
+                            songs.pop(int((mouse_y-340)//70))
+                            new_line = lines[curr_blacklist].split("=")[0] + "=" + ((";".join(songs) + ";") if songs != [] else"") 
+                            lines[curr_blacklist] = new_line
+                            print(new_line)
+                            with open(con.BLACKLISTS_DIR, "w") as f:
+                                f.write("\n".join(lines) + ";")
+
+                    # clear button
+                    
+
+                else:
+                    text_surface = con.title_font.render("[empty]", True, con.COLOR_PALETTE["list item unselected"])
+                    text_rect = text_surface.get_rect(center=(con.WIDTH/2, 600 - azerty + ((_mb_modify_slider) * azerty)))
+                    screen.blit(text_surface, text_rect)
+                
+
+            pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, (_mb_wiki_slider * 293) + (_mb_modify_slider * azerty) + 227 + SHADOW_OFFSET   , 387, 346), border_radius=20)
+            pygame.draw.rect(screen, con.COLOR_PALETTE["face"]  , pygame.Rect(56                , (_mb_wiki_slider * 293) + (_mb_modify_slider * azerty) + 227                   , 387, 346), border_radius=20)
 
             for i in range(len(_mb_blacklist_buttons)):
-                _mb_blacklist_buttons[i].y = i*61 + 243 + (_mb_wiki_slider * 293)
+                # handling modify submenu transition
+                if curr_blacklist == i:
+                    o = (_mb_modify_slider * (-10-i*63))
+                    _mb_blacklist_buttons[i].w = 358 + _mb_modify_slider*10
+                    _mb_blacklist_buttons[i].x = 71- _mb_modify_slider*5
+                    _mb_blacklist_buttons[i].h = 51 + _mb_modify_slider*10
+
+                else:
+                    o = azerty * _mb_modify_slider
+                    _mb_blacklist_buttons[i].w = 358
+                    _mb_blacklist_buttons[i].x = 71
+                    _mb_blacklist_buttons[i].h = 51
+                
+                _mb_blacklist_buttons[i].y = i*61 + 243 + (_mb_wiki_slider * 293) + o
                 if _mb_blacklist_buttons[i].is_clicked(events):
                     curr_blacklist = i
                 if curr_blacklist == i:
-                    _mb_blacklist_buttons[i].color = con.COLOR_PALETTE["list item selected"]
+                    _mb_blacklist_buttons[i].color = "list item selected"
                 else:
-                    _mb_blacklist_buttons[i].color = con.COLOR_PALETTE["list item unselected"]
+                    _mb_blacklist_buttons[i].color = "list item unselected"
                 _mb_blacklist_buttons[i].draw(screen)
 
 
-            go_back_button.draw(screen)
-            if go_back_button.is_clicked(events) == 1:
-                submenu = "loading_main_menu"
+            
                 
 
 
             # edit blacklist island
             #Title text (Edit Blacklist)
             text_surface = con.basic_font.render("Edit Blacklist", True, con.COLOR_PALETTE["black"])
-            text_rect = text_surface.get_rect(center=(con.WIDTH/2, 638 + _mb_wiki_slider * 400))
+            text_rect = text_surface.get_rect(center=(con.WIDTH/2, 638 + _mb_wiki_slider * 400 + (_mb_modify_slider * azerty)))
             screen.blit(text_surface, text_rect)
 
-            pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 668 + SHADOW_OFFSET + _mb_wiki_slider * 600, 387, 201), border_radius=20)
-            pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(56, 668 + _mb_wiki_slider * 500, 387, 201), border_radius=20)
+            pygame.draw.rect(screen, con.COLOR_PALETTE["shadow"], pygame.Rect(56 + SHADOW_OFFSET, 668 + SHADOW_OFFSET + (_mb_wiki_slider * 600) + (_mb_modify_slider * azerty), 387, 201), border_radius=20)
+            pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(56, 668 + (_mb_wiki_slider * 500) + (_mb_modify_slider * azerty), 387, 201), border_radius=20)
 
             # Text (Name)
             text_surface = con.small_font.render("Name", True, con.COLOR_PALETTE["black"])
-            screen.blit(text_surface, (85, 685 + _mb_wiki_slider * 700))
+            screen.blit(text_surface, (85, 685 + (_mb_wiki_slider * 700) + (_mb_modify_slider * azerty)))
 
             # Textinput
             if _mb_name_edit.focused == False:
@@ -596,13 +645,13 @@ def main():
                                 f.write(b)
 
 
-            _mb_name_edit.y = 727 + _mb_wiki_slider*800
+            _mb_name_edit.y = 727 + (_mb_wiki_slider*800) + (_mb_modify_slider * azerty)
             _mb_name_edit.draw(screen, events)
 
             # buttons
-            _mb_modify_button.y = 790 + _mb_wiki_slider*900
-            _mb_add_button.y    = 790 + _mb_wiki_slider*900
-            _mb_delete_button.y = 790 + _mb_wiki_slider*900
+            _mb_modify_button.y = 790 + (_mb_wiki_slider*900) + (_mb_modify_slider * azerty)
+            _mb_add_button.y    = 790 + (_mb_wiki_slider*900) + (_mb_modify_slider * azerty)
+            _mb_delete_button.y = 790 + (_mb_wiki_slider*900) + (_mb_modify_slider * azerty)
 
             _mb_modify_button.draw(screen)
             _mb_add_button.draw(screen)
@@ -665,8 +714,26 @@ def main():
                     con.BLACKLISTS.pop(curr_blacklist)
                     if curr_blacklist > len(con.BLACKLISTS_NAMES)-1:
                         curr_blacklist -= 1 
+                else:
+                    warnings.append( Warning("1 blacklist is required", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
 
+            if _mb_modify_button.is_clicked(events):
+                submenu = "modify_blacklist"   
+            
+            # banner
+            pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, -50, con.WIDTH, 145))
 
+            #Title text (Bandle)
+            text_surface = con.title_font.render("Select Blacklist" if submenu != "modify_blacklist" else "Modify Blacklist", True, con.COLOR_PALETTE["black"])
+            text_rect = text_surface.get_rect(center=(con.WIDTH/2, 155))
+            screen.blit(text_surface, text_rect)        
+
+            go_back_button.draw(screen)
+            if go_back_button.is_clicked(events) == 1:
+                if submenu == "modify_blacklist":
+                    submenu = "manage_blacklists"
+                else:    
+                    submenu = "loading_main_menu"
     # ╭---------------------------------------------------------------------------------------------╮
     # |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
     # |      |    |  |  ╞--╡  |  |  |  |╰╮|  |  ╮       ╰--╮  |     ╞=:╯  ╞-   ╞-   |╰╮|  ╰--╮      |
@@ -856,22 +923,26 @@ def main():
                             # if its one of the five lettered colours...
                             elif text[letter+1+(1 if slash else 0): letter + 6 + (1 if slash else 0)] in five_ltr_colors:
                                 color_len = 5
+                            # if its not stupid
+                            else:
+                                color_len = 0
                                 
                             if slash == True:
                                 accidental_color = "none"
                                 skip_counter = color_len + 3
                                 skip_total_offset += color_len + 3
                             else:
-                                if color_len == 4:
-                                    for j in four_ltr_colors:
-                                        if text[letter+1: letter + 5] == j:
-                                            accidental_color = con.COLOR_PALETTE["rich "+j]
-                                elif color_len == 5:
-                                    for j in five_ltr_colors:
-                                        if text[letter+1: letter + 6] == j:
-                                            accidental_color = con.COLOR_PALETTE["rich "+j]
-                                skip_counter = color_len + 2
-                                skip_total_offset += color_len + 2
+                                if color_len != 0:
+                                    if color_len == 4:
+                                        for j in four_ltr_colors:
+                                            if text[letter+1: letter + 5] == j:
+                                                accidental_color = con.COLOR_PALETTE["rich "+j]
+                                    elif color_len == 5:
+                                        for j in five_ltr_colors:
+                                            if text[letter+1: letter + 6] == j:
+                                                accidental_color = con.COLOR_PALETTE["rich "+j]
+                                    skip_counter = color_len + 2
+                                    skip_total_offset += color_len + 2
 
                         if skip_counter == 0:    
                             text_surface = con.terminal_font.render(text[letter], True, line_color if accidental_color == "none" else accidental_color)
@@ -954,8 +1025,8 @@ def main():
         global _ss_scrollpos
         global _ss_scrollvel
         global _ss_selected
-        global _ss_pixelpositions
-
+        global _ss_playlist_buttons
+        global _ss_selected_playlist
 
         if submenu == "setup":
 
@@ -963,80 +1034,179 @@ def main():
             _ss_scrollpos = 0
             _ss_scrollvel = 0
 
-            _ss_library_button =            Button(0, con.HEIGHT-100, con.WIDTH/2, 100, "list item unselected", "")
-            _ss_global_search_button =      Button(con.WIDTH/2, con.HEIGHT-100, con.WIDTH/2, 100, "face", "")
+            _ss_global_search_button =      Button(0, con.HEIGHT-100, con.WIDTH/2, 100, "list item unselected", "search")
+            _ss_library_button =            Button(con.WIDTH/2, con.HEIGHT-100, con.WIDTH/2, 100, "face", "library")
             _ss_select_song_button =        Button(20,700, con.WIDTH, 35, "face", "", radius=10)
             _ss_textinput =                 Textinput(50, 160, con.WIDTH - 100, 50, 5, "textinput unselected")
+            
+            _ss_playlist_buttons = []
+            for playlist in range(len(playlists_json_dir_contents)):
+                _ss_playlist_buttons.append(Button(30, 250+(100*playlist), 450, 90, "face", "", radius=15))
+            
+            _ss_selected_playlist = -1
 
-            _ss_categories = []
-            for i in range(len(con.CATEGORIES)):
-                _ss_categories.append(Button(81 + (i%2)*(178), 389 + math.floor(i/2)*87, 160, 70, "list item selected", con.CATEGORIES[i], radius=15))
-
-            _ss_pixelpositions = [i.y for i in _ss_categories]
             loading_anim_slider = 0
             submenu = "loading_search"
 
 
-        if submenu in ["search", "loading_search", "loading_main_menu", "loading_bandle"]:
+        if submenu in ["search", "loading_search", "search_loading_main_menu", "search_loading_bandle", "library"]:
             
-            # preparing listed song options
-            text = _ss_textinput.text
-            selection = []
-            for i in all_songs_sorted:
-                if text.lower() in sanitize(i).lower():
-                    selection.append(i)
-                elif text.lower() in con.SONGS_JSON_DIR_contents[i]["baked_artists"]:
-                    selection.append(i)
-            
-            # updating scroll      
-            o = 350
-            _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
-            _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
-            if _ss_scrollpos < len(selection) * -38 + 106+725-o:
-                _ss_scrollpos = len(selection) * -38 + 106+725-o
-            if _ss_scrollpos > 0:
-                _ss_scrollpos = 0
+            if submenu in ["search", "loading_search", "search_loading_main_menu", "search_loading_bandle"]:
+                # preparing listed song options
+                text = _ss_textinput.text
+                selection = []
+                for i in all_songs_sorted:
+                    if text.lower() in sanitize(i).lower():
+                        selection.append(i)
+                    elif text.lower() in con.SONGS_JSON_DIR_contents[i]["baked_artists"]:
+                        selection.append(i)
+                
+                # updating scroll      
+                o = 350
+                _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
+                _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
+                if _ss_scrollpos < len(selection) * -38 + 106+725-o:
+                    _ss_scrollpos = len(selection) * -38 + 106+725-o
+                if _ss_scrollpos > 0:
+                    _ss_scrollpos = 0
 
-            # placing a button under the cursor if hovering on the options
-            if mouse_y > o + _ss_scrollpos and mouse_y < con.HEIGHT-106 and mouse_y > 200:
-                _ss_selected = math.floor((mouse_y-o-_ss_scrollpos)/38)
-                _ss_select_song_button.y = math.floor((mouse_y-o-_ss_scrollpos)/38) * 38 + o + _ss_scrollpos
-                if _ss_selected < len(selection):
-                    _ss_select_song_button.draw(screen)
-                    if _ss_select_song_button.is_clicked(events):
-                        if all_songs_sanitized_availability[all_songs_sorted.index(selection[_ss_selected])] == False:
-                            warnings.append( Warning("this song isnt available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
-                        else:
-                            _b_current_song = all_songs[all_songs.index(selection[_ss_selected])]
-                            submenu = "loading_bandle"
+                # placing a button under the cursor if hovering on the options
+                if mouse_y > o + _ss_scrollpos and mouse_y < con.HEIGHT-106 and mouse_y > 200:
+                    _ss_selected = math.floor((mouse_y-o-_ss_scrollpos)/38)
+                    _ss_select_song_button.y = math.floor((mouse_y-o-_ss_scrollpos)/38) * 38 + o + _ss_scrollpos
+                    if _ss_selected < len(selection):
+                        _ss_select_song_button.draw(screen)
+                        if _ss_select_song_button.is_clicked(events):
+                            if all_songs_sanitized_availability[all_songs_sorted.index(selection[_ss_selected])] == False:
+                                warnings.append( Warning("this song isnt available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
+                            else:
+                                _b_current_song = all_songs[all_songs.index(selection[_ss_selected])]
+                                submenu = "search_loading_bandle"
 
-            # render options text
-            for i in range(len(selection)):
-                if o + _ss_scrollpos + i*38 > 0 and o + _ss_scrollpos + i*38 < con.HEIGHT:
-                    text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["black"])
-                    if all_songs_sanitized_availability[all_songs_sorted.index(selection[i])] == False:
-                        text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["list item unselected"])
-                    screen.blit(text_surface, (40,o + _ss_scrollpos + i*38))
+                # render options text
+                for i in range(len(selection)):
+                    if o + _ss_scrollpos + i*38 > 0 and o + _ss_scrollpos + i*38 < con.HEIGHT:
+                        text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["black"])
+                        if all_songs_sanitized_availability[all_songs_sorted.index(selection[i])] == False:
+                            text_surface = con.small_font.render(sanitize(selection[i]), True, con.COLOR_PALETTE["list item unselected"])
+                        screen.blit(text_surface, (40,o + _ss_scrollpos + i*38))
 
 
-            # Songs header
-            text_surface = con.title_font.render("Songs", True, con.COLOR_PALETTE["black"])
-            screen.blit(text_surface, (81,230 + _ss_scrollpos))
-            
+                # Songs header
+                text_surface = con.title_font.render("Songs", True, con.COLOR_PALETTE["black"])
+                screen.blit(text_surface, (81,230 + _ss_scrollpos))
+            elif submenu == "library":
+
+                if _ss_selected_playlist == -1:
+                    # playlist selection screen
+
+                    # updating scroll      
+                    o = 500
+                    _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
+                    _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
+                    if _ss_scrollpos < len(playlists_json_dir_contents)* -100 + o:
+                        _ss_scrollpos = len(playlists_json_dir_contents)* -100 + o
+                    if _ss_scrollpos > 0:
+                        _ss_scrollpos = 0
+
+                    # playlists
+                    for playlist in range(len(playlists_json_dir_contents)):
+                        # background hue (button)
+                        _ss_playlist_buttons[playlist].y = 240+(100*playlist) + _ss_scrollpos
+                        _ss_playlist_buttons[playlist].draw(screen)
+                        # image? potentially (placeholder for now)
+                        pygame.draw.rect(screen, con.COLOR_PALETTE["list item unselected"], pygame.Rect(40, 250+(100*playlist) + _ss_scrollpos, 70, 70), border_radius=15)
+                        # playlist text
+                        playlist_name = playlists_json_dir_contents[list(playlists_json_dir_contents.keys())[playlist]]["name"]
+                        text_surface = con.basic_font.render(playlist_name, True, con.COLOR_PALETTE["black"])
+                        screen.blit(text_surface, (150,250+(100*playlist) + 11 + _ss_scrollpos))
+
+                        # if its clicked
+                        if _ss_playlist_buttons[playlist].is_clicked(events):
+                            _ss_selected_playlist = playlist
+                else:
+                    # song selection screen
+
+                    playlist_id = list(playlists_json_dir_contents.keys())[_ss_selected_playlist]
+
+                    # updating scroll
+                    o = 500
+                    _ss_scrollvel = (_ss_scrollvel + mouse_scroll*5)/2
+                    _ss_scrollpos = _ss_scrollpos + _ss_scrollvel*10
+                    if _ss_scrollpos < len(playlists_json_dir_contents[playlist_id]["data"]) * -70 + o:
+                        _ss_scrollpos = len(playlists_json_dir_contents[playlist_id]["data"]) * -70 + o
+                    if _ss_scrollpos > 0:
+                        _ss_scrollpos = 0
+                    
+                    # playlist title
+                    text_surface = con.basic_font.render(playlists_json_dir_contents[playlist_id]["name"], True, con.COLOR_PALETTE["black"])
+                    screen.blit(text_surface, (95,220 + _ss_scrollpos))
+
+                    # songs
+                    for song in range(len(playlists_json_dir_contents[playlist_id]["data"])):
+                        # background hue
+                        pygame.draw.rect(screen, con.COLOR_PALETTE["list item unselected"], pygame.Rect(40, 300+(70*song) + _ss_scrollpos, 450, 60), border_radius=15)
+                        
+                    # draw a button under the mouse if hovering over options
+                    if mouse_y > 95 and mouse_y < con.HEIGHT - 100: # exclude the banner and bottom buttons
+                        # actual boundary check
+                        mouse_eq_id = int((mouse_y-300-_ss_scrollpos)//70)
+                        if mouse_y > 300 + _ss_scrollpos and mouse_y < 300+(70*(len(playlists_json_dir_contents[playlist_id]["data"])-1)) + 60 + _ss_scrollpos:
+                            pygame.draw.rect(screen, con.COLOR_PALETTE["list item selected"], pygame.Rect(40, 300+(70*mouse_eq_id) + _ss_scrollpos, 450, 60), border_radius=15)
+                            for event in events:
+                                if event.type == pygame.MOUSEBUTTONDOWN:
+                                    if event.button == 1:
+                                        song =  playlists_json_dir_contents[playlist_id]["data"][mouse_eq_id]["name"]
+                                        print(f'clicked on {song}')
+                                        if all_songs_sanitized_availability[all_songs_sorted.index(song)] == False:
+                                            warnings.append( Warning("this song isnt available", (40, con.HEIGHT-80, con.WIDTH-80), level="warning"))
+                                        else:
+                                            _b_current_song = all_songs[all_songs.index(song)]
+                                            submenu = "search_loading_bandle"
+
+
+                    for song in range(len(playlists_json_dir_contents[playlist_id]["data"])):
+                        # text
+                        text_surface = con.basic_font.render(playlists_json_dir_contents[playlist_id]["data"][song]["name"][:-9], True, con.COLOR_PALETTE["black"])
+                        screen.blit(text_surface, (50, 300+(70*song)+8+_ss_scrollpos))
+                
+                # Playlists header
+                text_surface = con.title_font.render("Playlists", True, con.COLOR_PALETTE["black"])
+                screen.blit(text_surface, (81,120 + _ss_scrollpos))
+
             # Library and Search buttons
+            if submenu in ["search", "loading_search", "search_loading_main_menu", "search_loading_bandle"]:
+                _ss_library_button.color =       "list item unselected"
+                _ss_global_search_button.color = "face"
+            else:
+                _ss_library_button.color =       "face"
+                _ss_global_search_button.color = "list item unselected"
             _ss_library_button.draw(screen)
             _ss_global_search_button.draw(screen)
+            if submenu in ["search", "library"]:
+                if _ss_library_button.is_clicked(events):
+                    submenu = "library"
+                if _ss_global_search_button.is_clicked(events):
+                    submenu = "search"
 
             # banner
             pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(0, -50, con.WIDTH, 145))
-            text_surface = con.small_font.render("Search" if submenu in ["search", "loading_search", "loading_main_menu"] else "Your Library" if submenu == "library" else "", True, con.COLOR_PALETTE["black"])
+            text_surface = con.small_font.render("Search" if submenu in ["search", "loading_search", "search_loading_main_menu"] else "Your Library" if submenu == "library" else "", True, con.COLOR_PALETTE["black"])
             screen.blit(text_surface, (con.WIDTH/2 + 55 - text_surface.get_width()/2,20 + go_back_button.h/2 - 18))
 
+            # go back button
             go_back_button.draw(screen)
             if go_back_button.is_clicked(events) == 1:
-                submenu = "loading_main_menu"
+                if submenu == "library" and _ss_selected_playlist != -1:
+                    _ss_selected_playlist = -1
+                elif submenu == "library":
+                    submenu = "search"
+                else:
+                    submenu = "search_loading_main_menu"
 
-            _ss_textinput.draw(screen, events)
+            # textinput
+            if submenu in ["search", "loading_search", "search_loading_main_menu", "search_loading_bandle"]:
+                _ss_textinput.draw(screen, events)
 
     # ╭---------------------------------------------------------------------------------------------╮
     # |      ╭    ╭==╮  ╭==╮  ╭-.   .  ╭╮ ╮  ╭==╮       ╭==╮  ╭=-╮  ╭==╮  ╭=-  ╭=-  ╭╮ ╮  ╭==╮      |
@@ -1055,7 +1225,7 @@ def main():
                     loading_anim_slider = 0
 
 
-            if submenu in ["loading_main_menu", "loading_bandle"]:
+            if submenu in ["search_loading_main_menu", "search_loading_bandle", "library_loading_main_menu"]:
                 loading_anim_slider += (1 - loading_anim_slider)*_mm_ANIM_SPEED
                 pygame.draw.rect(screen, con.COLOR_PALETTE["guessing background"], pygame.Rect(con.WIDTH -loading_anim_slider*con.WIDTH,0, con.WIDTH, con.HEIGHT))
                 text_surface = con.title_font.render("Loading", True, con.COLOR_PALETTE["black"])
@@ -1064,11 +1234,11 @@ def main():
 
 
                 if abs((1-loading_anim_slider) * 100) < 1:
-                    if submenu == "loading_main_menu":
+                    if submenu == "search_loading_main_menu":
                         loading_anim_slider = 0
                         submenu = "loading_main_menu"
                         curr_screen = "main_menu"
-                    elif submenu == "loading_bandle":
+                    elif submenu == "search_loading_bandle":
                         loading_anim_slider = 0
                         submenu = "setup_song"
                         curr_screen = "bandle_setup"
@@ -1586,7 +1756,7 @@ def main():
                 textinput.y = con.HEIGHT - (con.HEIGHT-543)*_b_popup_guess_offset
                 pygame.draw.rect(screen, con.COLOR_PALETTE["face"], pygame.Rect(55, con.HEIGHT-(con.HEIGHT-538)*_b_popup_guess_offset, 390, 59), border_radius=15)
                 textinput.draw(screen, events)
-                
+    
 
                 limit = 8
                 text = textinput.text

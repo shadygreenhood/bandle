@@ -3,18 +3,22 @@
 
 # 1. Data files (from --add-data)
 import certifi
+
+import demucs
+demucs_path = os.path.dirname(demucs.__file__)
+remote_path = os.path.join(demucs_path, "remote")
+
 datas = [
     ("assets", "assets"),
     ("font", "font"),
     ("ffmpeg", "ffmpeg"),
-    (r"C:\Users\User\Documents\github projects\bandle clone\venv\lib\site-packages\demucs\remote", "demucs/remote"),
-    #(r"C:\Users\User\AppData\Roaming\Python\Python310\site-packages\demucs\remote", "demucs/remote"),
+    (remote_path, "demucs/remote"),
     (certifi.where(), "certifi"),
 ]
 
 # 3. Analysis
 a = Analysis(
-    ['quick_start.py'],      # your main script
+    ['quick_start.py', 'console.py'],      # your main script
     pathex=[],           # optionally add extra search paths
     binaries=[],
     datas=datas,
